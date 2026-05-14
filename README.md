@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # KiotRetail - Hệ thống Quản lý Bán hàng
 
 Hệ thống quản lý bán hàng toàn diện được xây dựng bằng JSP, Servlet, JDBC và Bootstrap 5.
@@ -284,3 +285,6 @@ WEB-INF/views/
 - Email: support@kiotretail.vn
 - Website: https://kiotretail.vn
 - Hotline: 1900-xxxx
+=======
+# SWP391_Group_5
+>>>>>>> 6f4e3325732fdebed0a184faf3ed4ad162041f2f
