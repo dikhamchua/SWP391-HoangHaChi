@@ -1,29 +1,30 @@
-<<<<<<< HEAD
 # KiotRetail - Hệ thống Quản lý Bán hàng
 
 Hệ thống quản lý bán hàng toàn diện được xây dựng bằng JSP, Servlet, JDBC và Bootstrap 5.
 
-## Công nghệ sử dụng
+## 🚀 Công nghệ sử dụng
 
 - **Backend**: Java Servlet, JSP, JDBC
-- **Frontend**: Bootstrap 5, Material Icons
-- **Database**: MySQL 8.0+
-- **Server**: Apache Tomcat 9.0+
-- **Build Tool**: Maven (optional)
+- **Frontend**: Bootstrap 5.3.0, Material Icons
+- **Database**: SQL Server 2019+
+- **Server**: Apache Tomcat 10.1
+- **Build Tool**: Maven 3.6+
+- **Java**: JDK 17
 
-## Yêu cầu hệ thống
+## 📋 Yêu cầu hệ thống
 
-- JDK 8 trở lên
-- Apache Tomcat 9.0 trở lên
-- MySQL 8.0 trở lên
-- Maven 3.6+ (nếu sử dụng)
+- **JDK 17** trở lên
+- **Apache Tomcat 10.1** (Jakarta EE 9+)
+- **SQL Server 2019** trở lên
+- **Maven 3.6+**
 
-## Cấu trúc thư mục
+## 📁 Cấu trúc thư mục
 
 ```
 kiotretail/
 ├── sql/
-│   └── schema.sql                 # Database schema và dữ liệu mẫu
+│   ├── schema_sqlserver.sql       # SQL Server schema và dữ liệu mẫu
+│   └── schema.sql                 # MySQL schema (deprecated)
 ├── src/
 │   └── main/
 │       ├── java/
@@ -43,94 +44,107 @@ kiotretail/
 │           │       └── pos/       # POS pages
 │           ├── assets/
 │           │   ├── css/           # Stylesheets
+│           │   │   ├── theme.css      # Theme variables
+│           │   │   ├── components.css # Component styles
+│           │   │   └── README.md      # CSS documentation
 │           │   ├── js/            # JavaScript files
 │           │   └── images/        # Images
 │           └── index.jsp          # Landing page
-└── README.md
+├── pom.xml                        # Maven configuration
+├── README.md                      # This file
+├── QUICKSTART.md                  # Quick start guide
+├── PROJECT_STRUCTURE.md           # Project structure details
+└── SQLSERVER_MIGRATION.md         # SQL Server migration guide
 ```
 
-## Hướng dẫn cài đặt
+## 🔧 Hướng dẫn cài đặt
 
-### 1. Cài đặt Database
+### 1. Cài đặt SQL Server Database
 
+**Cách 1: Sử dụng SQL Server Management Studio (SSMS)**
+```sql
+-- Mở SSMS và connect với:
+-- Server: localhost
+-- Authentication: SQL Server Authentication
+-- Login: sa
+-- Password: 123456
+
+-- Mở file sql/schema_sqlserver.sql và Execute (F5)
+```
+
+**Cách 2: Sử dụng sqlcmd**
 ```bash
-# Đăng nhập MySQL
-mysql -u root -p
-
-# Tạo database và import schema
-source D:/code/kiotretail/sql/schema.sql
+sqlcmd -S localhost -U sa -P 123456 -i "D:\code\kiotretail\sql\schema_sqlserver.sql"
 ```
-
-Hoặc sử dụng MySQL Workbench để import file `schema.sql`.
 
 ### 2. Cấu hình Database Connection
 
-Mở file `src/main/java/com/kiotretail/util/DatabaseUtil.java` và cập nhật thông tin kết nối:
+File đã được cấu hình sẵn trong `DatabaseUtil.java`:
 
 ```java
-private static final String URL = "jdbc:mysql://localhost:3306/kiotretail?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh";
-private static final String USERNAME = "root";
-private static final String PASSWORD = "your_password";
+URL: jdbc:sqlserver://localhost:1433;databaseName=SamplePE;trustServerCertificate=true
+Username: sa
+Password: 123456
 ```
 
-### 3. Thêm MySQL Connector
-
-#### Cách 1: Sử dụng Maven
-
-Thêm dependency vào `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>8.0.33</version>
-</dependency>
+**Nếu cần thay đổi**, mở file:
+```
+src/main/java/com/kiotretail/util/DatabaseUtil.java
 ```
 
-#### Cách 2: Thêm JAR thủ công
+### 3. Cài đặt Dependencies
 
-1. Download MySQL Connector/J từ: https://dev.mysql.com/downloads/connector/j/
-2. Copy file `mysql-connector-java-x.x.xx.jar` vào thư mục `WEB-INF/lib/`
+Project sử dụng Maven để quản lý dependencies:
 
-### 4. Thêm JSTL Library
-
-Download và copy các file JAR sau vào `WEB-INF/lib/`:
-- `jstl-1.2.jar`
-- `standard-1.1.2.jar`
-
-Hoặc thêm vào Maven:
-
-```xml
-<dependency>
-    <groupId>javax.servlet</groupId>
-    <artifactId>jstl</artifactId>
-    <version>1.2</version>
-</dependency>
+```bash
+cd D:\code\kiotretail
+mvn clean install
 ```
 
-### 5. Deploy lên Tomcat
+**Dependencies chính:**
+- Jakarta Servlet API 5.0.0 (Tomcat 10+)
+- Jakarta JSP API 3.0.0
+- Jakarta JSTL 2.0.0
+- SQL Server JDBC Driver 12.4.2
 
-#### Cách 1: Sử dụng IDE (Eclipse/IntelliJ)
+### 4. Build Project
 
-1. Import project vào IDE
-2. Configure Tomcat server
-3. Add project to server
-4. Start server
+```bash
+# Build WAR file
+mvn clean package
+
+# File WAR sẽ được tạo tại:
+# target/kiotretail.war
+```
+
+### 5. Deploy lên Tomcat 10.1
+
+#### Cách 1: Sử dụng IDE (NetBeans/IntelliJ/Eclipse)
+
+**NetBeans:**
+1. Tools → Servers → Add Server
+2. Chọn Apache Tomcat
+3. Server Location: `C:\Tomcat 10.1_Tomcat`
+4. Right-click project → Run
+
+**IntelliJ IDEA:**
+1. File → Settings → Application Servers
+2. Add Tomcat Server
+3. Tomcat Home: `C:\Tomcat 10.1_Tomcat`
+4. Run → Edit Configurations → Add Tomcat Server
 
 #### Cách 2: Deploy thủ công
 
-1. Build project thành file WAR
-2. Copy file WAR vào thư mục `tomcat/webapps/`
-3. Start Tomcat server
-
 ```bash
-# Windows
-cd C:\apache-tomcat-9.0.xx\bin
+# Copy WAR file vào Tomcat
+copy target\kiotretail.war "C:\Tomcat 10.1_Tomcat\webapps\"
+
+# Start Tomcat
+cd "C:\Tomcat 10.1_Tomcat\bin"
 startup.bat
 
-# Linux/Mac
-cd /opt/tomcat/bin
-./startup.sh
+# Xem log
+tail -f "C:\Tomcat 10.1_Tomcat\logs\catalina.out"
 ```
 
 ### 6. Truy cập ứng dụng
@@ -140,19 +154,21 @@ Mở trình duyệt và truy cập:
 http://localhost:8080/kiotretail/
 ```
 
-## Tài khoản đăng nhập mặc định
+## 🔐 Tài khoản đăng nhập mặc định
 
 ### Admin
 - **Username**: `admin`
 - **Password**: `123456`
 - **Vai trò**: Quản trị hệ thống
+- **Mã NV**: NV00124
 
 ### Nhân viên
 - **Username**: `thungan01`
 - **Password**: `123456`
 - **Vai trò**: Nhân viên bán hàng
+- **Mã NV**: NV00125
 
-## Tính năng chính
+## ✨ Tính năng chính
 
 ### 1. Quản lý Bán hàng (POS)
 - Giao diện bán hàng nhanh
@@ -194,7 +210,7 @@ http://localhost:8080/kiotretail/
 - Đối soát
 - Báo cáo tài chính
 
-## Cấu trúc MVC
+## 🏗️ Kiến trúc MVC
 
 ### Model (Entity)
 ```
@@ -232,59 +248,168 @@ WEB-INF/views/
 │   ├── footer.jsp
 │   └── sidebar.jsp
 ├── auth/
-│   └── login.jsp
+│   ├── login.jsp
+│   └── role-selection.jsp
 ├── admin/
+│   ├── dashboard.jsp
 │   ├── products.jsp
-│   ├── invoices.jsp
 │   └── ...
 └── pos/
     └── sale.jsp
 ```
 
-## Troubleshooting
+## 🎨 CSS Structure
 
-### Lỗi kết nối Database
-- Kiểm tra MySQL service đã chạy chưa
-- Kiểm tra username/password trong DatabaseUtil.java
-- Kiểm tra MySQL Connector JAR đã được thêm chưa
+Project sử dụng cấu trúc CSS module hóa:
+
+- **theme.css** - CSS Variables, colors, fonts, base styles
+- **components.css** - Layout, components, sizing, spacing
+
+Xem chi tiết tại: `src/main/webapp/assets/css/README.md`
+
+## 🔍 Troubleshooting
+
+### Lỗi kết nối SQL Server
+
+**Triệu chứng:**
+```
+java.sql.SQLException: Cannot open database
+```
+
+**Giải pháp:**
+1. Kiểm tra SQL Server service đang chạy
+2. Enable TCP/IP trong SQL Server Configuration Manager
+3. Enable SQL Server Authentication (Mixed Mode)
+4. Restart SQL Server service
+
+```bash
+# Test connection
+sqlcmd -S localhost -U sa -P 123456
+```
+
+### Lỗi "javax.servlet.Filter not found"
+
+**Triệu chứng:**
+```
+java.lang.NoClassDefFoundError: javax/servlet/Filter
+```
+
+**Nguyên nhân:** Đang dùng Tomcat 10+ nhưng code dùng `javax.servlet`
+
+**Giải pháp:** Project đã được update sang Jakarta EE. Chỉ cần:
+```bash
+mvn clean package
+```
 
 ### Lỗi 404 Not Found
-- Kiểm tra context path trong web.xml
-- Kiểm tra URL mapping trong servlet
+
+**Kiểm tra:**
+- Context path: `/kiotretail`
+- URL đúng: `http://localhost:8080/kiotretail/`
+- Tomcat đã start thành công
 
 ### Lỗi encoding tiếng Việt
-- Đảm bảo database charset là utf8mb4
-- Kiểm tra EncodingFilter đã được cấu hình
-- Thêm `?useUnicode=true&characterEncoding=UTF-8` vào connection string
+
+**Giải pháp:**
+- Database đã dùng `NVARCHAR` (Unicode)
+- EncodingFilter đã được cấu hình trong web.xml
+- Connection string có `trustServerCertificate=true`
 
 ### Lỗi JSTL không hoạt động
-- Kiểm tra JSTL JAR đã được thêm vào WEB-INF/lib/
-- Kiểm tra taglib directive trong JSP
 
-## Phát triển thêm
+**Kiểm tra pom.xml có:**
+```xml
+<dependency>
+    <groupId>jakarta.servlet.jsp.jstl</groupId>
+    <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+
+## 📚 Tài liệu bổ sung
+
+- **QUICKSTART.md** - Hướng dẫn cài đặt nhanh trong 5 phút
+- **PROJECT_STRUCTURE.md** - Chi tiết cấu trúc project
+- **SQLSERVER_MIGRATION.md** - Hướng dẫn migration SQL Server
+- **assets/css/README.md** - Tài liệu CSS structure
+
+## 🔄 Phát triển thêm
 
 ### Thêm module mới
+
 1. Tạo Model trong `com.kiotretail.model`
 2. Tạo DAO trong `com.kiotretail.dao`
 3. Tạo Servlet trong `com.kiotretail.controller`
 4. Tạo JSP trong `WEB-INF/views`
-5. Cập nhật web.xml
+5. Cập nhật web.xml với servlet mapping
 
 ### Thêm tính năng bảo mật
+
 - Sử dụng BCrypt để hash password
 - Thêm CSRF token
 - Implement session timeout
 - Thêm HTTPS
 
-## License
+## 📦 Dependencies
+
+```xml
+<!-- Jakarta EE (Tomcat 10+) -->
+<dependency>
+    <groupId>jakarta.servlet</groupId>
+    <artifactId>jakarta.servlet-api</artifactId>
+    <version>5.0.0</version>
+</dependency>
+
+<!-- SQL Server JDBC Driver -->
+<dependency>
+    <groupId>com.microsoft.sqlserver</groupId>
+    <artifactId>mssql-jdbc</artifactId>
+    <version>12.4.2.jre8</version>
+</dependency>
+
+<!-- JSTL -->
+<dependency>
+    <groupId>jakarta.servlet.jsp.jstl</groupId>
+    <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+
+## 🌐 Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Edge 90+
+- Safari 14+
+
+## 📝 Version History
+
+- **v1.0.0** (2024-05-15)
+  - Initial release
+  - SQL Server support
+  - Jakarta EE (Tomcat 10+)
+  - Bootstrap 5.3.0
+  - Material Design 3
+
+## 👥 Team
+
+- **Project**: SWP391_Group_5
+- **Repository**: https://github.com/hoanghachi12082005-ops/SWP391_Group_5
+
+## 📄 License
 
 © 2024 KiotRetail. All rights reserved.
 
-## Liên hệ
+## 📞 Liên hệ & Hỗ trợ
 
-- Email: support@kiotretail.vn
-- Website: https://kiotretail.vn
-- Hotline: 1900-xxxx
-=======
-# SWP391_Group_5
->>>>>>> 6f4e3325732fdebed0a184faf3ed4ad162041f2f
+- **GitHub Issues**: https://github.com/hoanghachi12082005-ops/SWP391_Group_5/issues
+- **Email**: support@kiotretail.vn
+- **Documentation**: See README.md, QUICKSTART.md, PROJECT_STRUCTURE.md
+
+---
+
+**Lưu ý quan trọng:**
+- Project này sử dụng **Jakarta EE** (không phải Java EE)
+- Yêu cầu **Tomcat 10.1+** (không tương thích với Tomcat 9)
+- Database: **SQL Server** (không phải MySQL)
+- Java: **JDK 17** (không phải JDK 8)
