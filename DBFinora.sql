@@ -1,506 +1,869 @@
-CREATE DATABASE IF NOT EXISTS DBFinora;
+-- =========================================
+-- CREATE DATABASE
+-- =========================================
+CREATE DATABASE DBFinora;
+GO
+
 USE DBFinora;
 GO
 
--- =====================================================
--- 1. ROLES
--- =====================================================
-CREATE TABLE Roles (
-    RoleID      BIGINT PRIMARY KEY IDENTITY(1,1),
-    RoleName    VARCHAR(50)    NOT NULL UNIQUE,
+-- =========================================
+-- ROLE
+-- =========================================
+CREATE TABLE Role (
+    RoleID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) UNIQUE NOT NULL,
+    Description NVARCHAR(MAX)
+);
+
+-- =========================================
+-- BRANCH
+-- =========================================
+CREATE TABLE Branch (
+    BranchID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Address NVARCHAR(MAX),
+    Phone VARCHAR(20),
+    Status VARCHAR(20) DEFAULT 'active',
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- =========================================
+-- EMPLOYEE
+-- =========================================
+CREATE TABLE Employee (
+    EmployeeID INT IDENTITY(1,1) PRIMARY KEY,
+    RoleID INT NOT NULL,
+    BranchID INT NOT NULL,
+
+    FullName NVARCHAR(255) NOT NULL,
+    Email NVARCHAR(255) UNIQUE,
+    Phone VARCHAR(20),
+
+    PasswordHash NVARCHAR(255) NOT NULL,
+
+    Status VARCHAR(20) DEFAULT 'active',
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Employee_Role
+        FOREIGN KEY (RoleID)
+        REFERENCES Role(RoleID),
+
+    CONSTRAINT FK_Employee_Branch
+        FOREIGN KEY (BranchID)
+        REFERENCES Branch(BranchID)
+);
+
+-- =========================================
+-- CUSTOMER
+-- =========================================
+CREATE TABLE Customer (
+    CustomerID INT IDENTITY(1,1) PRIMARY KEY,
+
+    FullName NVARCHAR(255) NOT NULL,
+    Phone VARCHAR(20) UNIQUE,
+    Email NVARCHAR(255),
+    Address NVARCHAR(MAX),
+
+    DoB DATE,
+
+    Gender VARCHAR(20),
+
+    MembershipTier NVARCHAR(50),
+
+    Points INT DEFAULT 0,
+
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- =========================================
+-- SUPPLIER
+-- =========================================
+CREATE TABLE Supplier (
+    SupplierID INT IDENTITY(1,1) PRIMARY KEY,
+
+    Name NVARCHAR(255) NOT NULL,
+    Phone VARCHAR(20),
+    Email NVARCHAR(255),
+    Address NVARCHAR(MAX),
+
+    Status VARCHAR(20) DEFAULT 'active',
+
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- =========================================
+-- CATEGORY
+-- =========================================
+CREATE TABLE Category (
+    CategoryID INT IDENTITY(1,1) PRIMARY KEY,
+
+    Name NVARCHAR(255) NOT NULL,
+
     Description NVARCHAR(MAX),
-    CreatedAt   DATETIME       DEFAULT GETDATE()
+
+    ParentID INT NULL,
+
+    Status VARCHAR(20) DEFAULT 'active',
+
+    CONSTRAINT FK_Category_Parent
+        FOREIGN KEY (ParentID)
+        REFERENCES Category(CategoryID)
 );
-GO
 
--- =====================================================
--- 2. STORE OWNERS
--- =====================================================
-CREATE TABLE StoreOwners (
-    OwnerID      BIGINT PRIMARY KEY IDENTITY(1,1),
-    FullName     NVARCHAR(100)  NOT NULL,
-    Email        VARCHAR(100)   NOT NULL UNIQUE,
-    Phone        VARCHAR(20)    UNIQUE,
-    PasswordHash NVARCHAR(255)  NOT NULL,
-    AvatarURL    NVARCHAR(255),
-    Status       VARCHAR(20)    NOT NULL
-                 CHECK (Status IN ('ACTIVE', 'INACTIVE', 'LOCKED'))
-                 DEFAULT 'ACTIVE',
-    LastLogin    DATETIME       NULL,
-    CreatedAt    DATETIME       DEFAULT GETDATE(),
-    UpdatedAt    DATETIME       DEFAULT GETDATE()
+-- =========================================
+-- PRODUCT
+-- =========================================
+CREATE TABLE Product (
+    ProductID INT IDENTITY(1,1) PRIMARY KEY,
+
+    CategoryID INT NOT NULL,
+
+    Name NVARCHAR(255) NOT NULL,
+
+    SKU VARCHAR(100) UNIQUE NOT NULL,
+
+    Price DECIMAL(18,2) DEFAULT 0,
+
+    CostPrice DECIMAL(18,2) DEFAULT 0,
+
+    StockAlertQty INT DEFAULT 0,
+
+    Status VARCHAR(20) DEFAULT 'active',
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Product_Category
+        FOREIGN KEY (CategoryID)
+        REFERENCES Category(CategoryID)
 );
-GO
 
--- =====================================================
--- 3. BRANCHES
--- =====================================================
-CREATE TABLE Branches (
-    BranchID   BIGINT PRIMARY KEY IDENTITY(1,1),
-    OwnerID    BIGINT         NOT NULL,
-    BranchName NVARCHAR(100)  NOT NULL,
-    Phone      VARCHAR(20),
-    Address    NVARCHAR(MAX),
-    Status     VARCHAR(20)    NOT NULL
-               CHECK (Status IN ('ACTIVE', 'INACTIVE'))
-               DEFAULT 'ACTIVE',
-    CreatedAt  DATETIME       DEFAULT GETDATE(),
-    UpdatedAt  DATETIME       DEFAULT GETDATE(),
+-- =========================================
+-- WAREHOUSE
+-- =========================================
+CREATE TABLE Warehouse (
+    WarehouseID INT IDENTITY(1,1) PRIMARY KEY,
 
-    CONSTRAINT FK_Branches_StoreOwners
-        FOREIGN KEY (OwnerID) REFERENCES StoreOwners(OwnerID)
-        ON DELETE CASCADE
+    BranchID INT NOT NULL,
+    EmployeeID INT NOT NULL,
+    ProductID INT NOT NULL,
+
+    Name NVARCHAR(255) NOT NULL,
+
+    Address NVARCHAR(MAX),
+
+    Status VARCHAR(20) DEFAULT 'active',
+
+    Quantity INT DEFAULT 0,
+
+    AvailableQuantity INT DEFAULT 0,
+
+    MinQuantity INT DEFAULT 0,
+
+    MaxQuantity INT DEFAULT 0,
+
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Warehouse_Branch
+        FOREIGN KEY (BranchID)
+        REFERENCES Branch(BranchID),
+
+    CONSTRAINT FK_Warehouse_Employee
+        FOREIGN KEY (EmployeeID)
+        REFERENCES Employee(EmployeeID),
+
+    CONSTRAINT FK_Warehouse_Product
+        FOREIGN KEY (ProductID)
+        REFERENCES Product(ProductID)
 );
-GO
 
--- =====================================================
--- 4. EMPLOYEES
--- =====================================================
-CREATE TABLE Employees (
-    EmployeeID   BIGINT PRIMARY KEY IDENTITY(1,1),
-    BranchID     BIGINT         NOT NULL,
-    RoleID       BIGINT         NOT NULL,
-    FullName     NVARCHAR(100)  NOT NULL,
-    Email        VARCHAR(100)   NOT NULL UNIQUE,
-    Phone        VARCHAR(20)    UNIQUE,
-    PasswordHash NVARCHAR(255)  NOT NULL,
-    AvatarURL    NVARCHAR(255),
-    HireDate     DATE,
-    Salary       DECIMAL(18,2),
-    Status       VARCHAR(20)    NOT NULL
-                 CHECK (Status IN ('ACTIVE', 'INACTIVE', 'LOCKED'))
-                 DEFAULT 'ACTIVE',
-    LastLogin    DATETIME       NULL,
-    CreatedAt    DATETIME       DEFAULT GETDATE(),
-    UpdatedAt    DATETIME       DEFAULT GETDATE(),
-
-    CONSTRAINT FK_Employees_Branches
-        FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
-        ON DELETE CASCADE,
-
-    CONSTRAINT FK_Employees_Roles
-        FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
-);
-GO
-
--- =====================================================
--- 5. REFRESH TOKENS
--- =====================================================
-CREATE TABLE RefreshTokens (
-    RefreshTokenID BIGINT PRIMARY KEY IDENTITY(1,1),
-    EmployeeID     BIGINT         NULL,
-    OwnerID        BIGINT         NULL,
-    Token          NVARCHAR(MAX)  NOT NULL,
-    ExpiredAt      DATETIME       NOT NULL,
-    Revoked        BIT            DEFAULT 0,
-    CreatedAt      DATETIME       DEFAULT GETDATE(),
-
-    CONSTRAINT FK_RefreshTokens_Employees
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
-        ON DELETE SET NULL,
-
-    CONSTRAINT FK_RefreshTokens_StoreOwners
-        FOREIGN KEY (OwnerID) REFERENCES StoreOwners(OwnerID)
-        ON DELETE SET NULL
-);
-GO
-
--- =====================================================
--- 6. PASSWORD RESET TOKENS
--- =====================================================
-CREATE TABLE PasswordResetTokens (
-    ResetID   BIGINT PRIMARY KEY IDENTITY(1,1),
-    Email     VARCHAR(100)   NOT NULL,
-    Token     NVARCHAR(255)  NOT NULL UNIQUE,
-    ExpiredAt DATETIME       NOT NULL,
-    Used      BIT            DEFAULT 0,
-    CreatedAt DATETIME       DEFAULT GETDATE()
-);
-GO
-
--- =====================================================
--- 7. AUDIT LOGS
--- Ghi nhận mọi hành động của Owner & Employee
--- Thêm old_data / new_data so với script gốc (theo ERD)
--- =====================================================
-CREATE TABLE AuditLogs (
-    LogID       BIGINT PRIMARY KEY IDENTITY(1,1),
-    ActorType   VARCHAR(20)    NOT NULL
-                CHECK (ActorType IN ('OWNER', 'EMPLOYEE')),
-    ActorID     BIGINT         NOT NULL,
-    ActionName  VARCHAR(100)   NOT NULL,   -- e.g. CREATE_ORDER, UPDATE_PRODUCT
-    EntityType  VARCHAR(100),              -- e.g. 'Order', 'Product'
-    EntityID    BIGINT,
-    OldData     NVARCHAR(MAX),             -- JSON snapshot trước khi thay đổi
-    NewData     NVARCHAR(MAX),             -- JSON snapshot sau khi thay đổi
-    Description NVARCHAR(MAX),
-    IPAddress   VARCHAR(45),
-    UserAgent   NVARCHAR(MAX),
-    CreatedAt   DATETIME       DEFAULT GETDATE()
-);
-GO
-
--- =====================================================
--- 8. CATEGORIES
--- Hỗ trợ danh mục cha-con (parent_id tự tham chiếu)
--- =====================================================
-CREATE TABLE Categories (
-    CategoryID  BIGINT PRIMARY KEY IDENTITY(1,1),
-    Name        NVARCHAR(100)  NOT NULL,
-    Description NVARCHAR(MAX),
-    ParentID    BIGINT         NULL,       -- NULL = danh mục gốc
-    Status      VARCHAR(20)    NOT NULL
-                CHECK (Status IN ('ACTIVE', 'INACTIVE'))
-                DEFAULT 'ACTIVE',
-
-    CONSTRAINT FK_Categories_Parent
-        FOREIGN KEY (ParentID) REFERENCES Categories(CategoryID)
-);
-GO
-
--- =====================================================
--- 9. SUPPLIERS
--- =====================================================
-CREATE TABLE Suppliers (
-    SupplierID BIGINT PRIMARY KEY IDENTITY(1,1),
-    Name       NVARCHAR(100)  NOT NULL,
-    Phone      VARCHAR(20),
-    Email      VARCHAR(100),
-    Address    NVARCHAR(MAX),
-    Status     VARCHAR(20)    NOT NULL
-               CHECK (Status IN ('ACTIVE', 'INACTIVE'))
-               DEFAULT 'ACTIVE',
-    CreatedAt  DATETIME       DEFAULT GETDATE()
-);
-GO
-
--- =====================================================
--- 10. PRODUCTS
--- =====================================================
-CREATE TABLE Products (
-    ProductID      BIGINT PRIMARY KEY IDENTITY(1,1),
-    CategoryID     BIGINT         NOT NULL,
-    Name           NVARCHAR(200)  NOT NULL,
-    SKU            VARCHAR(100)   NOT NULL UNIQUE,
-    Price          DECIMAL(18,2)  NOT NULL DEFAULT 0,   -- giá bán
-    CostPrice      DECIMAL(18,2)  NOT NULL DEFAULT 0,   -- giá vốn
-    StockAlertQty  INT            DEFAULT 0,            -- ngưỡng cảnh báo tồn kho
-    Status         VARCHAR(20)    NOT NULL
-                   CHECK (Status IN ('ACTIVE', 'INACTIVE'))
-                   DEFAULT 'ACTIVE',
-    CreatedAt      DATETIME       DEFAULT GETDATE(),
-
-    CONSTRAINT FK_Products_Categories
-        FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID)
-);
-GO
-
--- =====================================================
--- 11. WAREHOUSES
--- Mỗi kho thuộc một chi nhánh
--- =====================================================
-CREATE TABLE Warehouses (
-    WarehouseID BIGINT PRIMARY KEY IDENTITY(1,1),
-    BranchID    BIGINT         NOT NULL,
-    Name        NVARCHAR(100)  NOT NULL,
-    Address     NVARCHAR(MAX),
-    Status      VARCHAR(20)    NOT NULL
-                CHECK (Status IN ('ACTIVE', 'INACTIVE'))
-                DEFAULT 'ACTIVE',
-    CreatedAt   DATETIME       DEFAULT GETDATE(),
-
-    CONSTRAINT FK_Warehouses_Branches
-        FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
-        ON DELETE CASCADE
-);
-GO
-
--- =====================================================
--- 12. INVENTORIES
--- Tồn kho của từng sản phẩm trong từng kho
--- =====================================================
-CREATE TABLE Inventories (
-    InventoryID       BIGINT PRIMARY KEY IDENTITY(1,1),
-    WarehouseID       BIGINT  NOT NULL,
-    ProductID         BIGINT  NOT NULL,
-    Quantity          INT     NOT NULL DEFAULT 0,
-    ReservedQuantity  INT     NOT NULL DEFAULT 0,   -- đã đặt chưa xuất
-    AvailableQuantity AS (Quantity - ReservedQuantity) PERSISTED,  -- tính toán
-    MinQuantity       INT     DEFAULT 0,
-    MaxQuantity       INT     DEFAULT 0,
-    UpdatedAt         DATETIME DEFAULT GETDATE(),
-    CreatedAt         DATETIME DEFAULT GETDATE(),
-
-    CONSTRAINT UQ_Inventories_Warehouse_Product
-        UNIQUE (WarehouseID, ProductID),
-
-    CONSTRAINT FK_Inventories_Warehouses
-        FOREIGN KEY (WarehouseID) REFERENCES Warehouses(WarehouseID)
-        ON DELETE CASCADE,
-
-    CONSTRAINT FK_Inventories_Products
-        FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
-);
-GO
-
--- =====================================================
--- 13. INVENTORY TRANSACTIONS
--- Lịch sử mọi biến động kho (nhập, xuất, điều chỉnh…)
--- =====================================================
-CREATE TABLE InventoryTransactions (
-    InventoryTransactionID BIGINT PRIMARY KEY IDENTITY(1,1),
-    WarehouseID            BIGINT        NOT NULL,
-    ProductID              BIGINT        NOT NULL,
-    TransactionType        VARCHAR(50)   NOT NULL
-                           CHECK (TransactionType IN (
-                               'IMPORT',       -- nhập hàng
-                               'EXPORT',       -- xuất hàng (bán)
-                               'TRANSFER_IN',  -- nhận điều chuyển
-                               'TRANSFER_OUT', -- xuất điều chuyển
-                               'ADJUSTMENT'    -- điều chỉnh thủ công
-                           )),
-    Quantity               INT           NOT NULL,
-    ReferenceType          VARCHAR(50),  -- 'PurchaseOrder' | 'Order' | 'StockTransfer'
-    ReferenceID            BIGINT,       -- ID tương ứng
-    CreatedBy              BIGINT,       -- EmployeeID thực hiện
-    CreatedAt              DATETIME      DEFAULT GETDATE(),
-
-    CONSTRAINT FK_InvTxn_Warehouses
-        FOREIGN KEY (WarehouseID) REFERENCES Warehouses(WarehouseID),
-
-    CONSTRAINT FK_InvTxn_Products
-        FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
-
-    CONSTRAINT FK_InvTxn_Employees
-        FOREIGN KEY (CreatedBy) REFERENCES Employees(EmployeeID)
-);
-GO
-
--- =====================================================
--- 14. PURCHASE ORDERS (Đơn đặt hàng nhà cung cấp)
--- =====================================================
-CREATE TABLE PurchaseOrders (
-    PurchaseOrderID BIGINT PRIMARY KEY IDENTITY(1,1),
-    POCode          VARCHAR(50)    NOT NULL UNIQUE,
-    SupplierID      BIGINT         NOT NULL,
-    EmployeeID      BIGINT         NOT NULL,   -- nhân viên tạo đơn
-    WarehouseID     BIGINT         NOT NULL,   -- nhập về kho nào
-    Subtotal        DECIMAL(18,2)  NOT NULL DEFAULT 0,
-    TotalAmount     DECIMAL(18,2)  NOT NULL DEFAULT 0,
-    Status          VARCHAR(30)    NOT NULL
-                    CHECK (Status IN ('PENDING', 'APPROVED', 'RECEIVED', 'CANCELLED'))
-                    DEFAULT 'PENDING',
-    CreatedAt       DATETIME       DEFAULT GETDATE(),
-
-    CONSTRAINT FK_PO_Suppliers
-        FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID),
-
-    CONSTRAINT FK_PO_Employees
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
-
-    CONSTRAINT FK_PO_Warehouses
-        FOREIGN KEY (WarehouseID) REFERENCES Warehouses(WarehouseID)
-);
-GO
-
--- =====================================================
--- 15. PURCHASE ORDER ITEMS
--- =====================================================
-CREATE TABLE PurchaseOrderItems (
-    PurchaseOrderItemID BIGINT PRIMARY KEY IDENTITY(1,1),
-    PurchaseOrderID     BIGINT         NOT NULL,
-    ProductID           BIGINT         NOT NULL,
-    Quantity            INT            NOT NULL,
-    CostPrice           DECIMAL(18,2)  NOT NULL,
-    Subtotal            AS (Quantity * CostPrice) PERSISTED,
-
-    CONSTRAINT FK_POItems_PurchaseOrders
-        FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID)
-        ON DELETE CASCADE,
-
-    CONSTRAINT FK_POItems_Products
-        FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
-);
-GO
-
--- =====================================================
--- 16. STOCK TRANSFERS (Điều chuyển kho)
--- =====================================================
-CREATE TABLE StockTransfers (
-    StockTransferID  BIGINT PRIMARY KEY IDENTITY(1,1),
-    BranchID         BIGINT        NOT NULL,
-    FromWarehouseID  BIGINT        NOT NULL,
-    ToWarehouseID    BIGINT        NOT NULL,
-    EmployeeID       BIGINT        NOT NULL,
-    TransferCode     VARCHAR(50)   NOT NULL UNIQUE,
-    TransferDate     DATETIME      NOT NULL DEFAULT GETDATE(),
-    Status           VARCHAR(30)   NOT NULL
-                     CHECK (Status IN ('PENDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED'))
-                     DEFAULT 'PENDING',
-    Note             NVARCHAR(MAX),
-    CreatedAt        DATETIME      DEFAULT GETDATE(),
-
-    CONSTRAINT FK_StockTransfers_Branches
-        FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
-
-    CONSTRAINT FK_StockTransfers_FromWarehouse
-        FOREIGN KEY (FromWarehouseID) REFERENCES Warehouses(WarehouseID),
-
-    CONSTRAINT FK_StockTransfers_ToWarehouse
-        FOREIGN KEY (ToWarehouseID) REFERENCES Warehouses(WarehouseID),
-
-    CONSTRAINT FK_StockTransfers_Employees
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
-);
-GO
-
--- =====================================================
--- 17. STOCK TRANSFER ITEMS
--- =====================================================
-CREATE TABLE StockTransferItems (
-    StockTransferItemID BIGINT PRIMARY KEY IDENTITY(1,1),
-    StockTransferID     BIGINT  NOT NULL,
-    ProductID           BIGINT  NOT NULL,
-    Quantity            INT     NOT NULL,
-    Note                NVARCHAR(MAX),
-
-    CONSTRAINT FK_STItems_StockTransfers
-        FOREIGN KEY (StockTransferID) REFERENCES StockTransfers(StockTransferID)
-        ON DELETE CASCADE,
-
-    CONSTRAINT FK_STItems_Products
-        FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
-);
-GO
-
--- =====================================================
--- 18. CUSTOMERS
--- =====================================================
-CREATE TABLE Customers (
-    CustomerID     BIGINT PRIMARY KEY IDENTITY(1,1),
-    FullName       NVARCHAR(100)  NOT NULL,
-    Phone          VARCHAR(20)    UNIQUE,
-    Email          VARCHAR(100),
-    Address        NVARCHAR(MAX),
-    DoB            DATE,
-    Gender         VARCHAR(10)
-                   CHECK (Gender IN ('MALE', 'FEMALE', 'OTHER')),
-    MembershipTier VARCHAR(20)
-                   CHECK (MembershipTier IN ('STANDARD', 'SILVER', 'GOLD', 'PLATINUM'))
-                   DEFAULT 'STANDARD',
-    Points         INT            DEFAULT 0,
-    CreatedAt      DATETIME       DEFAULT GETDATE()
-);
-GO
-
--- =====================================================
--- 19. ORDERS
--- =====================================================
+-- =========================================
+-- ORDER
+-- =========================================
 CREATE TABLE Orders (
-    OrderID        BIGINT PRIMARY KEY IDENTITY(1,1),
-    OrderCode      VARCHAR(50)    NOT NULL UNIQUE,
-    CustomerID     BIGINT         NULL,   -- NULL = khách vãng lai
-    EmployeeID     BIGINT         NOT NULL,
-    BranchID       BIGINT         NOT NULL,
-    Subtotal       DECIMAL(18,2)  NOT NULL DEFAULT 0,
-    DiscountAmount DECIMAL(18,2)  NOT NULL DEFAULT 0,
-    TotalAmount    DECIMAL(18,2)  NOT NULL DEFAULT 0,
-    Status         VARCHAR(30)    NOT NULL
-                   CHECK (Status IN ('PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'REFUNDED'))
-                   DEFAULT 'PENDING',
-    CreatedAt      DATETIME       DEFAULT GETDATE(),
+    OrderID INT IDENTITY(1,1) PRIMARY KEY,
 
-    CONSTRAINT FK_Orders_Customers
-        FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
-        ON DELETE SET NULL,
+    BranchID INT NOT NULL,
 
-    CONSTRAINT FK_Orders_Employees
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
+    EmployeeID INT NOT NULL,
 
-    CONSTRAINT FK_Orders_Branches
-        FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+    CustomerID INT NULL,
+
+    SupplierID INT NULL,
+
+    OrderCode VARCHAR(100) UNIQUE NOT NULL,
+
+    OrderType VARCHAR(50) NOT NULL,
+
+    Subtotal DECIMAL(18,2) DEFAULT 0,
+
+    DiscountAmount DECIMAL(18,2) DEFAULT 0,
+
+    TotalAmount DECIMAL(18,2) DEFAULT 0,
+
+    Status VARCHAR(20) DEFAULT 'pending',
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Orders_Branch
+        FOREIGN KEY (BranchID)
+        REFERENCES Branch(BranchID),
+
+    CONSTRAINT FK_Orders_Employee
+        FOREIGN KEY (EmployeeID)
+        REFERENCES Employee(EmployeeID),
+
+    CONSTRAINT FK_Orders_Customer
+        FOREIGN KEY (CustomerID)
+        REFERENCES Customer(CustomerID),
+
+    CONSTRAINT FK_Orders_Supplier
+        FOREIGN KEY (SupplierID)
+        REFERENCES Supplier(SupplierID)
 );
-GO
 
--- =====================================================
--- 20. ORDER ITEMS
--- =====================================================
-CREATE TABLE OrderItems (
-    OrderItemID    BIGINT PRIMARY KEY IDENTITY(1,1),
-    OrderID        BIGINT         NOT NULL,
-    ProductID      BIGINT         NOT NULL,
-    Quantity       INT            NOT NULL,
-    UnitPrice      DECIMAL(18,2)  NOT NULL,
-    DiscountAmount DECIMAL(18,2)  NOT NULL DEFAULT 0,
-    Subtotal       AS ((UnitPrice - DiscountAmount) * Quantity) PERSISTED,
+-- =========================================
+-- ORDER DETAIL
+-- =========================================
+CREATE TABLE OrderDetail (
+    OrderDetailID INT IDENTITY(1,1) PRIMARY KEY,
 
-    CONSTRAINT FK_OrderItems_Orders
-        FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
-        ON DELETE CASCADE,
+    OrderID INT NOT NULL,
 
-    CONSTRAINT FK_OrderItems_Products
-        FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+    ProductID INT NOT NULL,
+
+    Quantity INT NOT NULL DEFAULT 1,
+
+    UnitPrice DECIMAL(18,2) NOT NULL DEFAULT 0,
+
+    Subtotal DECIMAL(18,2) NOT NULL DEFAULT 0,
+
+    CONSTRAINT FK_OrderDetail_Order
+        FOREIGN KEY (OrderID)
+        REFERENCES Orders(OrderID),
+
+    CONSTRAINT FK_OrderDetail_Product
+        FOREIGN KEY (ProductID)
+        REFERENCES Product(ProductID)
 );
-GO
 
--- =====================================================
--- 21. PAYMENTS
--- =====================================================
+-- =========================================
+-- PAYMENTS
+-- =========================================
 CREATE TABLE Payments (
-    PaymentID     BIGINT PRIMARY KEY IDENTITY(1,1),
-    OrderID       BIGINT         NOT NULL,
-    PaymentMethod VARCHAR(30)    NOT NULL
-                  CHECK (PaymentMethod IN ('CASH', 'BANK_TRANSFER', 'CARD', 'E_WALLET', 'MIXED')),
-    Amount        DECIMAL(18,2)  NOT NULL,
-    PaidAt        DATETIME       DEFAULT GETDATE(),
-    Reference     NVARCHAR(255),  -- mã tham chiếu chuyển khoản / QR
-    Status        VARCHAR(20)    NOT NULL
-                  CHECK (Status IN ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'))
-                  DEFAULT 'COMPLETED',
-    CreatedAt     DATETIME       DEFAULT GETDATE(),
+    PaymentsID INT IDENTITY(1,1) PRIMARY KEY,
 
-    CONSTRAINT FK_Payments_Orders
-        FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
-        ON DELETE CASCADE
+    OrderID INT NOT NULL,
+
+    PaymentMethod VARCHAR(50) NOT NULL,
+
+    Amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+
+    PaidAt DATETIME NULL,
+
+    Reference NVARCHAR(255),
+
+    Status VARCHAR(20) DEFAULT 'pending',
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Payments_Order
+        FOREIGN KEY (OrderID)
+        REFERENCES Orders(OrderID)
+);
+
+-- =========================================
+-- FINANCE TRANSACTION
+-- =========================================
+CREATE TABLE FinanceTransaction (
+    TransactionID INT IDENTITY(1,1) PRIMARY KEY,
+
+    BranchID INT NOT NULL,
+
+    EmployeeID INT NOT NULL,
+
+    TransactionCode VARCHAR(100) UNIQUE NOT NULL,
+
+    TransactionDate DATETIME DEFAULT GETDATE(),
+
+    TransactionType VARCHAR(50) NOT NULL,
+
+    Amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+
+    ReferenceID INT NULL,
+
+    ReferenceType VARCHAR(100) NULL,
+
+    Note NVARCHAR(MAX),
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_FinanceTransaction_Branch
+        FOREIGN KEY (BranchID)
+        REFERENCES Branch(BranchID),
+
+    CONSTRAINT FK_FinanceTransaction_Employee
+        FOREIGN KEY (EmployeeID)
+        REFERENCES Employee(EmployeeID)
+);
+
+-- =========================================
+-- STOCK TRANSFER
+-- =========================================
+CREATE TABLE StockTransfer (
+    StockTransferID INT IDENTITY(1,1) PRIMARY KEY,
+
+    BranchID INT NOT NULL,
+
+    EmployeeID INT NOT NULL,
+
+    ProductID INT NOT NULL,
+
+    FromWarehouseID INT NOT NULL,
+
+    ToWarehouseID INT NOT NULL,
+
+    TransferCode VARCHAR(100) UNIQUE NOT NULL,
+
+    TransferDate DATETIME DEFAULT GETDATE(),
+
+    Quantity INT NOT NULL DEFAULT 0,
+
+    Status VARCHAR(20) DEFAULT 'pending',
+
+    Note NVARCHAR(MAX),
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_StockTransfer_Branch
+        FOREIGN KEY (BranchID)
+        REFERENCES Branch(BranchID),
+
+    CONSTRAINT FK_StockTransfer_Employee
+        FOREIGN KEY (EmployeeID)
+        REFERENCES Employee(EmployeeID),
+
+    CONSTRAINT FK_StockTransfer_Product
+        FOREIGN KEY (ProductID)
+        REFERENCES Product(ProductID),
+
+    CONSTRAINT FK_StockTransfer_FromWarehouse
+        FOREIGN KEY (FromWarehouseID)
+        REFERENCES Warehouse(WarehouseID),
+
+    CONSTRAINT FK_StockTransfer_ToWarehouse
+        FOREIGN KEY (ToWarehouseID)
+        REFERENCES Warehouse(WarehouseID)
+);
+
+-- =========================================
+-- WAREHOUSE TRANSACTION
+-- =========================================
+CREATE TABLE WarehouseTransaction (
+    WarehouseTransactionID INT IDENTITY(1,1) PRIMARY KEY,
+
+    WarehouseID INT NOT NULL,
+
+    ProductID INT NOT NULL,
+
+    BeforeQuantity INT DEFAULT 0,
+
+    Quantity INT NOT NULL,
+
+    TransactionType VARCHAR(50) NOT NULL,
+
+    AfterQuantity INT DEFAULT 0,
+
+    UnitCost DECIMAL(18,2) DEFAULT 0,
+
+    ReferenceType VARCHAR(100),
+
+    ReferenceID INT,
+
+    CreatedBy INT NOT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_WarehouseTransaction_Warehouse
+        FOREIGN KEY (WarehouseID)
+        REFERENCES Warehouse(WarehouseID),
+
+    CONSTRAINT FK_WarehouseTransaction_Product
+        FOREIGN KEY (ProductID)
+        REFERENCES Product(ProductID),
+
+    CONSTRAINT FK_WarehouseTransaction_Employee
+        FOREIGN KEY (CreatedBy)
+        REFERENCES Employee(EmployeeID)
+);
+
+-- =========================================
+-- AUDIT LOG
+-- =========================================
+CREATE TABLE AuditLog (
+    AuditLogID INT IDENTITY(1,1) PRIMARY KEY,
+
+    EmployeeID INT NOT NULL,
+
+    Action NVARCHAR(255) NOT NULL,
+
+    EntityName NVARCHAR(255) NOT NULL,
+
+    EntityID INT NOT NULL,
+
+    OldData NVARCHAR(MAX),
+
+    NewData NVARCHAR(MAX),
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_AuditLog_Employee
+        FOREIGN KEY (EmployeeID)
+        REFERENCES Employee(EmployeeID)
+);
+
+-- =========================================
+-- INDEXES
+-- =========================================
+
+CREATE INDEX IDX_Product_Name
+ON Product(Name);
+
+CREATE INDEX IDX_Product_SKU
+ON Product(SKU);
+
+CREATE INDEX IDX_Orders_OrderCode
+ON Orders(OrderCode);
+
+CREATE INDEX IDX_Customer_Phone
+ON Customer(Phone);
+
+CREATE INDEX IDX_Employee_Email
+ON Employee(Email);
+
+
+
+
+
+
+
+
+
+
+-- =========================================
+-- DEMO ROLES
+-- =========================================
+INSERT INTO Role (Name, Description)
+VALUES
+('Owner', 'Full system access'),
+('StoreManager', 'Manage branch and employees'),
+('SalesStaff', 'Sales and cashier staff'),
+('WarehouseStaff', 'Warehouse management');
+GO
+
+-- =========================================
+-- DEMO BRANCHES
+-- =========================================
+INSERT INTO Branch (
+    Name,
+    Address,
+    Phone,
+    Status
+)
+VALUES
+(
+    N'Chi Nhánh Hà Nội',
+    N'123 Hoàn Kiếm, Hà Nội',
+    '0900000001',
+    'active'
+),
+(
+    N'Chi Nhánh TP.HCM',
+    N'456 Quận 1, TP.HCM',
+    '0900000002',
+    'active'
 );
 GO
 
--- =====================================================
--- 22. FINANCIAL TRANSACTIONS
--- Ghi nhận dòng tiền tổng hợp (thu/chi)
--- =====================================================
-CREATE TABLE FinancialTransactions (
-    FinancialTransactionID BIGINT PRIMARY KEY IDENTITY(1,1),
-    BranchID               BIGINT        NOT NULL,
-    EmployeeID             BIGINT        NOT NULL,
-    PurchaseOrderID        BIGINT        NULL,
-    TransactionCode        VARCHAR(50)   NOT NULL UNIQUE,
-    TransactionDate        DATETIME      NOT NULL DEFAULT GETDATE(),
-    TransactionType        VARCHAR(30)   NOT NULL
-                           CHECK (TransactionType IN (
-                               'REVENUE',     -- doanh thu bán hàng
-                               'EXPENSE',     -- chi phí
-                               'REFUND',      -- hoàn tiền
-                               'PURCHASE'     -- thanh toán nhà cung cấp
-                           )),
-    Amount                 DECIMAL(18,2) NOT NULL,
-    ReferenceID            BIGINT,       -- PaymentID hoặc PurchaseOrderID
-    ReferenceType          VARCHAR(50),  -- 'Payment' | 'PurchaseOrder'
-    Note                   NVARCHAR(MAX),
-    CreatedAt              DATETIME      DEFAULT GETDATE(),
+-- =========================================
+-- DEMO EMPLOYEES
+-- Password demo: 123456
+-- =========================================
 
-    CONSTRAINT FK_FinTxn_Branches
-        FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
+-- OWNER
+INSERT INTO Employee (
+    RoleID,
+    BranchID,
+    FullName,
+    Email,
+    Phone,
+    PasswordHash,
+    Status
+)
+VALUES
+(
+    1,
+    1,
+    N'Nguyễn Hoàng Owner',
+    'owner@retail.com',
+    '0911111111',
+    '123456',
+    'active'
+);
 
-    CONSTRAINT FK_FinTxn_Employees
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
+-- STORE MANAGER
+INSERT INTO Employee (
+    RoleID,
+    BranchID,
+    FullName,
+    Email,
+    Phone,
+    PasswordHash,
+    Status
+)
+VALUES
+(
+    2,
+    1,
+    N'Trần Văn Manager',
+    'manager@retail.com',
+    '0922222222',
+    '123456',
+    'active'
+);
 
-    CONSTRAINT FK_FinTxn_PurchaseOrders
-        FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID)
-        ON DELETE SET NULL
+-- SALES STAFF 1
+INSERT INTO Employee (
+    RoleID,
+    BranchID,
+    FullName,
+    Email,
+    Phone,
+    PasswordHash,
+    Status
+)
+VALUES
+(
+    3,
+    1,
+    N'Lê Minh Sales',
+    'sales1@retail.com',
+    '0933333333',
+    '123456',
+    'active'
+);
+
+-- SALES STAFF 2
+INSERT INTO Employee (
+    RoleID,
+    BranchID,
+    FullName,
+    Email,
+    Phone,
+    PasswordHash,
+    Status
+)
+VALUES
+(
+    3,
+    2,
+    N'Phạm Lan Sales',
+    'sales2@retail.com',
+    '0933333344',
+    '123456',
+    'active'
+);
+
+-- WAREHOUSE STAFF
+INSERT INTO Employee (
+    RoleID,
+    BranchID,
+    FullName,
+    Email,
+    Phone,
+    PasswordHash,
+    Status
+)
+VALUES
+(
+    4,
+    1,
+    N'Đặng Kho Staff',
+    'warehouse@retail.com',
+    '0944444444',
+    '123456',
+    'active'
 );
 GO
 
--- =====================================================
--- END OF SCRIPT
--- =====================================================
+-- =========================================
+-- DEMO CATEGORIES
+-- =========================================
+INSERT INTO Category (
+    Name,
+    Description,
+    Status
+)
+VALUES
+(
+    N'Nước Giải Khát',
+    N'Đồ uống có gas và nước ngọt',
+    'active'
+),
+(
+    N'Bánh Kẹo',
+    N'Bánh snack và kẹo',
+    'active'
+),
+(
+    N'Mì Gói',
+    N'Mì ăn liền',
+    'active'
+);
+GO
+
+-- =========================================
+-- DEMO PRODUCTS
+-- =========================================
+INSERT INTO Product (
+    CategoryID,
+    Name,
+    SKU,
+    Price,
+    CostPrice,
+    StockAlertQty,
+    Status
+)
+VALUES
+(
+    1,
+    N'Coca Cola',
+    'COCA001',
+    10000,
+    7000,
+    20,
+    'active'
+),
+(
+    1,
+    N'Pepsi',
+    'PEPSI001',
+    9000,
+    6500,
+    20,
+    'active'
+),
+(
+    1,
+    N'7Up',
+    '7UP001',
+    9000,
+    6000,
+    20,
+    'active'
+),
+(
+    2,
+    N'Oreo Chocolate',
+    'OREO001',
+    15000,
+    10000,
+    10,
+    'active'
+),
+(
+    2,
+    N'KitKat',
+    'KITKAT001',
+    12000,
+    8000,
+    10,
+    'active'
+),
+(
+    3,
+    N'Mì Hảo Hảo',
+    'HAOHAO001',
+    5000,
+    3500,
+    50,
+    'active'
+),
+(
+    3,
+    N'Mì Omachi',
+    'OMACHI001',
+    8000,
+    5500,
+    30,
+    'active'
+);
+GO
+
+-- =========================================
+-- DEMO WAREHOUSE
+-- =========================================
+INSERT INTO Warehouse (
+    BranchID,
+    EmployeeID,
+    ProductID,
+    Name,
+    Address,
+    Status,
+    Quantity,
+    AvailableQuantity,
+    MinQuantity,
+    MaxQuantity
+)
+VALUES
+(
+    1,
+    5,
+    1,
+    N'Kho Tổng Hà Nội',
+    N'Khu Công Nghiệp Long Biên - Hà Nội',
+    'active',
+    1000,
+    950,
+    100,
+    5000
+),
+(
+    1,
+    5,
+    2,
+    N'Kho Đồ Uống Hà Nội',
+    N'Hoàng Mai - Hà Nội',
+    'active',
+    700,
+    650,
+    50,
+    3000
+),
+(
+    2,
+    5,
+    4,
+    N'Kho TP.HCM',
+    N'Quận 12 - TP.HCM',
+    'active',
+    1200,
+    1150,
+    100,
+    6000
+);
+GO
+
+-- =========================================
+-- DEMO SUPPLIERS
+-- =========================================
+INSERT INTO Supplier (
+    Name,
+    Phone,
+    Email,
+    Address,
+    Status
+)
+VALUES
+(
+    N'Công Ty Coca Cola Việt Nam',
+    '0909999999',
+    'coca@supplier.com',
+    N'Hà Nội',
+    'active'
+),
+(
+    N'Công Ty Pepsi Việt Nam',
+    '0918888888',
+    'pepsi@supplier.com',
+    N'TP.HCM',
+    'active'
+),
+(
+    N'Công Ty Acecook',
+    '0927777777',
+    'acecook@supplier.com',
+    N'Bình Dương',
+    'active'
+);
+GO
+
+-- =========================================
+-- DEMO CUSTOMERS
+-- =========================================
+INSERT INTO Customer (
+    FullName,
+    Phone,
+    Email,
+    Address,
+    Gender,
+    MembershipTier,
+    Points
+)
+VALUES
+(
+    N'Nguyễn Văn A',
+    '0988888888',
+    'customer1@gmail.com',
+    N'Hà Nội',
+    'male',
+    'silver',
+    120
+),
+(
+    N'Trần Thị B',
+    '0977777777',
+    'customer2@gmail.com',
+    N'TP.HCM',
+    'female',
+    'gold',
+    450
+),
+(
+    N'Lê Văn C',
+    '0966666666',
+    'customer3@gmail.com',
+    N'Đà Nẵng',
+    'male',
+    'member',
+    50
+);
+GO
+
+-- =========================================
+-- DEMO LOGIN INFO
+-- =========================================
+/*
+=========================================
+OWNER
+=========================================
+Email: owner@retail.com
+Password: 123456
+
+=========================================
+STORE MANAGER
+=========================================
+Email: manager@retail.com
+Password: 123456
+
+=========================================
+SALES STAFF 1
+=========================================
+Email: sales1@retail.com
+Password: 123456
+
+=========================================
+SALES STAFF 2
+=========================================
+Email: sales2@retail.com
+Password: 123456
+
+=========================================
+WAREHOUSE STAFF
+=========================================
+Email: warehouse@retail.com
+Password: 123456
+*/
