@@ -184,4 +184,69 @@ public class EmployeeDAO {
         employee.setCreatedAt(rs.getTimestamp("created_at"));
         return employee;
     }
+    
+    /**
+     * Kiểm tra xem Username đã tồn tại trong hệ thống chưa
+     */
+    public boolean checkUsernameExists(String username) {
+        String sql = "SELECT employee_id FROM employees WHERE username = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // Nếu tìm thấy bản ghi nghĩa là Username đã tồn tại
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra xem Email đã được sử dụng chưa
+     */
+    public boolean checkEmailExists(String email) {
+        String sql = "SELECT employee_id FROM employees WHERE email = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // Nếu tìm thấy bản ghi nghĩa là Email đã được dùng
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Thực hiện thêm tài khoản người dùng mới vào hệ thống Database
+     */
+    public boolean registerEmployee(String fullName, String username, String email, String encryptedPassword, int roleId, String status) {
+        // Ánh xạ chính xác theo thuộc tính bảng employees của bạn bao gồm:
+        // full_name, username, email, password, role_id, status, created_at, và sinh mã employee_code tự động ngắn gọn
+        String sql = "INSERT INTO employees (employee_code, full_name, email, username, password, role_id, status, created_at) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())";
+                   
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // Tạo tạm một mã định danh ngẫu nhiên ngắn cho nhân viên mới đăng ký tự do
+            String randomEmpCode = "EMP" + (System.currentTimeMillis() % 100000);
+            
+            stmt.setString(1, randomEmpCode);
+            stmt.setString(2, fullName);
+            stmt.setString(3, email);
+            stmt.setString(4, username);
+            stmt.setString(5, encryptedPassword); // Mật khẩu đã được hash
+            stmt.setInt(6, roleId);
+            stmt.setString(7, status);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
 }

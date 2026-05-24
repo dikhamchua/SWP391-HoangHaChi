@@ -71,9 +71,19 @@
                         <a class="nav-link" href="#about">Giới thiệu</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-danger ms-3" href="${pageContext.request.contextPath}/login">
-                            <span class="material-icons align-middle" style="font-size: 20px;">login</span>
+                        <a class="btn btn-danger ms-3 px-3 fw-medium d-inline-flex align-items-center justify-content-center" 
+                           href="${pageContext.request.contextPath}/login" 
+                           style="height: 38px; min-width: 120px;">
+                            <span class="material-icons me-1" style="font-size: 18px;">login</span>
                             Đăng nhập
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-danger ms-2 px-3 fw-medium d-inline-flex align-items-center justify-content-center" 
+                           href="${pageContext.request.contextPath}/register" 
+                           style="height: 38px; min-width: 120px;">
+                            <span class="material-icons me-1" style="font-size: 18px;">person_add</span>
+                            Đăng ký
                         </a>
                     </li>
                 </ul>
