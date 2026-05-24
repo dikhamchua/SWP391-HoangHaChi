@@ -12,12 +12,12 @@
 
 <div class="container-fluid p-0 m-0 login-global-container" style="overflow-x: hidden; background-color: #ffffff;">
     <div class="row g-0 min-vh-100 align-items-stretch">
-        
+
         <div class="col-12 col-md-6 d-none d-md-flex login-split-left" 
              style="position: relative; background: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1200') no-repeat center center; background-size: cover; display: flex; align-items: center; justify-content: center; padding: 5rem; z-index: 1;">
-            
+
             <div class="login-left-mask" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(109, 0, 8, 0.94) 0%, rgba(147, 0, 11, 0.97) 100%); z-index: 2;"></div>
-            
+
             <div class="login-left-inner-content" style="position: relative; z-index: 3; width: 100%; max-width: 460px;">
                 <h1 class="display-5 fw-bold text-white mb-3 text-headline" style="line-height: 1.25 !important; letter-spacing: -0.5px;">
                     Quản trị toàn diện.<br>Vận hành tối ưu.
@@ -30,7 +30,7 @@
 
         <div class="col-12 col-md-6 login-split-right" style="display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; background-color: #ffffff;">
             <div class="login-box-holder" style="width: 100%; max-width: 380px;">
-                
+
                 <div class="text-center mb-4">
                     <div class="login-brand-icon-box mb-3" style="width: 56px; height: 56px; background-color: #fff1f2; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #ffe4e6;">
                         <span class="material-icons" style="font-size: 32px; color: #93000b !important;">store</span>
@@ -50,7 +50,7 @@
                 </c:if>
 
                 <form method="post" action="${pageContext.request.contextPath}/login" autocomplete="off">
-                    
+
                     <div class="mb-3">
                         <label for="username" class="form-label small fw-semibold text-secondary">Tên đăng nhập</label>
                         <div class="input-group login-custom-group" style="border-radius: 8px; overflow: hidden; border: 1px solid #d1d5db;">
@@ -81,7 +81,11 @@
                             <input type="checkbox" class="form-check-input shadow-none cursor-pointer" id="remember-me" name="remember-me">
                             <label class="form-check-label small text-muted cursor-pointer ms-2" style="user-select: none;" for="remember-me">Ghi nhớ đăng nhập</label>
                         </div>
-                        <a href="#" class="small text-decoration-none fw-semibold" style="color: #93000b !important;">Quên mật khẩu?</a>
+                        <div class="mb-3 text-end">
+                            <a href="${pageContext.request.contextPath}/forgot-password" class="text-decoration-none small" style="color: #93000b; font-weight: 500;">
+                                Quên mật khẩu?
+                            </a>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn w-100 fw-semibold shadow-sm d-flex align-items-center justify-content-center btn-kiot-submit-fixed"
@@ -104,18 +108,18 @@
 
 <script>
 // Đoạn script xử lý ẩn/hiện văn bản mật khẩu
-document.getElementById('togglePassword').addEventListener('click', function() {
-    const passwordInput = document.getElementById('password');
-    const icon = this.querySelector('i');
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
 
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        icon.textContent = 'visibility_off';
-    } else {
-        passwordInput.type = 'password';
-        icon.textContent = 'visibility';
-    }
-});
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.textContent = 'visibility_off';
+        } else {
+            passwordInput.type = 'password';
+            icon.textContent = 'visibility';
+        }
+    });
 </script>
 
 <jsp:include page="../common/footer.jsp"/>

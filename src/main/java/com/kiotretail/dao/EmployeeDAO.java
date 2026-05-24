@@ -249,4 +249,22 @@ public class EmployeeDAO {
         return false;
     }
     
+    /**
+     * Cập nhật mật khẩu mới theo Email người dùng
+     */
+    public boolean updatePasswordByEmail(String email, String encryptedPassword) {
+        String sql = "UPDATE employees SET password = ? WHERE email = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, encryptedPassword);
+            stmt.setString(2, email);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
 }
