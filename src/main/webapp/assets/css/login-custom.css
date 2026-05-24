@@ -1,0 +1,25 @@
+/* ==========================================================================
+   KiotRetail Custom Specific Login Form Fix
+   ========================================================================== */
+
+/* Ép hiệu ứng đổi màu tối hơn khi di chuột vào nút Đăng nhập Đỏ gạch */
+.btn-kiot-submit-fixed {
+    transition: all 0.2s ease-in-out !important;
+}
+
+.btn-kiot-submit-fixed:hover, 
+.btn-kiot-submit-fixed:focus {
+    background-color: #6d0008 !important;
+    border-color: #6d0008 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+/* Khử trạng thái tự động đổi nền màu vàng/xanh lam nhạt mặc định của Chrome khi lưu mật khẩu */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #1a1a1a !important;
+    box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
