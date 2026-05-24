@@ -99,131 +99,32 @@
                                 <th style="width: 120px;">Thao tác</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <c:choose>
-                                <c:when test="${empty products}">
-                                    <tr>
-                                        <td colspan="8">
-                                            <div class="empty-state">
-                                                <span class="material-icons">inventory_2</span>
-                                                <h5>Chưa có sản phẩm nào</h5>
-                                                <p class="text-muted">Nhấn "Thêm hàng hóa" để bắt đầu</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:when>
-                                <c:otherwise>
-                                    <c:forEach var="product" items="${products}">
-                                        <tr>
-                                            <td>
-                                                <input type="checkbox" class="form-check-input row-checkbox">
-                                            </td>
-                                            <td>
-                                                <span class="fw-semibold">${product.productCode}</span>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <c:choose>
-                                                        <c:when test="${not empty product.imageUrl}">
-                                                            <img src="${pageContext.request.contextPath}${product.imageUrl}"
-                                                                 alt="${product.productName}"
-                                                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <div class="bg-light d-flex align-items-center justify-content-center"
-                                                                 style="width: 40px; height: 40px; border-radius: 6px;">
-                                                                <span class="material-icons text-muted">image</span>
-                                                            </div>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                    <div>
-                                                        <div class="fw-semibold">${product.productName}</div>
-                                                        <small class="text-muted">${product.unit}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>${product.categoryName}</td>
-                                            <td>
-                                                <span class="fw-semibold text-danger">
-                                                    <fmt:formatNumber value="${product.sellingPrice}" type="currency"
-                                                                      currencySymbol="" pattern="#,##0"/>₫
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <c:choose>
-                                                    <c:when test="${product.stockQuantity == 0}">
-                                                        <span class="badge badge-danger">Hết hàng</span>
-                                                    </c:when>
-                                                    <c:when test="${product.stockQuantity < product.minStock}">
-                                                        <span class="badge badge-warning">${product.stockQuantity}</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="badge badge-success">${product.stockQuantity}</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </td>
-                                            <td>
-                                                <c:choose>
-                                                    <c:when test="${product.status == 'active'}">
-                                                        <span class="badge badge-success">Đang bán</span>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span class="badge badge-danger">Ngừng bán</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex gap-1">
-                                                    <button class="btn btn-sm btn-outline-primary btn-icon"
-                                                            onclick="editProduct(${product.productId})"
-                                                            title="Sửa">
-                                                        <span class="material-icons" style="font-size: 18px;">edit</span>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger btn-icon"
-                                                            onclick="deleteProduct(${product.productId}, '${product.productName}')"
-                                                            title="Xóa">
-                                                        <span class="material-icons" style="font-size: 18px;">delete</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                </c:otherwise>
-                            </c:choose>
+                        <tbody id="productTableBody">
+                            <!-- JavaScript sẽ tự động vẽ các dòng TR sản phẩm vào đây -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Pagination -->
-        <c:if test="${not empty products}">
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted">
-                    Hiển thị <strong>${products.size()}</strong> sản phẩm
-                </div>
-                <nav>
-                    <ul class="pagination mb-0">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#">Trước</a>
-                        </li>
-                        <li class="page-item active">
-                            <a class="page-link" href="#">1</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">2</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">3</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Sau</a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </c:if>
+<!-- Pagination mới động 100% -->
+<div class="d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+    <div class="text-muted d-flex align-items-center gap-2">
+        <span>Hiển thị tối đa:</span>
+        <select class="form-select form-select-sm" id="limitSelect" style="width: 80px;" onchange="loadProducts(1)">
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
+        <span id="totalItemsInfo"></span>
     </div>
+    <nav>
+        <ul class="pagination mb-0" id="paginationNodes">
+            <!-- Nút bấm chuyển trang sẽ tự sinh ra ở đây -->
+        </ul>
+    </nav>
 </div>
 
 <!-- Add Product Modal -->
@@ -290,32 +191,173 @@
 </div>
 
 <script>
-// Search functionality
-document.getElementById('searchInput').addEventListener('keyup', function(e) {
-    if (e.key === 'Enter') {
-        const keyword = this.value.trim();
-        if (keyword) {
-            window.location.href = '${pageContext.request.contextPath}/admin/products?action=search&keyword=' + encodeURIComponent(keyword);
-        } else {
-            window.location.href = '${pageContext.request.contextPath}/admin/products';
+let currentPage = 1;
+
+// Tự động chạy khi trang web vừa tải xong
+document.addEventListener("DOMContentLoaded", function() {
+    loadProducts(1);
+
+    // Lắng nghe sự kiện gõ phím Enter trên thanh tìm kiếm
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            loadProducts(1); // Tìm kiếm thì reset về trang 1
         }
-    }
+    });
+
+    // Lắng nghe sự kiện thay đổi bộ lọc nhóm hàng và trạng thái
+    document.getElementById('categoryFilter').addEventListener('change', function() { loadProducts(1); });
+    document.getElementById('statusFilter').addEventListener('change', function() { loadProducts(1); });
 });
 
-// Select all checkboxes
+// HÀM CHÍNH: Gọi API lấy dữ liệu và render giao diện
+function loadProducts(page) {
+    currentPage = page;
+
+    // 1. Thu thập các tham số đầu vào từ giao diện
+    const limit = document.getElementById('limitSelect').value;
+    const keyword = document.getElementById('searchInput').value.trim();
+    const categoryId = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+
+    // 2. Tạo đường link API động (gọi đến GetProductsAction của bạn)
+    let apiUrl = `${pageContext.request.contextPath}/api/products?page=\${page}&limit=\${limit}`;
+
+    // Nếu có tìm kiếm hoặc lọc thì nối đuôi vào API (Phục vụ mở rộng sau này)
+    if (keyword) apiUrl += `&keyword=\${encodeURIComponent(keyword)}`;
+    if (categoryId) apiUrl += `&categoryId=\${categoryId}`;
+    if (status) apiUrl += `&status=\${status}`;
+
+    // 3. Thực hiện Fetch API ngầm
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(apiResult => {
+            if (apiResult.status === 200) {
+                const products = apiResult.data;
+                renderTable(products);
+                renderPagination(page, limit, products.length);
+            } else {
+                alert("Lỗi từ máy chủ: " + apiResult.message);
+            }
+        })
+        .catch(error => {
+            console.error("Lỗi kết nối API:", error);
+        });
+}
+
+// Hàm vẽ bảng dữ liệu sản phẩm từ mảng JSON nhận được
+function renderTable(products) {
+    const tbody = document.getElementById('productTableBody');
+    let html = "";
+
+    if (!products || products.length === 0) {
+        html = `
+            <tr>
+                <td colspan="8">
+                    <div class="text-center py-5 text-muted">
+                        <span class="material-icons" style="font-size: 48px;">inventory_2</span>
+                        <h5>Không tìm thấy sản phẩm nào phù hợp</h5>
+                    </div>
+                </td>
+            </tr>`;
+        tbody.innerHTML = html;
+        return;
+    }
+
+    products.forEach(product => {
+        // Xử lý ảnh sản phẩm
+        const imgHtml = product.imageUrl
+            ? `<img src="${pageContext.request.contextPath}\${product.imageUrl}" alt="\${product.productName}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">`
+            : `<div class="bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 6px;"><span class="material-icons text-muted">image</span></div>`;
+
+        // Định dạng tiền tệ VND kiểu JavaScript
+        const priceFormatted = new Intl.NumberFormat('vi-VN').format(product.sellingPrice) + "₫";
+
+        // Định dạng badge tồn kho
+        let stockBadge = `<span class="badge bg-success" style="color:white">\${product.stockQuantity}</span>`;
+        if (product.stockQuantity === 0) {
+            stockBadge = `<span class="badge bg-danger" style="color:white">Hết hàng</span>`;
+        } else if (product.stockQuantity < product.minStock) {
+            stockBadge = `<span class="badge bg-warning text-dark">\${product.stockQuantity}</span>`;
+        }
+
+        // Định dạng badge trạng thái
+        const statusBadge = product.status === 'active'
+            ? `<span class="badge bg-success" style="color:white">Đang bán</span>`
+            : `<span class="badge bg-danger" style="color:white">Ngừng bán</span>`;
+
+        html += `
+            <tr>
+                <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                <td><span class="fw-semibold">\${product.productCode}</span></td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        \${imgHtml}
+                        <div>
+                            <div class="fw-semibold">\${product.productName}</div>
+                            <small class="text-muted">\${product.unit || 'Chiếc'}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>\${product.categoryName || 'Chưa phân loại'}</td>
+                <td><span class="fw-semibold text-danger">\${priceFormatted}</span></td>
+                <td>\${stockBadge}</td>
+                <td>\${statusBadge}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary btn-icon" onclick="editProduct(\${product.productId})" title="Sửa">
+                            <span class="material-icons" style="font-size: 18px;">edit</span>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-icon" onclick="deleteProduct(\${product.productId}, '\${product.productName}')" title="Xóa">
+                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Hàm vẽ các nút phân trang tiến lùi linh hoạt
+function renderPagination(page, limit, currentSize) {
+    document.getElementById('totalItemsInfo').innerText = `(Mục này hiển thị \${currentSize} sản phẩm)`;
+
+    const paginUl = document.getElementById('paginationNodes');
+    let html = "";
+
+    // Nút "Trước"
+    const prevDisabled = page === 1 ? 'disabled' : '';
+    html += `<li class="page-item \${prevDisabled}"><a class="page-link" href="javascript:void(0)" onclick="loadProducts(\${page - 1})">Trước</a></li>`;
+
+    // Nút số trang hiện tại linh động
+    html += `<li class="page-item active"><a class="page-link" href="javascript:void(0)">\${page}</a></li>`;
+
+    // Nút "Sau" (Nếu số lượng lấy lên bằng đúng limit thì cho bấm tiếp, nếu ít hơn limit nghĩa là đã hết sạch hàng ở trang sau)
+    const nextDisabled = currentSize < limit ? 'disabled' : '';
+    html += `<li class="page-item \${nextDisabled}"><a class="page-link" href="javascript:void(0)" onclick="loadProducts(\${page + 1})">Sau</a></li>`;
+
+    paginUl.innerHTML = html;
+}
+
+// Chọn tất cả Checkbox
 document.getElementById('selectAll').addEventListener('change', function() {
     const checkboxes = document.querySelectorAll('.row-checkbox');
     checkboxes.forEach(cb => cb.checked = this.checked);
 });
 
-// Reset filters
+// Làm mới bộ lọc
 function resetFilters() {
-    window.location.href = '${pageContext.request.contextPath}/admin/products';
+    document.getElementById('searchInput').value = "";
+    document.getElementById('categoryFilter').value = "";
+    document.getElementById('statusFilter').value = "";
+    document.getElementById('limitSelect').value = "10";
+    loadProducts(1);
 }
 
-// Delete product
+// Xóa sản phẩm
 function deleteProduct(productId, productName) {
     if (confirm('Bạn có chắc chắn muốn xóa sản phẩm "' + productName + '"?')) {
+        // Đoạn này giữ nguyên form submit truyền thống của bạn lên Servlet xử lý POST để xóa rất tốt!
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '${pageContext.request.contextPath}/admin/products';
@@ -337,7 +379,6 @@ function deleteProduct(productId, productName) {
     }
 }
 
-// Edit product (placeholder)
 function editProduct(productId) {
     alert('Chức năng chỉnh sửa sẽ được triển khai trong phiên bản tiếp theo');
 }

@@ -97,60 +97,8 @@
         <url-pattern>/admin/products</url-pattern>
     </servlet-mapping>
 
-    <servlet>
-        <servlet-name>InvoiceServlet</servlet-name>
-        <servlet-class>com.kiotretail.controller.InvoiceServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>InvoiceServlet</servlet-name>
-        <url-pattern>/admin/invoices</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>CustomerServlet</servlet-name>
-        <servlet-class>com.kiotretail.controller.CustomerServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>CustomerServlet</servlet-name>
-        <url-pattern>/admin/customers</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>EmployeeServlet</servlet-name>
-        <servlet-class>com.kiotretail.controller.EmployeeServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>EmployeeServlet</servlet-name>
-        <url-pattern>/admin/employees</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>RolePermissionServlet</servlet-name>
-        <servlet-class>com.kiotretail.controller.RolePermissionServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>RolePermissionServlet</servlet-name>
-        <url-pattern>/admin/roles</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>ReportServlet</servlet-name>
-        <servlet-class>com.kiotretail.controller.ReportServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ReportServlet</servlet-name>
-        <url-pattern>/admin/reports</url-pattern>
-    </servlet-mapping>
-
-    <!-- POS Servlets -->
-    <servlet>
-        <servlet-name>POSServlet</servlet-name>
-        <servlet-class>com.kiotretail.controller.POSServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>POSServlet</servlet-name>
-        <url-pattern>/pos/sale</url-pattern>
-    </servlet-mapping>
+    <!-- TODO: Các servlet sau chưa được implement, sẽ bổ sung sau -->
+    <!-- InvoiceServlet, CustomerServlet, EmployeeServlet, RolePermissionServlet, ReportServlet, POSServlet -->
 
     <!-- Welcome File -->
     <welcome-file-list>
