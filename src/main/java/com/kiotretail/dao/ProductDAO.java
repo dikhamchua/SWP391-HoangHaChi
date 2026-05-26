@@ -20,10 +20,11 @@ public class ProductDAO {
     public List<Product> getAllProducts(int page, int limit) {
         int offset = (page-1)*limit;
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT p.*, c.category_name " +
-                "FROM products p " +
-                "LEFT JOIN categories c ON p.category_id = c.category_id " +
-                "ORDER BY p.created_at DESC " +
+        String sql = "SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
+                "p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName " +
+                "FROM Product p " +
+                "LEFT JOIN Category c ON p.CategoryID = c.CategoryID " +
+                "ORDER BY p.CreatedAt DESC " +
                 "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = DatabaseUtil.getConnection();
@@ -47,10 +48,11 @@ public class ProductDAO {
      * Lấy sản phẩm theo ID
      */
     public Product getProductById(int productId) {
-        String sql = "SELECT p.*, c.category_name " +
-                     "FROM products p " +
-                     "LEFT JOIN categories c ON p.category_id = c.category_id " +
-                     "WHERE p.product_id = ?";
+        String sql = "SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
+                     "p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName " +
+                     "FROM Product p " +
+                     "LEFT JOIN Category c ON p.CategoryID = c.CategoryID " +
+                     "WHERE p.ProductID = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -72,11 +74,12 @@ public class ProductDAO {
      */
     public List<Product> searchProducts(String keyword) {
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT p.*, c.category_name " +
-                     "FROM products p " +
-                     "LEFT JOIN categories c ON p.category_id = c.category_id " +
-                     "WHERE p.product_code LIKE ? OR p.product_name LIKE ? " +
-                     "ORDER BY p.product_name";
+        String sql = "SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
+                     "p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName " +
+                     "FROM Product p " +
+                     "LEFT JOIN Category c ON p.CategoryID = c.CategoryID " +
+                     "WHERE p.SKU LIKE ? OR p.Name LIKE ? " +
+                     "ORDER BY p.Name";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -100,11 +103,12 @@ public class ProductDAO {
      */
     public List<Product> getProductsByCategory(int categoryId) {
         List<Product> products = new ArrayList<>();
-        String sql = "SELECT p.*, c.category_name " +
-                     "FROM products p " +
-                     "LEFT JOIN categories c ON p.category_id = c.category_id " +
-                     "WHERE p.category_id = ? AND p.status = 'active' " +
-                     "ORDER BY p.product_name";
+        String sql = "SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
+                     "p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName " +
+                     "FROM Product p " +
+                     "LEFT JOIN Category c ON p.CategoryID = c.CategoryID " +
+                     "WHERE p.CategoryID = ? AND p.Status = 'active' " +
+                     "ORDER BY p.Name";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -125,24 +129,19 @@ public class ProductDAO {
      * Thêm sản phẩm mới
      */
     public boolean addProduct(Product product) {
-        String sql = "INSERT INTO products (product_code, product_name, category_id, unit, " +
-                     "cost_price, selling_price, stock_quantity, min_stock, max_stock, image_url, status) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Product (CategoryID, Name, SKU, Price, CostPrice, StockAlertQty, Status) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, product.getProductCode());
+            stmt.setInt(1, product.getCategoryId());
             stmt.setString(2, product.getProductName());
-            stmt.setInt(3, product.getCategoryId());
-            stmt.setString(4, product.getUnit());
+            stmt.setString(3, product.getProductCode());
+            stmt.setBigDecimal(4, product.getSellingPrice());
             stmt.setBigDecimal(5, product.getCostPrice());
-            stmt.setBigDecimal(6, product.getSellingPrice());
-            stmt.setInt(7, product.getStockQuantity());
-            stmt.setInt(8, product.getMinStock());
-            stmt.setInt(9, product.getMaxStock());
-            stmt.setString(10, product.getImageUrl());
-            stmt.setString(11, product.getStatus());
+            stmt.setInt(6, product.getMinStock());
+            stmt.setString(7, product.getStatus());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -155,24 +154,19 @@ public class ProductDAO {
      * Cập nhật sản phẩm
      */
     public boolean updateProduct(Product product) {
-        String sql = "UPDATE products SET product_name = ?, category_id = ?, unit = ?, " +
-                     "cost_price = ?, selling_price = ?, stock_quantity = ?, min_stock = ?, " +
-                     "max_stock = ?, image_url = ?, status = ? WHERE product_id = ?";
+        String sql = "UPDATE Product SET Name = ?, CategoryID = ?, Price = ?, CostPrice = ?, " +
+                     "StockAlertQty = ?, Status = ? WHERE ProductID = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, product.getProductName());
             stmt.setInt(2, product.getCategoryId());
-            stmt.setString(3, product.getUnit());
+            stmt.setBigDecimal(3, product.getSellingPrice());
             stmt.setBigDecimal(4, product.getCostPrice());
-            stmt.setBigDecimal(5, product.getSellingPrice());
-            stmt.setInt(6, product.getStockQuantity());
-            stmt.setInt(7, product.getMinStock());
-            stmt.setInt(8, product.getMaxStock());
-            stmt.setString(9, product.getImageUrl());
-            stmt.setString(10, product.getStatus());
-            stmt.setInt(11, product.getProductId());
+            stmt.setInt(5, product.getMinStock());
+            stmt.setString(6, product.getStatus());
+            stmt.setInt(7, product.getProductId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -185,7 +179,7 @@ public class ProductDAO {
      * Cập nhật tồn kho
      */
     public boolean updateStock(int productId, int quantity) {
-        String sql = "UPDATE products SET stock_quantity = stock_quantity + ? WHERE product_id = ?";
+        String sql = "UPDATE Product SET StockAlertQty = StockAlertQty + ? WHERE ProductID = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -204,7 +198,7 @@ public class ProductDAO {
      * Xóa sản phẩm (soft delete)
      */
     public boolean deleteProduct(int productId) {
-        String sql = "UPDATE products SET status = 'inactive' WHERE product_id = ?";
+        String sql = "UPDATE Product SET Status = 'inactive' WHERE ProductID = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -222,20 +216,18 @@ public class ProductDAO {
      */
     private Product extractProduct(ResultSet rs) throws SQLException {
         Product product = new Product();
-        product.setProductId(rs.getInt("product_id"));
-        product.setProductCode(rs.getString("product_code"));
-        product.setProductName(rs.getString("product_name"));
-        product.setCategoryId(rs.getInt("category_id"));
-        product.setCategoryName(rs.getString("category_name"));
-        product.setUnit(rs.getString("unit"));
-        product.setCostPrice(rs.getBigDecimal("cost_price"));
-        product.setSellingPrice(rs.getBigDecimal("selling_price"));
-        product.setStockQuantity(rs.getInt("stock_quantity"));
-        product.setMinStock(rs.getInt("min_stock"));
-        product.setMaxStock(rs.getInt("max_stock"));
-        product.setImageUrl(rs.getString("image_url"));
-        product.setStatus(rs.getString("status"));
-        product.setCreatedAt(rs.getTimestamp("created_at"));
+        product.setProductId(rs.getInt("ProductID"));
+        product.setProductCode(rs.getString("SKU"));
+        product.setProductName(rs.getString("ProductName"));
+        product.setCategoryId(rs.getInt("CategoryID"));
+        product.setCategoryName(rs.getString("CategoryName"));
+        product.setCostPrice(rs.getBigDecimal("CostPrice"));
+        product.setSellingPrice(rs.getBigDecimal("Price"));
+        int stockAlert = rs.getInt("StockAlertQty");
+        product.setMinStock(stockAlert);
+        product.setStockQuantity(stockAlert);
+        product.setStatus(rs.getString("Status"));
+        product.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return product;
     }
 }

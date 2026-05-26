@@ -57,10 +57,11 @@
                     <div class="col-md-3">
                         <select class="form-select" id="categoryFilter">
                             <option value="">Tất cả nhóm hàng</option>
-                            <option value="1">Điện thoại & Máy tính bảng</option>
-                            <option value="2">Phụ kiện công nghệ</option>
-                            <option value="3">Thiết bị âm thanh</option>
-                            <option value="4">Gia dụng thông minh</option>
+                            <c:forEach var="category" items="${categories}">
+                                <option value="${category.categoryId}">
+                                    <c:out value="${category.name}"/>
+                                </option>
+                            </c:forEach>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -140,41 +141,45 @@
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Mã hàng <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="productCode" required>
+                            <label class="form-label fw-semibold">SKU <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="sku" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Tên hàng hóa <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="productName" required>
+                            <input type="text" class="form-control" name="name" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nhóm hàng</label>
-                            <select class="form-select" name="categoryId">
-                                <option value="1">Điện thoại & Máy tính bảng</option>
-                                <option value="2">Phụ kiện công nghệ</option>
-                                <option value="3">Thiết bị âm thanh</option>
-                                <option value="4">Gia dụng thông minh</option>
+                            <select class="form-select" name="categoryId" required>
+                                <c:forEach var="category" items="${categories}">
+                                    <option value="${category.categoryId}">
+                                        <c:out value="${category.name}"/>
+                                    </option>
+                                </c:forEach>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Đơn vị tính</label>
-                            <input type="text" class="form-control" name="unit" value="Chiếc">
+                            <label class="form-label fw-semibold">Trạng thái</label>
+                            <select class="form-select" name="status">
+                                <option value="active" selected>Đang sử dụng</option>
+                                <option value="inactive">Ngừng sử dụng</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Giá vốn</label>
-                            <input type="number" class="form-control" name="costPrice" value="0" step="1000">
+                            <input type="number" class="form-control" name="costPrice" value="0" step="1000" min="0">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Giá bán <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="sellingPrice" required step="1000">
+                            <input type="number" class="form-control" name="price" required step="1000" min="0">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tồn kho ban đầu</label>
-                            <input type="number" class="form-control" name="stockQuantity" value="0">
+                            <label class="form-label fw-semibold">Tồn kho cảnh báo</label>
+                            <input type="number" class="form-control" name="stockAlertQty" value="0" min="0">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tồn kho tối thiểu</label>
-                            <input type="number" class="form-control" name="minStock" value="0">
+                            <label class="form-label fw-semibold">Mô tả</label>
+                            <textarea class="form-control" name="description" rows="2" placeholder="Mô tả ngắn"></textarea>
                         </div>
                     </div>
                 </div>

@@ -17,23 +17,32 @@ public class EmployeeDAO {
      * Đăng nhập
      */
     public Employee login(String username, String password) {
-        String sql = "SELECT e.*, r.role_name, b.branch_name " +
-                     "FROM employees e " +
-                     "LEFT JOIN roles r ON e.role_id = r.role_id " +
-                     "LEFT JOIN branches b ON e.branch_id = b.branch_id " +
-                     "WHERE e.username = ? AND e.password = ? AND e.status = 'active'";
+        String sql = "SELECT e.EmployeeID, e.RoleID, e.BranchID, e.FullName, e.Email, e.Phone, " +
+                     "e.PasswordHash, e.Status, e.CreatedAt, r.Name AS RoleName, b.Name AS BranchName " +
+                     "FROM Employee e " +
+                     "LEFT JOIN Role r ON e.RoleID = r.RoleID " +
+                     "LEFT JOIN Branch b ON e.BranchID = b.BranchID " +
+                     "WHERE e.Email = ? AND e.PasswordHash = ? AND e.Status = 'active'";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        System.out.println("[LOGIN DEBUG] Attempting login with email=[" + username + "] password=[" + password + "]");
 
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return extractEmployee(rs);
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            System.out.println("[LOGIN DEBUG] Database connection OK");
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                stmt.setString(2, password);
+                System.out.println("[LOGIN DEBUG] Executing query...");
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        System.out.println("[LOGIN DEBUG] Found employee: " + rs.getString("FullName") + " Role: " + rs.getString("RoleName"));
+                        return extractEmployee(rs);
+                    } else {
+                        System.out.println("[LOGIN DEBUG] No matching row found. Check email/password/status.");
+                    }
+                }
             }
         } catch (SQLException e) {
+            System.out.println("[LOGIN DEBUG] SQL ERROR: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -168,20 +177,19 @@ public class EmployeeDAO {
      */
     private Employee extractEmployee(ResultSet rs) throws SQLException {
         Employee employee = new Employee();
-        employee.setEmployeeId(rs.getInt("employee_id"));
-        employee.setEmployeeCode(rs.getString("employee_code"));
-        employee.setFullName(rs.getString("full_name"));
-        employee.setEmail(rs.getString("email"));
-        employee.setPhone(rs.getString("phone"));
-        employee.setUsername(rs.getString("username"));
-        employee.setRoleId(rs.getInt("role_id"));
-        employee.setRoleName(rs.getString("role_name"));
-        employee.setBranchId(rs.getInt("branch_id"));
-        employee.setBranchName(rs.getString("branch_name"));
-        employee.setDepartment(rs.getString("department"));
-        employee.setPosition(rs.getString("position"));
-        employee.setStatus(rs.getString("status"));
-        employee.setCreatedAt(rs.getTimestamp("created_at"));
+        employee.setEmployeeId(rs.getInt("EmployeeID"));
+        employee.setEmployeeCode("EMP" + rs.getInt("EmployeeID"));
+        employee.setFullName(rs.getString("FullName"));
+        employee.setEmail(rs.getString("Email"));
+        employee.setPhone(rs.getString("Phone"));
+        employee.setUsername(rs.getString("Email"));
+        employee.setPassword(rs.getString("PasswordHash"));
+        employee.setRoleId(rs.getInt("RoleID"));
+        employee.setRoleName(rs.getString("RoleName"));
+        employee.setBranchId(rs.getInt("BranchID"));
+        employee.setBranchName(rs.getString("BranchName"));
+        employee.setStatus(rs.getString("Status"));
+        employee.setCreatedAt(rs.getTimestamp("CreatedAt"));
         return employee;
     }
     

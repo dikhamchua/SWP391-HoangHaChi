@@ -27,7 +27,7 @@
     <!-- Database Configuration -->
     <context-param>
         <param-name>db.url</param-name>
-        <param-value>jdbc:sqlserver://localhost:1433;databaseName=SamplePE;trustServerCertificate=true</param-value>
+        <param-value>jdbc:sqlserver://localhost:1433;databaseName=DBFinora;trustServerCertificate=true</param-value>
     </context-param>
     <context-param>
         <param-name>db.username</param-name>
@@ -35,7 +35,7 @@
     </context-param>
     <context-param>
         <param-name>db.password</param-name>
-        <param-value>123456</param-value>
+        <param-value>123</param-value>
     </context-param>
     <!-- Servlets -->
     <!-- Auth Servlets -->
@@ -87,6 +87,14 @@
     <servlet-mapping>
         <servlet-name>ProductServlet</servlet-name>
         <url-pattern>/admin/products</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>CategoryServlet</servlet-name>
+        <servlet-class>com.kiotretail.controller.CategoryServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CategoryServlet</servlet-name>
+        <url-pattern>/admin/categories</url-pattern>
     </servlet-mapping>
     <!-- TODO: Các servlet sau chưa được implement, sẽ bổ sung sau -->
     <!-- InvoiceServlet, CustomerServlet, EmployeeServlet, RolePermissionServlet, ReportServlet, POSServlet -->

@@ -16,6 +16,7 @@
 
                 <div class="row g-4">
                     <!-- POS Role -->
+                    <c:if test="${sessionScope.canAccessPos}">
                     <div class="col-md-6">
                         <form method="post" action="${pageContext.request.contextPath}/role-selection">
                             <input type="hidden" name="role" value="pos">
@@ -35,8 +36,10 @@
                             </button>
                         </form>
                     </div>
+                    </c:if>
 
                     <!-- Admin Role -->
+                    <c:if test="${sessionScope.canAccessManagementArea}">
                     <div class="col-md-6">
                         <form method="post" action="${pageContext.request.contextPath}/role-selection">
                             <input type="hidden" name="role" value="admin">
@@ -56,6 +59,7 @@
                             </button>
                         </form>
                     </div>
+                    </c:if>
                 </div>
 
                 <div class="text-center mt-4">

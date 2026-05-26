@@ -1,6 +1,8 @@
 package com.kiotretail.controller;
 
+import com.kiotretail.dao.CategoryDAO;
 import com.kiotretail.dao.ProductDAO;
+import com.kiotretail.model.Category;
 import com.kiotretail.model.Product;
 
 import jakarta.servlet.ServletException;
@@ -18,10 +20,12 @@ import java.util.List;
 public class ProductServlet extends HttpServlet {
 
     private ProductDAO productDAO;
+    private CategoryDAO categoryDAO;
 
     @Override
     public void init() throws ServletException {
         productDAO = new ProductDAO();
+        categoryDAO = new CategoryDAO();
     }
 
     @Override
@@ -69,6 +73,8 @@ public class ProductServlet extends HttpServlet {
 
     private void listProducts(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        List<Category> categories = categoryDAO.getActiveCategories();
+        request.setAttribute("categories", categories);
         request.getRequestDispatcher("/WEB-INF/views/admin/products.jsp").forward(request, response);
     }
 
@@ -93,15 +99,31 @@ public class ProductServlet extends HttpServlet {
             throws ServletException, IOException {
         try {
             Product product = new Product();
-            product.setProductCode(request.getParameter("productCode"));
-            product.setProductName(request.getParameter("productName"));
-            product.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
-            product.setUnit(request.getParameter("unit"));
-            product.setCostPrice(new BigDecimal(request.getParameter("costPrice")));
-            product.setSellingPrice(new BigDecimal(request.getParameter("sellingPrice")));
-            product.setStockQuantity(Integer.parseInt(request.getParameter("stockQuantity")));
-            product.setMinStock(Integer.parseInt(request.getParameter("minStock")));
-            product.setStatus("active");
+            String sku = request.getParameter("sku");
+            String name = request.getParameter("name");
+            String categoryId = request.getParameter("categoryId");
+            String price = request.getParameter("price");
+            String costPrice = request.getParameter("costPrice");
+            String stockAlertQty = request.getParameter("stockAlertQty");
+            String status = request.getParameter("status");
+
+            if (sku == null || sku.trim().isEmpty() ||
+                name == null || name.trim().isEmpty() ||
+                categoryId == null || categoryId.trim().isEmpty() ||
+                price == null || price.trim().isEmpty()) {
+                request.getSession().setAttribute("message", "Vui lòng nhập đầy đủ SKU, tên, nhóm hàng và giá bán.");
+                request.getSession().setAttribute("messageType", "danger");
+                response.sendRedirect(request.getContextPath() + "/admin/products");
+                return;
+            }
+
+            product.setProductCode(sku.trim());
+            product.setProductName(name.trim());
+            product.setCategoryId(Integer.parseInt(categoryId));
+            product.setCostPrice(new BigDecimal(costPrice == null || costPrice.trim().isEmpty() ? "0" : costPrice));
+            product.setSellingPrice(new BigDecimal(price));
+            product.setMinStock(Integer.parseInt(stockAlertQty == null || stockAlertQty.trim().isEmpty() ? "0" : stockAlertQty));
+            product.setStatus(status == null || status.trim().isEmpty() ? "active" : status.trim());
 
             boolean success = productDAO.addProduct(product);
 
@@ -125,13 +147,11 @@ public class ProductServlet extends HttpServlet {
         try {
             Product product = new Product();
             product.setProductId(Integer.parseInt(request.getParameter("productId")));
-            product.setProductName(request.getParameter("productName"));
+            product.setProductName(request.getParameter("name"));
             product.setCategoryId(Integer.parseInt(request.getParameter("categoryId")));
-            product.setUnit(request.getParameter("unit"));
             product.setCostPrice(new BigDecimal(request.getParameter("costPrice")));
-            product.setSellingPrice(new BigDecimal(request.getParameter("sellingPrice")));
-            product.setStockQuantity(Integer.parseInt(request.getParameter("stockQuantity")));
-            product.setMinStock(Integer.parseInt(request.getParameter("minStock")));
+            product.setSellingPrice(new BigDecimal(request.getParameter("price")));
+            product.setMinStock(Integer.parseInt(request.getParameter("stockAlertQty")));
             product.setStatus(request.getParameter("status"));
 
             boolean success = productDAO.updateProduct(product);

@@ -13,10 +13,12 @@
                 <small class="text-muted">${sessionScope.branchName}</small>
             </div>
         </div>
-        <a href="${pageContext.request.contextPath}/pos/sale" class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2">
-            <span class="material-icons">point_of_sale</span>
-            Vào POS
-        </a>
+        <c:if test="${sessionScope.canAccessPos}">
+            <a href="${pageContext.request.contextPath}/pos/sale" class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                <span class="material-icons">point_of_sale</span>
+                Vào POS
+            </a>
+        </c:if>
     </div>
 
     <div class="sidebar-menu flex-grow-1 overflow-auto py-2">
@@ -33,6 +35,14 @@
                     <span>Hàng hóa</span>
                 </a>
             </li>
+            <c:if test="${sessionScope.canViewCategory}">
+                <li class="nav-item">
+                    <a class="nav-link ${param.active == 'categories' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/categories">
+                        <span class="material-icons">category</span>
+                        <span>Nhóm hàng</span>
+                    </a>
+                </li>
+            </c:if>
             <li class="nav-item">
                 <a class="nav-link ${param.active == 'invoices' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/invoices">
                     <span class="material-icons">receipt_long</span>

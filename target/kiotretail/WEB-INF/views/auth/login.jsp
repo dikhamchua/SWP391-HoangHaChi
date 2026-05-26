@@ -36,7 +36,7 @@
                         <span class="material-icons" style="font-size: 32px; color: #93000b !important;">store</span>
                     </div>
                     <h2 class="fw-bold text-dark mb-1 h3" style="font-family: 'Manrope', sans-serif;">KiotRetail</h2>
-                    <p class="text-muted small">Đăng nhập để truy cập hệ thống quản trị</p>
+                    <p class="text-muted small">Đăng nhập bằng email nhân viên trong DBFinora</p>
                 </div>
 
                 <c:if test="${not empty error}">
@@ -52,13 +52,13 @@
                 <form method="post" action="${pageContext.request.contextPath}/login" autocomplete="off">
 
                     <div class="mb-3">
-                        <label for="username" class="form-label small fw-semibold text-secondary">Tên đăng nhập</label>
+                        <label for="username" class="form-label small fw-semibold text-secondary">Email</label>
                         <div class="input-group login-custom-group" style="border-radius: 8px; overflow: hidden; border: 1px solid #d1d5db;">
                             <span class="input-group-text bg-white border-0 text-muted">
                                 <i class="material-icons opacity-60">person_outline</i>
                             </span>
                             <input type="text" class="form-control border-0 ps-0 shadow-none text-dark" id="username" name="username"
-                                   placeholder="Nhập tên đăng nhập" value="${username}" style="padding-top: 11px; padding-bottom: 11px;" required autofocus>
+                                   placeholder="Nhập email tài khoản" value="${username}" style="padding-top: 11px; padding-bottom: 11px;" required autofocus>
                         </div>
                     </div>
 
