@@ -28,7 +28,7 @@ public class DashboardServlet extends HttpServlet {
             throws ServletException, IOException {
 
         // Get statistics (simplified for demo)
-        List<Product> products = productDAO.getAllProducts();
+        List<Product> products = productDAO.getAllProducts(1, 1000);
         int totalProducts = products.size();
         int lowStockProducts = (int) products.stream().filter(Product::isLowStock).count();
         int outOfStockProducts = (int) products.stream().filter(Product::isOutOfStock).count();

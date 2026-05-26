@@ -88,6 +88,7 @@
         <servlet-name>ProductServlet</servlet-name>
         <url-pattern>/admin/products</url-pattern>
     </servlet-mapping>
+<<<<<<< HEAD
     <servlet>
         <servlet-name>InvoiceServlet</servlet-name>
         <servlet-class>com.kiotretail.controller.InvoiceServlet</servlet-class>
@@ -137,6 +138,12 @@
         <servlet-name>POSServlet</servlet-name>
         <url-pattern>/pos/sale</url-pattern>
     </servlet-mapping>
+=======
+
+    <!-- TODO: Các servlet sau chưa được implement, sẽ bổ sung sau -->
+    <!-- InvoiceServlet, CustomerServlet, EmployeeServlet, RolePermissionServlet, ReportServlet, POSServlet -->
+
+>>>>>>> e8a9eb3931519256451d1f2e5842a72e9b7d4425
     <!-- Welcome File -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>

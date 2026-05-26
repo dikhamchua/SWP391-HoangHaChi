@@ -1,0 +1,45 @@
+package com.kiotretail.api.action;
+
+import com.kiotretail.api.ApiAction;
+import com.kiotretail.api.ApiResponse;
+import com.kiotretail.dao.ProductDAO;
+import jakarta.servlet.http.HttpServletRequest;
+import com.kiotretail.model.Product;
+
+import java.sql.ClientInfoStatus;
+import java.util.ArrayList;
+import java.util.List;
+
+public class GetProductsAction implements ApiAction {
+    @Override
+    public Object execute(HttpServletRequest request) throws Exception {
+        String pageParam = request.getParameter("page");
+        String limitParam = request.getParameter("limit");
+
+        int page = 1;
+        int limit = 10;
+
+        //check if page param not null or not empty
+        if (pageParam != null && !pageParam.isEmpty()){
+            page = Integer.parseInt(pageParam);
+            //check if page small than 1
+            if (page < 1) page = 1;
+        }
+
+        //check if limit param not null or not empty
+        if (limitParam != null && !limitParam.isEmpty()){
+            int userlimit = Integer.parseInt(limitParam);
+
+            //check user limit bigger than accept
+            if (userlimit > 50) userlimit = 50;
+            //check if user limit too small , default to 10
+            else if (userlimit <= 0) {
+                userlimit = 10;
+            }
+            else { limit = userlimit; }
+        }
+        ProductDAO productDAO = new ProductDAO();
+        List<Product> list = productDAO.getAllProducts(page, limit);
+        return new ApiResponse(200,"Get okay "+ limit + "product/page", list);
+    }
+}

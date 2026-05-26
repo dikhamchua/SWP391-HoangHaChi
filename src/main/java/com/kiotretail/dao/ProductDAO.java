@@ -16,21 +16,28 @@ public class ProductDAO {
     /**
      * Lấy tất cả sản phẩm
      */
-    public List<Product> getAllProducts() {
+
+    public List<Product> getAllProducts(int page, int limit) {
+        int offset = (page-1)*limit;
         List<Product> products = new ArrayList<>();
         String sql = "SELECT p.*, c.category_name " +
-                     "FROM products p " +
-                     "LEFT JOIN categories c ON p.category_id = c.category_id " +
-                     "ORDER BY p.created_at DESC";
+                "FROM products p " +
+                "LEFT JOIN categories c ON p.category_id = c.category_id " +
+                "ORDER BY p.created_at DESC " +
+                "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, offset);
+            stmt.setInt(2, limit);
+            ResultSet rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                products.add(extractProduct(rs));
-            }
-        } catch (SQLException e) {
+
+                while (rs.next()) {
+                    products.add(extractProduct(rs));
+                }
+
+        }catch (SQLException e) {
             e.printStackTrace();
         }
         return products;
