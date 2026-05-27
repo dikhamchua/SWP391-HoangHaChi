@@ -42,13 +42,14 @@ public class EmployeeDAO {
                 employee.setEmail(rs.getString("Email"));
                 employee.setPhone(rs.getString("Phone"));
                 employee.setRoleId(rs.getInt("RoleID"));
+                employee.setRoleName(rs.getString("RoleName"));
                 employee.setBranchId(rs.getInt("BranchID"));
+                employee.setBranchName(rs.getString("BranchName"));
                 employee.setStatus(rs.getString("Status"));
 
                 return employee;
             }
         } catch (SQLException e) {
-            System.out.println("[LOGIN DEBUG] SQL ERROR: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -114,7 +115,6 @@ public class EmployeeDAO {
             stmt.setString(2, employee.getFullName());
             stmt.setString(3, employee.getEmail());
             stmt.setString(4, employee.getPhone());
-            stmt.setString(5, employee.getEmail());
             stmt.setString(6, employee.getPassword());
             stmt.setInt(7, employee.getRoleId());
             stmt.setInt(8, employee.getBranchId());
@@ -177,48 +177,20 @@ public class EmployeeDAO {
      */
     private Employee extractEmployee(ResultSet rs) throws SQLException {
         Employee employee = new Employee();
-        employee.setEmployeeId(getInt(rs, "EmployeeID", "employee_id"));
-        employee.setEmployeeCode(getString(rs, "employee_code", "EmployeeCode"));
-        if (employee.getEmployeeCode() == null || employee.getEmployeeCode().trim().isEmpty()) {
-            employee.setEmployeeCode("EMP" + employee.getEmployeeId());
-        }
-        employee.setFullName(getString(rs, "FullName", "full_name"));
-        employee.setEmail(getString(rs, "Email", "email"));
-        employee.setPhone(getString(rs, "Phone", "phone"));
-        employee.setPassword(getString(rs, "PasswordHash", "password_hash"));
-        employee.setRoleId(getInt(rs, "RoleID", "role_id"));
-        employee.setRoleName(getString(rs, "RoleName", "role_name"));
-        employee.setBranchId(getInt(rs, "BranchID", "branch_id"));
-        employee.setBranchName(getString(rs, "BranchName", "branch_name"));
-        employee.setDepartment(getString(rs, "Department", "department"));
-        employee.setPosition(getString(rs, "Position", "position"));
-        employee.setStatus(getString(rs, "Status", "status"));
-        employee.setCreatedAt(getTimestamp(rs, "CreatedAt", "created_at"));
+        employee.setEmployeeId(rs.getInt("employee_id"));
+        employee.setEmployeeCode(rs.getString("employee_code"));
+        employee.setFullName(rs.getString("full_name"));
+        employee.setEmail(rs.getString("email"));
+        employee.setPhone(rs.getString("phone"));
+        employee.setRoleId(rs.getInt("role_id"));
+        employee.setRoleName(rs.getString("role_name"));
+        employee.setBranchId(rs.getInt("branch_id"));
+        employee.setBranchName(rs.getString("branch_name"));
+        employee.setDepartment(rs.getString("department"));
+        employee.setPosition(rs.getString("position"));
+        employee.setStatus(rs.getString("status"));
+        employee.setCreatedAt(rs.getTimestamp("created_at"));
         return employee;
-    }
-
-    private int getInt(ResultSet rs, String primaryColumn, String fallbackColumn) throws SQLException {
-        try {
-            return rs.getInt(primaryColumn);
-        } catch (SQLException ex) {
-            return rs.getInt(fallbackColumn);
-        }
-    }
-
-    private String getString(ResultSet rs, String primaryColumn, String fallbackColumn) throws SQLException {
-        try {
-            return rs.getString(primaryColumn);
-        } catch (SQLException ex) {
-            return rs.getString(fallbackColumn);
-        }
-    }
-
-    private Timestamp getTimestamp(ResultSet rs, String primaryColumn, String fallbackColumn) throws SQLException {
-        try {
-            return rs.getTimestamp(primaryColumn);
-        } catch (SQLException ex) {
-            return rs.getTimestamp(fallbackColumn);
-        }
     }
 
     /**

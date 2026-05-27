@@ -2,7 +2,6 @@ package com.kiotretail.controller;
 
 import com.kiotretail.dao.EmployeeDAO;
 import com.kiotretail.model.Employee;
-import com.kiotretail.util.RolePermissionUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -55,14 +54,8 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("employee", employee);
             session.setAttribute("employeeId", employee.getEmployeeId());
             session.setAttribute("employeeName", employee.getFullName());
-            session.setAttribute("roleId", employee.getRoleId());
             session.setAttribute("roleName", employee.getRoleName());
             session.setAttribute("branchName", employee.getBranchName());
-            session.setAttribute("canViewCategory", RolePermissionUtil.canViewCategory(employee.getRoleName()));
-            session.setAttribute("canManageCategory", RolePermissionUtil.canManageCategory(employee.getRoleName()));
-            session.setAttribute("canViewRoleManagement", RolePermissionUtil.canViewRoleManagement(employee.getRoleName()));
-            session.setAttribute("canAccessManagementArea", RolePermissionUtil.canAccessManagementArea(employee.getRoleName()));
-            session.setAttribute("canAccessPos", RolePermissionUtil.canAccessPos(employee.getRoleName()));
 
             if (rememberMe) {
                 session.setMaxInactiveInterval(7 * 24 * 60 * 60); // 7 days
