@@ -91,8 +91,26 @@ public class ForgotPasswordServlet extends HttpServlet {
             }
 
             if (!newPassword.equals(confirmPassword)) {
-    request.setAttribute("error", "Xác nhận mật khẩu mới không trùng khớp!");
-    request.getRequestDispatcher("/WEB-INF/views/auth/reset-password.jsp").forward(request, response);
+    request.setAttribute("error",
+            "Xác nhận mật khẩu mới không trùng khớp!");
+
+    request.getRequestDispatcher("/WEB-INF/views/auth/reset-password.jsp")
+            .forward(request, response);
+    return;
+}
+
+// Validate độ mạnh mật khẩu
+String passwordRegex =
+        "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&._-])[A-Za-z\\d@$!%*#?&._-]{6,}$";
+
+if (!newPassword.matches(passwordRegex)) {
+
+    request.setAttribute("error",
+            "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ cái, chữ số và ký tự đặc biệt!");
+
+    request.getRequestDispatcher("/WEB-INF/views/auth/reset-password.jsp")
+            .forward(request, response);
+
     return;
 }
 

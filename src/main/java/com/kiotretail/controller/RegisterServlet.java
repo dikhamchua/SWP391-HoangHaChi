@@ -22,20 +22,6 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-//        // --- CHẶN BẢO MẬT: Chỉ cho phép Owner mới truy cập vào trang này ---
-//        HttpSession session = request.getSession(false);
-////        if (session == null || session.getAttribute("employee") == null) {
-////            response.sendRedirect(request.getContextPath() + "/login");
-////            return;
-////        }
-////        
-//        String roleName = (String) session.getAttribute("roleName");
-//        // Kiểm tra xem có đúng là chủ sở hữu chuỗi cửa hàng truy cập không
-//        if (!"owner".equalsIgnoreCase(roleName)) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền truy cập tính năng này.");
-//            return;
-//        }
 
         request.getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(request, response);
     }
@@ -43,13 +29,6 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // Xác thực quyền lại tại cổng POST để tránh hacker gửi Request ngầm
-//        HttpSession session = request.getSession(false);
-//        if (session == null || !"owner".equalsIgnoreCase((String) session.getAttribute("roleName"))) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-//            return;
-//        }
 
         // Đọc dữ liệu từ form Owner nhập lên
         String fullName = request.getParameter("fullName");
