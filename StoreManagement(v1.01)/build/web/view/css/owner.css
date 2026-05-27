@@ -1,0 +1,56 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 24 May 2026, 13:25:39
+    Author     : PCQN
+*/
+.filter-box {
+    background: var(--surface-container-lowest);
+    border: 1px solid rgba(143, 111, 108, 0.18);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-form input,
+.filter-form select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(143, 111, 108, 0.35);
+    background: var(--surface-bright);
+    color: var(--on-surface);
+    outline: none;
+}
+
+.filter-form input:focus,
+.filter-form select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(147, 0, 11, 0.14);
+}
+
+.small-modal {
+    max-width: 520px;
+}
+
+@media (max-width: 1100px) {
+    .filter-form {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+}

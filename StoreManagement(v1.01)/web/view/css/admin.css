@@ -1,0 +1,80 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 24 May 2026, 12:45:19
+    Author     : PCQN
+*/
+/* Admin page specific style */
+
+.sidebar {
+    background: var(--surface-container-lowest);
+}
+
+.logo {
+    background: var(--primary);
+}
+
+.sidebar-menu .active a {
+    background: var(--primary-container);
+    color: var(--on-primary-container);
+}
+
+.topbar {
+    background: transparent;
+}
+
+.table-wrapper {
+    animation: fadeUp 0.25s ease;
+}
+
+.card {
+    animation: fadeUp 0.25s ease;
+}
+
+.action-group form {
+    margin: 0;
+}
+
+.lock-btn:hover,
+.unlock-btn:hover,
+.edit-btn:hover {
+    text-decoration: underline;
+}
+
+.modal-box {
+    animation: scaleIn 0.22s ease;
+}
+
+.empty-branch-box {
+    margin-top: 0;
+}
+
+.create-branch-btn:hover {
+    background: var(--primary-hover);
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
