@@ -62,6 +62,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link ${param.active == 'register' ? 'active' : ''}" href="${pageContext.request.contextPath}/register">
+                    <span class="material-icons">person_add</span>
+                    <span>Tạo tài khoản</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link ${param.active == 'reports' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/reports">
                     <span class="material-icons">analytics</span>
                     <span>Báo cáo</span>

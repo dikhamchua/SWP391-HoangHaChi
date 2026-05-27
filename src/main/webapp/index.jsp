@@ -78,14 +78,14 @@
                             Đăng nhập
                         </a>
                     </li>
-                    <li class="nav-item">
+<!--                    <li class="nav-item">
                         <a class="btn btn-outline-danger ms-2 px-3 fw-medium d-inline-flex align-items-center justify-content-center" 
                            href="${pageContext.request.contextPath}/register" 
                            style="height: 38px; min-width: 120px;">
                             <span class="material-icons me-1" style="font-size: 18px;">person_add</span>
                             Đăng ký
                         </a>
-                    </li>
+                    </li>-->
                 </ul>
             </div>
         </div>

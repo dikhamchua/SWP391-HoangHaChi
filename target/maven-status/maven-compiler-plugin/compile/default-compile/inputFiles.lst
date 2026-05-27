@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\api\dto\Category.java
 D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\controller\LogoutServlet.java
 D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\model\Product.java
@@ -26,3 +27,30 @@ D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\util\PasswordUtil.java
 D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\dao\ProductDAO.java
 D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\model\Employee.java
 D:\Thangdev\SWP\kiotretail\src\main\java\com\kiotretail\util\RolePermissionUtil.java
+=======
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\LoginServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\util\DatabaseUtil.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\RegisterServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\ForgotPasswordServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\filter\EncodingFilter.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\LogoutServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\ApiAction.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\BaseController.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\filter\AuthFilter.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\ChangePasswordServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\util\TestConnection.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\ProductServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\model\Product.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\RoleSelectionServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\action\GetProductsAction.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\dto\Product.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\dto\Variant.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\controller\DashboardServlet.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\ApiResponse.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\dto\Category.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\api\dto\ProductListResponse.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\util\EmailUtil.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\model\Employee.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\dao\ProductDAO.java
+C:\Users\Admin\Documents\SWP391\SWP391_Group_5\src\main\java\com\kiotretail\dao\EmployeeDAO.java
+>>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334

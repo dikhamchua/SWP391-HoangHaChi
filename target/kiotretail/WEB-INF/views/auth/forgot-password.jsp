@@ -28,8 +28,8 @@
         <div class="col-12 col-md-6 d-flex align-items-center justify-content-center p-4 p-sm-5" style="position: relative; z-index: 2;">
             <div class="w-100" style="max-width: 420px;">
                 <div class="mb-4">
-                    <h3 class="fw-bold text-dark mb-2" style="font-family: 'Manrope', sans-serif; font-size: 1.75rem;">Khôi phục mật khẩu</h3>
-                    <p class="text-secondary small">Vui lòng nhập chính xác tên tài khoản và email để nhận mã xác thực OTP.</p>
+                    <h3 class="fw-bold text-dark mb-2" style="font-family: 'Manrope', sans-serif; font-size: 1.75rem;">Xác nhận tài khoản</h3>
+                    <p class="text-secondary small">Vui lòng nhập chính xác Tên nhân viên và email để nhận mã xác thực OTP.</p>
                 </div>
 
                 <c:if test="${not empty error}">
@@ -43,11 +43,11 @@
                     <input type="hidden" name="action" value="send-otp">
                     
                     <div class="mb-3">
-                        <label for="username" class="form-label small fw-semibold text-secondary mb-1">Tên tài khoản</label>
+                        <label for="username" class="form-label small fw-semibold text-secondary mb-1">Họ và tên nhân viên</label>
                         <div class="input-group" style="border-radius: 8px; overflow: hidden; border: 1px solid #d1d5db;">
                             <span class="input-group-text bg-white border-0 text-muted"><i class="material-icons opacity-60">account_circle</i></span>
-                            <input type="text" class="form-control border-0 ps-0 shadow-none text-dark" id="username" name="username"
-                                   placeholder="Nhập tên tài khoản của bạn" style="padding: 11px 0;" required>
+                            <input type="text" class="form-control border-0 ps-0 shadow-none text-dark" name="fullName" placeholder="Nhập họ và tên nhân viên" required />
+                                   
                         </div>
                     </div>
 

@@ -52,6 +52,7 @@
                 <form method="post" action="${pageContext.request.contextPath}/login" autocomplete="off">
 
                     <div class="mb-3">
+<<<<<<< HEAD
                         <label for="username" class="form-label small fw-semibold text-secondary">Email</label>
                         <div class="input-group login-custom-group" style="border-radius: 8px; overflow: hidden; border: 1px solid #d1d5db;">
                             <span class="input-group-text bg-white border-0 text-muted">
@@ -60,6 +61,16 @@
                             <input type="text" class="form-control border-0 ps-0 shadow-none text-dark" id="username" name="username"
                                    placeholder="Nhập email tài khoản" value="${username}" style="padding-top: 11px; padding-bottom: 11px;" required autofocus>
                         </div>
+=======
+                        <label for="username" class="form-label small fw-semibold text-secondary">Email hoặc Số điện thoại</label>
+<div class="input-group login-custom-group" style="border-radius: 8px; overflow: hidden; border: 1px solid #d1d5db;">
+    <span class="input-group-text bg-white border-0 text-muted">
+        <i class="material-icons opacity-60">contact_mail</i>
+    </span>
+    <input type="text" class="form-control border-0 ps-0 shadow-none text-dark" id="username" name="username"
+           placeholder="Nhập email hoặc số điện thoại" value="${username}" style="padding-top: 11px; padding-bottom: 11px;" required autofocus>
+</div>
+>>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
                     </div>
 
                     <div class="mb-3">
@@ -122,4 +133,17 @@
     });
 </script>
 
+<<<<<<< HEAD
 <jsp:include page="../common/footer.jsp"/>
+=======
+<script>
+    // Ngăn chặn người dùng nhấn Back để quay lại hệ thống sau khi đã logout
+    function preventBack() {
+        window.history.forward();
+    }
+    setTimeout("preventBack()", 0);
+    window.onunload = function () { null };
+</script>
+
+<jsp:include page="../common/footer.jsp"/>
+>>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334

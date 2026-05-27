@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/components.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register-custom.css">
 
 <div class="container-fluid p-0 m-0" style="overflow-x: hidden; background-color: #ffffff;">
     <div class="row g-0 min-vh-100 align-items-stretch">

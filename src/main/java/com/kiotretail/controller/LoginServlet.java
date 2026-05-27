@@ -12,8 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Login Servlet
- * Xử lý đăng nhập
+ * Login Servlet Xử lý đăng nhập
  */
 public class LoginServlet extends HttpServlet {
 
@@ -34,23 +33,24 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String username = request.getParameter("username");
+        // Đổi tên biến từ username thành identifier để hợp logic (Email/Phone)
+        String identifier = request.getParameter("username");
         String password = request.getParameter("password");
         boolean rememberMe = request.getParameter("remember-me") != null;
 
         // Validate input
-        if (username == null || username.trim().isEmpty() ||
-            password == null || password.trim().isEmpty()) {
+        if (identifier == null || identifier.trim().isEmpty()
+                || password == null || password.trim().isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin đăng nhập");
             request.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(request, response);
             return;
         }
 
-        // Authenticate
-        Employee employee = employeeDAO.login(username, password);
+        // Xác thực bằng Email hoặc Phone thông qua hàm DAO đã cập nhật
+        Employee employee = employeeDAO.login(identifier, password);
 
         if (employee != null) {
-            // Login successful
+            // Đăng nhập thành công (Giữ nguyên logic session của bạn)
             HttpSession session = request.getSession();
             session.setAttribute("employee", employee);
             session.setAttribute("employeeId", employee.getEmployeeId());
@@ -68,12 +68,17 @@ public class LoginServlet extends HttpServlet {
                 session.setMaxInactiveInterval(7 * 24 * 60 * 60); // 7 days
             }
 
-            // Redirect to role selection or dashboard
             response.sendRedirect(request.getContextPath() + "/role-selection");
         } else {
+<<<<<<< HEAD
             // Login failed
             request.setAttribute("error", "Email hoặc mật khẩu không đúng");
             request.setAttribute("username", username);
+=======
+            // Đăng nhập thất bại
+            request.setAttribute("error", "Email/Số điện thoại hoặc mật khẩu không đúng");
+            request.setAttribute("username", identifier); // Đẩy lại dữ liệu cũ về input
+>>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
             request.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(request, response);
         }
     }

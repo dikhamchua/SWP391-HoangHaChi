@@ -12,7 +12,6 @@ public class Employee {
     private String fullName;
     private String email;
     private String phone;
-    private String username;
     private String password;
     private int roleId;
     private String roleName;
@@ -31,7 +30,6 @@ public class Employee {
         this.employeeId = employeeId;
         this.employeeCode = employeeCode;
         this.fullName = fullName;
-        this.username = username;
     }
 
     // Getters and Setters
@@ -75,13 +73,6 @@ public class Employee {
         this.phone = phone;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     public String getPassword() {
         return password;

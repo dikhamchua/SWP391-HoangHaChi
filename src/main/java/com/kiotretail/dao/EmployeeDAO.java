@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Employee DAO
- * Data Access Object cho nhân viên
+ * Employee DAO Data Access Object cho nhân viên
  */
 public class EmployeeDAO {
 
     /**
      * Đăng nhập
      */
+<<<<<<< HEAD
     public Employee login(String username, String password) {
         String sql = "SELECT e.EmployeeID, e.RoleID, e.BranchID, e.FullName, e.Email, e.Phone, " +
                      "e.PasswordHash, e.Status, e.CreatedAt, r.Name AS RoleName, b.Name AS BranchName " +
@@ -40,6 +40,39 @@ public class EmployeeDAO {
                         System.out.println("[LOGIN DEBUG] No matching row found. Check email/password/status.");
                     }
                 }
+=======
+    public Employee login(String identifier, String password) {
+        String sql = "SELECT e.*, r.Name as RoleName, b.Name as BranchName "
+                + "FROM Employee e "
+                + "JOIN Role r ON e.RoleID = r.RoleID "
+                + "JOIN Branch b ON e.BranchID = b.BranchID "
+                + "WHERE (e.Email = ? OR e.Phone = ?) AND e.PasswordHash = ? AND e.Status = 'active'";
+
+        try (Connection conn = DatabaseUtil.getConnection(); // Hoặc cách lấy connection của bạn
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Tham số 1 truyền vào cho Email
+            ps.setString(1, identifier);
+            // Tham số 2 truyền vào cho Phone (cùng là chuỗi người dùng nhập từ giao diện)
+            ps.setString(2, identifier);
+            // Tham số 3 cho Password
+            ps.setString(3, password);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+
+                Employee employee = new Employee();
+
+                employee.setEmployeeId(rs.getInt("EmployeeID"));
+                employee.setFullName(rs.getString("FullName"));
+                employee.setEmail(rs.getString("Email"));
+                employee.setPhone(rs.getString("Phone"));
+                employee.setRoleId(rs.getInt("RoleID"));
+                employee.setBranchId(rs.getInt("BranchID"));
+                employee.setStatus(rs.getString("Status"));
+
+                return employee;
+>>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
             }
         } catch (SQLException e) {
             System.out.println("[LOGIN DEBUG] SQL ERROR: " + e.getMessage());
@@ -53,15 +86,13 @@ public class EmployeeDAO {
      */
     public List<Employee> getAllEmployees() {
         List<Employee> employees = new ArrayList<>();
-        String sql = "SELECT e.*, r.role_name, b.branch_name " +
-                     "FROM employees e " +
-                     "LEFT JOIN roles r ON e.role_id = r.role_id " +
-                     "LEFT JOIN branches b ON e.branch_id = b.branch_id " +
-                     "ORDER BY e.created_at DESC";
+        String sql = "SELECT e.*, r.role_name, b.branch_name "
+                + "FROM employees e "
+                + "LEFT JOIN roles r ON e.role_id = r.role_id "
+                + "LEFT JOIN branches b ON e.branch_id = b.branch_id "
+                + "ORDER BY e.created_at DESC";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 employees.add(extractEmployee(rs));
@@ -76,14 +107,13 @@ public class EmployeeDAO {
      * Lấy nhân viên theo ID
      */
     public Employee getEmployeeById(int employeeId) {
-        String sql = "SELECT e.*, r.role_name, b.branch_name " +
-                     "FROM employees e " +
-                     "LEFT JOIN roles r ON e.role_id = r.role_id " +
-                     "LEFT JOIN branches b ON e.branch_id = b.branch_id " +
-                     "WHERE e.employee_id = ?";
+        String sql = "SELECT e.*, r.role_name, b.branch_name "
+                + "FROM employees e "
+                + "LEFT JOIN roles r ON e.role_id = r.role_id "
+                + "LEFT JOIN branches b ON e.branch_id = b.branch_id "
+                + "WHERE e.employee_id = ?";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, employeeId);
             ResultSet rs = stmt.executeQuery();
@@ -101,18 +131,16 @@ public class EmployeeDAO {
      * Thêm nhân viên mới
      */
     public boolean addEmployee(Employee employee) {
-        String sql = "INSERT INTO employees (employee_code, full_name, email, phone, username, password, " +
-                     "role_id, branch_id, department, position, status) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO employees (employee_code, full_name, email, phone, username, password, "
+                + "role_id, branch_id, department, position, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, employee.getEmployeeCode());
             stmt.setString(2, employee.getFullName());
             stmt.setString(3, employee.getEmail());
             stmt.setString(4, employee.getPhone());
-            stmt.setString(5, employee.getUsername());
             stmt.setString(6, employee.getPassword());
             stmt.setInt(7, employee.getRoleId());
             stmt.setInt(8, employee.getBranchId());
@@ -131,12 +159,11 @@ public class EmployeeDAO {
      * Cập nhật nhân viên
      */
     public boolean updateEmployee(Employee employee) {
-        String sql = "UPDATE employees SET full_name = ?, email = ?, phone = ?, " +
-                     "role_id = ?, branch_id = ?, department = ?, position = ?, status = ? " +
-                     "WHERE employee_id = ?";
+        String sql = "UPDATE employees SET full_name = ?, email = ?, phone = ?, "
+                + "role_id = ?, branch_id = ?, department = ?, position = ?, status = ? "
+                + "WHERE employee_id = ?";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, employee.getFullName());
             stmt.setString(2, employee.getEmail());
@@ -161,8 +188,7 @@ public class EmployeeDAO {
     public boolean deleteEmployee(int employeeId) {
         String sql = "UPDATE employees SET status = 'inactive' WHERE employee_id = ?";
 
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, employeeId);
             return stmt.executeUpdate() > 0;
@@ -177,6 +203,7 @@ public class EmployeeDAO {
      */
     private Employee extractEmployee(ResultSet rs) throws SQLException {
         Employee employee = new Employee();
+<<<<<<< HEAD
         employee.setEmployeeId(rs.getInt("EmployeeID"));
         employee.setEmployeeCode("EMP" + rs.getInt("EmployeeID"));
         employee.setFullName(rs.getString("FullName"));
@@ -190,16 +217,30 @@ public class EmployeeDAO {
         employee.setBranchName(rs.getString("BranchName"));
         employee.setStatus(rs.getString("Status"));
         employee.setCreatedAt(rs.getTimestamp("CreatedAt"));
+=======
+        employee.setEmployeeId(rs.getInt("employee_id"));
+        employee.setEmployeeCode(rs.getString("employee_code"));
+        employee.setFullName(rs.getString("full_name"));
+        employee.setEmail(rs.getString("email"));
+        employee.setPhone(rs.getString("phone"));
+        employee.setRoleId(rs.getInt("role_id"));
+        employee.setRoleName(rs.getString("role_name"));
+        employee.setBranchId(rs.getInt("branch_id"));
+        employee.setBranchName(rs.getString("branch_name"));
+        employee.setDepartment(rs.getString("department"));
+        employee.setPosition(rs.getString("position"));
+        employee.setStatus(rs.getString("status"));
+        employee.setCreatedAt(rs.getTimestamp("created_at"));
+>>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
         return employee;
     }
-    
+
     /**
      * Kiểm tra xem Username đã tồn tại trong hệ thống chưa
      */
     public boolean checkUsernameExists(String username) {
         String sql = "SELECT employee_id FROM employees WHERE username = ?";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next(); // Nếu tìm thấy bản ghi nghĩa là Username đã tồn tại
@@ -215,8 +256,7 @@ public class EmployeeDAO {
      */
     public boolean checkEmailExists(String email) {
         String sql = "SELECT employee_id FROM employees WHERE email = ?";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next(); // Nếu tìm thấy bản ghi nghĩa là Email đã được dùng
@@ -227,73 +267,171 @@ public class EmployeeDAO {
         return false;
     }
 
-    /**
-     * Thực hiện thêm tài khoản người dùng mới vào hệ thống Database
-     */
-    public boolean registerEmployee(String fullName, String username, String email, String password, int roleId, String status) {
-        // Đã bổ sung trường branch_id để đồng bộ cấu trúc bảng employees của bạn
-        String sql = "INSERT INTO employees (employee_code, full_name, email, username, password, role_id, branch_id, status, created_at) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
-                   
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            // Tạo mã định danh nhân viên tự động ngẫu nhiên
-            String randomEmpCode = "EMP" + (System.currentTimeMillis() % 100000);
-            
-            // Đảm bảo số 1 này tồn tại sẵn trong bảng 'branches' của bạn
-            int defaultBranchId = 1; 
-            
-            stmt.setString(1, randomEmpCode);
-            stmt.setString(2, fullName);
-            stmt.setString(3, email);
-            stmt.setString(4, username);
-            stmt.setString(5, password); 
-            stmt.setInt(6, roleId);
-            stmt.setInt(7, defaultBranchId);
-            stmt.setString(8, status);
-            
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.out.println("Lỗi insert tài khoản đăng ký mới:");
-            e.printStackTrace();
-        }
-        return false;
-    }
-    
+
     /**
      * Cập nhật mật khẩu mới theo Email người dùng
      */
-    public boolean updatePasswordByEmail(String email, String password) {
-        String sql = "UPDATE employees SET password = ? WHERE email = ?";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, password); // Ghi đè mật khẩu mới không mã hóa
-            stmt.setString(2, email);
-            
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+    public boolean updatePasswordByEmail(String email, String newPassword) {
+
+    String sql = "UPDATE Employee "
+               + "SET PasswordHash = ? "
+               + "WHERE Email = ?";
+
+    try (Connection conn = DatabaseUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, newPassword);
+        ps.setString(2, email);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
 
-public boolean checkUsernameAndEmailMatch(String username, String email) {
+    return false;
+}
+
+    public boolean checkUsernameAndEmailMatch(String username, String email) {
         String sql = "SELECT employee_id FROM employees WHERE username = ? AND email = ? AND status = 'active'";
-        try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, username);
             stmt.setString(2, email);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); 
+                return rs.next();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
+
+    public boolean updatePassword(int employeeId, String currentPassword, String newPassword) {
+        String checkSql = "SELECT PasswordHash FROM Employee WHERE EmployeeID = ? AND Status = 'active'";
+        String updateSql = "UPDATE Employee SET PasswordHash = ? WHERE EmployeeID = ?";
+
+        Connection conn = null;
+        PreparedStatement psCheck = null;
+        PreparedStatement psUpdate = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseUtil.getConnection();
+
+            psCheck = conn.prepareStatement(checkSql);
+            psCheck.setInt(1, employeeId);
+            rs = psCheck.executeQuery();
+
+            if (rs.next()) {
+                String storedPassword = rs.getString("PasswordHash");
+                if (storedPassword != null && storedPassword.trim().equals(currentPassword.trim())) {
+
+                    psUpdate = conn.prepareStatement(updateSql);
+                    psUpdate.setString(1, newPassword); // Mật khẩu mới đạt chuẩn 6 ký tự + ký tự đặc biệt
+                    psUpdate.setInt(2, employeeId);
+
+                    int rowsAffected = psUpdate.executeUpdate();
+                    return rowsAffected > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (psCheck != null) {
+                    psCheck.close();
+                }
+                if (psUpdate != null) {
+                    psUpdate.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    public boolean isEmailExists(String email) {
+        String sql = "SELECT COUNT(*) FROM Employee WHERE Email = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Nếu số lượng tìm thấy lớn hơn 0 nghĩa là đã trùng email
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            // Ghi nhận lỗi log ra màn hình console để dễ dàng debug khi chạy lỗi kết nối
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean registerEmployee(String fullName, String email, String phone, String autoGeneratedPassword, int roleId, int branchId, String defaultStatus) {
+        // Câu lệnh SQL bám sát cấu trúc bảng Employee trong DBFinora.sql
+        // Trường CreatedAt không cần chèn vì đã được định nghĩa tự động: DEFAULT GETDATE() trong Database
+        String sql = "INSERT INTO Employee (RoleID, BranchID, FullName, Email, Phone, PasswordHash, Status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Gán các tham số đầu vào theo đúng thứ tự cột trong câu lệnh INSERT phía trên
+            ps.setInt(1, roleId);
+            ps.setInt(2, branchId);
+            ps.setString(3, fullName);
+            ps.setString(4, email);
+            ps.setString(5, phone);
+            ps.setString(6, autoGeneratedPassword); // Lưu trực tiếp mật khẩu tự sinh dạng văn bản thô
+            ps.setString(7, defaultStatus);
+
+            // Thực thi lệnh cập nhật cơ sở dữ liệu
+            int rowsAffected = ps.executeUpdate();
+
+            // Nếu số dòng bị ảnh hưởng lớn hơn 0 nghĩa là insert thành công dữ liệu xuống SQL Server
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     
+    public boolean checkFullNameAndEmailMatch(String fullName, String email) {
+
+     String sql = "SELECT COUNT(*) FROM Employee "
+               + "WHERE LOWER(LTRIM(RTRIM(FullName))) = LOWER(LTRIM(RTRIM(?))) "
+               + "AND LOWER(LTRIM(RTRIM(Email))) = LOWER(LTRIM(RTRIM(?))) "
+               + "AND Status = 'active'";
+
+    try (Connection conn = DatabaseUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, fullName);
+        ps.setString(2, email);
+
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return false;
+}
+
 }
