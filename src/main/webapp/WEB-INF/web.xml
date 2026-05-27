@@ -126,7 +126,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ChangePasswordServlet</servlet-name>
-        <url-pattern>/changepassword</url-pattern>
+        <url-pattern>/change-password</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
