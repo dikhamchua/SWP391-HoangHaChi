@@ -27,6 +27,7 @@ public class BaseController extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getRequestURI().substring(req.getContextPath().length());;
         ApiAction action = routes.get(path);
+        //check if api had been registered or not
         if (action == null){
             resp.sendError(404,"Not Found");
             return;

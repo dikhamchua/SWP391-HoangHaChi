@@ -196,41 +196,17 @@ let currentPage = 1;
 // Tự động chạy khi trang web vừa tải xong
 document.addEventListener("DOMContentLoaded", function() {
     loadProducts(1);
-
-    // Lắng nghe sự kiện gõ phím Enter trên thanh tìm kiếm
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
-        if (e.key === 'Enter') {
-            loadProducts(1); // Tìm kiếm thì reset về trang 1
-        }
-    });
-
-    // Lắng nghe sự kiện thay đổi bộ lọc nhóm hàng và trạng thái
-    document.getElementById('categoryFilter').addEventListener('change', function() { loadProducts(1); });
-    document.getElementById('statusFilter').addEventListener('change', function() { loadProducts(1); });
 });
 
 // HÀM CHÍNH: Gọi API lấy dữ liệu và render giao diện
 function loadProducts(page) {
     currentPage = page;
-
-    // 1. Thu thập các tham số đầu vào từ giao diện
     const limit = document.getElementById('limitSelect').value;
-    const keyword = document.getElementById('searchInput').value.trim();
-    const categoryId = document.getElementById('categoryFilter').value;
-    const status = document.getElementById('statusFilter').value;
-
-    // 2. Tạo đường link API động (gọi đến GetProductsAction của bạn)
     let apiUrl = `${pageContext.request.contextPath}/api/products?page=\${page}&limit=\${limit}`;
-
-    // Nếu có tìm kiếm hoặc lọc thì nối đuôi vào API (Phục vụ mở rộng sau này)
-    if (keyword) apiUrl += `&keyword=\${encodeURIComponent(keyword)}`;
-    if (categoryId) apiUrl += `&categoryId=\${categoryId}`;
-    if (status) apiUrl += `&status=\${status}`;
-
-    // 3. Thực hiện Fetch API ngầm
     fetch(apiUrl)
         .then(response => response.json())
         .then(apiResult => {
+        console.log(apiResult.data);
             if (apiResult.status === 200) {
                 const products = apiResult.data;
                 renderTable(products);
@@ -244,7 +220,7 @@ function loadProducts(page) {
         });
 }
 
-// Hàm vẽ bảng dữ liệu sản phẩm từ mảng JSON nhận được
+// vẽ bảng dữ liệu sản phẩm từ mảng JSON nhận được
 function renderTable(products) {
     const tbody = document.getElementById('productTableBody');
     let html = "";
