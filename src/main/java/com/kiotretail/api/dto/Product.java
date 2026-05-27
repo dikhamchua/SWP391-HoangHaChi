@@ -4,10 +4,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class Product {
-    private int product_id;
-    private String product_code;
-    private String product_name;
+    private int productId;
+    private String productCode;
+    private String productName;
     private int categoryId;
+    private String categoryName;
     private String unit;
     private BigDecimal costPrice;     // Kiểu DECIMAL trong SQL ứng với BigDecimal trong Java
     private BigDecimal sellingPrice;  // Hoặc dùng double cũng được, nhưng BigDecimal là chuẩn nhất cho tiền tệ
@@ -17,11 +18,12 @@ public class Product {
     private String imageUrl;
     private String status;
 
-    public Product(int product_id, String product_code, String product_name, int categoryId, String unit, BigDecimal costPrice, BigDecimal sellingPrice, int stockQuantity, int minStock, int maxStock, String imageUrl, String status) {
-        this.product_id = product_id;
-        this.product_code = product_code;
-        this.product_name = product_name;
+    public Product(int productId, String productCode, String productName, int categoryId, String categoryName, String unit, BigDecimal costPrice, BigDecimal sellingPrice, int stockQuantity, int minStock, int maxStock, String imageUrl, String status) {
+        this.productId = productId;
+        this.productCode = productCode;
+        this.productName = productName;
         this.categoryId = categoryId;
+        this.categoryName = categoryName;
         this.unit = unit;
         this.costPrice = costPrice;
         this.sellingPrice = sellingPrice;
@@ -32,28 +34,28 @@ public class Product {
         this.status = status;
     }
 
-    public int getProduct_id() {
-        return product_id;
+    public int getProductId() {
+        return productId;
     }
 
-    public void setProduct_id(int product_id) {
-        this.product_id = product_id;
+    public void setProductId(int productId) {
+        this.productId = productId;
     }
 
-    public String getProduct_code() {
-        return product_code;
+    public String getProductCode() {
+        return productCode;
     }
 
-    public void setProduct_code(String product_code) {
-        this.product_code = product_code;
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
-    public String getProduct_name() {
-        return product_name;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setProduct_name(String product_name) {
-        this.product_name = product_name;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public int getCategoryId() {
@@ -126,5 +128,13 @@ public class Product {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 }

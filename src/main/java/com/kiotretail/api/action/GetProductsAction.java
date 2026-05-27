@@ -48,6 +48,25 @@ public class GetProductsAction implements ApiAction {
 
         ProductDAO productDAO = new ProductDAO();
         List<Product> list = productDAO.getProducts(page, limit, keyword, categoryId, status);
-        return new ApiResponse(200,"Get okay "+ limit + "product/page", list);
+        List<com.kiotretail.api.dto.Product> dtoList = new ArrayList<>();
+        for(com.kiotretail.model.Product l: list){
+            com.kiotretail.api.dto.Product productdto = new com.kiotretail.api.dto.Product(
+                    l.getProductId(),
+                    l.getProductCode(),
+                    l.getProductName(),
+                    l.getCategoryId(),
+                    l.getCategoryName(),
+                    l.getUnit(),
+                    null,
+                    l.getSellingPrice(),
+                    l.getStockQuantity(),
+                    l.getMinStock(),
+                    l.getMaxStock(),
+                    l.getImageUrl(),
+                    l.getStatus()
+            );
+            dtoList.add(productdto);
+        }
+        return new ApiResponse(200,"Get okay "+ limit + " product/page ", dtoList);
     }
 }
