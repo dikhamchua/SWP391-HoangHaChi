@@ -15,32 +15,6 @@ public class EmployeeDAO {
     /**
      * Đăng nhập
      */
-<<<<<<< HEAD
-    public Employee login(String username, String password) {
-        String sql = "SELECT e.EmployeeID, e.RoleID, e.BranchID, e.FullName, e.Email, e.Phone, " +
-                     "e.PasswordHash, e.Status, e.CreatedAt, r.Name AS RoleName, b.Name AS BranchName " +
-                     "FROM Employee e " +
-                     "LEFT JOIN Role r ON e.RoleID = r.RoleID " +
-                     "LEFT JOIN Branch b ON e.BranchID = b.BranchID " +
-                     "WHERE e.Email = ? AND e.PasswordHash = ? AND e.Status = 'active'";
-
-        System.out.println("[LOGIN DEBUG] Attempting login with email=[" + username + "] password=[" + password + "]");
-
-        try (Connection conn = DatabaseUtil.getConnection()) {
-            System.out.println("[LOGIN DEBUG] Database connection OK");
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, username);
-                stmt.setString(2, password);
-                System.out.println("[LOGIN DEBUG] Executing query...");
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        System.out.println("[LOGIN DEBUG] Found employee: " + rs.getString("FullName") + " Role: " + rs.getString("RoleName"));
-                        return extractEmployee(rs);
-                    } else {
-                        System.out.println("[LOGIN DEBUG] No matching row found. Check email/password/status.");
-                    }
-                }
-=======
     public Employee login(String identifier, String password) {
         String sql = "SELECT e.*, r.Name as RoleName, b.Name as BranchName "
                 + "FROM Employee e "
@@ -72,7 +46,6 @@ public class EmployeeDAO {
                 employee.setStatus(rs.getString("Status"));
 
                 return employee;
->>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
             }
         } catch (SQLException e) {
             System.out.println("[LOGIN DEBUG] SQL ERROR: " + e.getMessage());
@@ -141,6 +114,7 @@ public class EmployeeDAO {
             stmt.setString(2, employee.getFullName());
             stmt.setString(3, employee.getEmail());
             stmt.setString(4, employee.getPhone());
+            stmt.setString(5, employee.getEmail());
             stmt.setString(6, employee.getPassword());
             stmt.setInt(7, employee.getRoleId());
             stmt.setInt(8, employee.getBranchId());
@@ -203,36 +177,48 @@ public class EmployeeDAO {
      */
     private Employee extractEmployee(ResultSet rs) throws SQLException {
         Employee employee = new Employee();
-<<<<<<< HEAD
-        employee.setEmployeeId(rs.getInt("EmployeeID"));
-        employee.setEmployeeCode("EMP" + rs.getInt("EmployeeID"));
-        employee.setFullName(rs.getString("FullName"));
-        employee.setEmail(rs.getString("Email"));
-        employee.setPhone(rs.getString("Phone"));
-        employee.setUsername(rs.getString("Email"));
-        employee.setPassword(rs.getString("PasswordHash"));
-        employee.setRoleId(rs.getInt("RoleID"));
-        employee.setRoleName(rs.getString("RoleName"));
-        employee.setBranchId(rs.getInt("BranchID"));
-        employee.setBranchName(rs.getString("BranchName"));
-        employee.setStatus(rs.getString("Status"));
-        employee.setCreatedAt(rs.getTimestamp("CreatedAt"));
-=======
-        employee.setEmployeeId(rs.getInt("employee_id"));
-        employee.setEmployeeCode(rs.getString("employee_code"));
-        employee.setFullName(rs.getString("full_name"));
-        employee.setEmail(rs.getString("email"));
-        employee.setPhone(rs.getString("phone"));
-        employee.setRoleId(rs.getInt("role_id"));
-        employee.setRoleName(rs.getString("role_name"));
-        employee.setBranchId(rs.getInt("branch_id"));
-        employee.setBranchName(rs.getString("branch_name"));
-        employee.setDepartment(rs.getString("department"));
-        employee.setPosition(rs.getString("position"));
-        employee.setStatus(rs.getString("status"));
-        employee.setCreatedAt(rs.getTimestamp("created_at"));
->>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
+        employee.setEmployeeId(getInt(rs, "EmployeeID", "employee_id"));
+        employee.setEmployeeCode(getString(rs, "employee_code", "EmployeeCode"));
+        if (employee.getEmployeeCode() == null || employee.getEmployeeCode().trim().isEmpty()) {
+            employee.setEmployeeCode("EMP" + employee.getEmployeeId());
+        }
+        employee.setFullName(getString(rs, "FullName", "full_name"));
+        employee.setEmail(getString(rs, "Email", "email"));
+        employee.setPhone(getString(rs, "Phone", "phone"));
+        employee.setPassword(getString(rs, "PasswordHash", "password_hash"));
+        employee.setRoleId(getInt(rs, "RoleID", "role_id"));
+        employee.setRoleName(getString(rs, "RoleName", "role_name"));
+        employee.setBranchId(getInt(rs, "BranchID", "branch_id"));
+        employee.setBranchName(getString(rs, "BranchName", "branch_name"));
+        employee.setDepartment(getString(rs, "Department", "department"));
+        employee.setPosition(getString(rs, "Position", "position"));
+        employee.setStatus(getString(rs, "Status", "status"));
+        employee.setCreatedAt(getTimestamp(rs, "CreatedAt", "created_at"));
         return employee;
+    }
+
+    private int getInt(ResultSet rs, String primaryColumn, String fallbackColumn) throws SQLException {
+        try {
+            return rs.getInt(primaryColumn);
+        } catch (SQLException ex) {
+            return rs.getInt(fallbackColumn);
+        }
+    }
+
+    private String getString(ResultSet rs, String primaryColumn, String fallbackColumn) throws SQLException {
+        try {
+            return rs.getString(primaryColumn);
+        } catch (SQLException ex) {
+            return rs.getString(fallbackColumn);
+        }
+    }
+
+    private Timestamp getTimestamp(ResultSet rs, String primaryColumn, String fallbackColumn) throws SQLException {
+        try {
+            return rs.getTimestamp(primaryColumn);
+        } catch (SQLException ex) {
+            return rs.getTimestamp(fallbackColumn);
+        }
     }
 
     /**

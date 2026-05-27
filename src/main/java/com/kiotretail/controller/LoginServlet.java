@@ -70,15 +70,9 @@ public class LoginServlet extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/role-selection");
         } else {
-<<<<<<< HEAD
-            // Login failed
-            request.setAttribute("error", "Email hoặc mật khẩu không đúng");
-            request.setAttribute("username", username);
-=======
             // Đăng nhập thất bại
             request.setAttribute("error", "Email/Số điện thoại hoặc mật khẩu không đúng");
             request.setAttribute("username", identifier); // Đẩy lại dữ liệu cũ về input
->>>>>>> f8f8906c857d635604e09c5dcc2c645e76936334
             request.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(request, response);
         }
     }
