@@ -1,0 +1,283 @@
+package com.kiotretail.product.dao;
+
+import com.kiotretail.product.model.Category;
+import com.kiotretail.shared.base.BaseDAO;
+import com.kiotretail.shared.base.Pagination;
+import com.kiotretail.shared.constant.AppConstants;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Category DAO
+ * Data Access Object for the Category table.
+ * Schema: CategoryID (PK IDENTITY), Name, Description, ParentID (nullable FK self), Status
+ */
+public class CategoryDAO extends BaseDAO {
+
+    private static final String BASE_SELECT =
+            "SELECT c.CategoryID, c.Name, c.Description, c.ParentID, c.Status, " +
+            "p.Name AS ParentName, COUNT(pr.ProductID) AS ProductCount " +
+            "FROM Category c " +
+            "LEFT JOIN Category p ON c.ParentID = p.CategoryID " +
+            "LEFT JOIN Product pr ON c.CategoryID = pr.CategoryID ";
+
+    private static final String GROUP_BY =
+            "GROUP BY c.CategoryID, c.Name, c.Description, c.ParentID, c.Status, p.Name ";
+
+    /**
+     * Lists categories with dynamic filters and pagination.
+     * Returns categories enriched with parentName and productCount.
+     */
+    public List<Category> getCategories(String keyword, String status, Integer parentId, Pagination pagination) {
+        List<Category> categories = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        sql.append("WHERE 1 = 1 ");
+
+        List<Object> params = new ArrayList<>();
+        applyFilters(sql, params, keyword, status, parentId);
+
+        sql.append(GROUP_BY);
+        sql.append("ORDER BY c.CategoryID ASC ");
+        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        int offset = pagination != null ? pagination.getOffset() : 0;
+        int limit = pagination != null ? pagination.getSize() : Integer.MAX_VALUE;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int idx = setParameters(stmt, params, 1);
+            stmt.setInt(idx++, offset);
+            stmt.setInt(idx, limit);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    categories.add(extractCategory(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
+
+    /**
+     * Counts categories matching the given filters (no pagination).
+     */
+    public int countCategories(String keyword, String status, Integer parentId) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(1) FROM Category c ");
+        sql.append("LEFT JOIN Category p ON c.ParentID = p.CategoryID ");
+        sql.append("WHERE 1 = 1 ");
+
+        List<Object> params = new ArrayList<>();
+        applyFilters(sql, params, keyword, status, parentId);
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            setParameters(stmt, params, 1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Returns all active categories without pagination, ordered by name.
+     */
+    public List<Category> getActiveCategories() {
+        List<Category> categories = new ArrayList<>();
+        String sql = BASE_SELECT +
+                "WHERE c.Status = ? " +
+                GROUP_BY +
+                "ORDER BY c.Name ASC";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, AppConstants.STATUS_ACTIVE);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    categories.add(extractCategory(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return categories;
+    }
+
+    /**
+     * Loads a single category by id, including parentName and productCount.
+     */
+    public Category getById(int categoryId) {
+        String sql = BASE_SELECT +
+                "WHERE c.CategoryID = ? " +
+                GROUP_BY;
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, categoryId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return extractCategory(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Inserts a new category. CategoryID is generated by IDENTITY.
+     */
+    public boolean insert(Category category) {
+        String sql = "INSERT INTO Category (Name, Description, ParentID, Status) VALUES (?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, category.getName());
+            stmt.setString(2, category.getDescription());
+            setNullableInt(stmt, 3, category.getParentId());
+            stmt.setString(4, category.getStatus());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Updates an existing category by CategoryID.
+     */
+    public boolean update(Category category) {
+        String sql = "UPDATE Category SET Name = ?, Description = ?, ParentID = ?, Status = ? WHERE CategoryID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, category.getName());
+            stmt.setString(2, category.getDescription());
+            setNullableInt(stmt, 3, category.getParentId());
+            stmt.setString(4, category.getStatus());
+            stmt.setInt(5, category.getCategoryId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Checks for duplicate category name (case-insensitive, trimmed).
+     * If excludeId is provided, that row is excluded from the check (for updates).
+     */
+    public boolean existsByName(String name, Integer excludeId) {
+        if (name == null) {
+            return false;
+        }
+        StringBuilder sql = new StringBuilder(
+                "SELECT CategoryID FROM Category " +
+                "WHERE LOWER(LTRIM(RTRIM(Name))) = LOWER(LTRIM(RTRIM(?)))");
+        if (excludeId != null) {
+            sql.append(" AND CategoryID <> ?");
+        }
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            stmt.setString(1, name);
+            if (excludeId != null) {
+                stmt.setInt(2, excludeId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if candidateParentId is a descendant of categoryId,
+     * preventing circular parent assignment in the category tree.
+     */
+    public boolean isDescendant(int categoryId, int candidateParentId) {
+        String sql =
+                "WITH CategoryTree AS (" +
+                " SELECT CategoryID, ParentID FROM Category WHERE ParentID = ?" +
+                " UNION ALL" +
+                " SELECT c.CategoryID, c.ParentID FROM Category c" +
+                " INNER JOIN CategoryTree ct ON c.ParentID = ct.CategoryID" +
+                ") SELECT CategoryID FROM CategoryTree WHERE CategoryID = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, categoryId);
+            stmt.setInt(2, candidateParentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void applyFilters(StringBuilder sql, List<Object> params,
+                              String keyword, String status, Integer parentId) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (c.Name LIKE ? OR c.Description LIKE ?) ");
+            String pattern = "%" + keyword.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND c.Status = ? ");
+            params.add(status.trim());
+        }
+        if (parentId != null) {
+            if (parentId <= 0) {
+                sql.append("AND c.ParentID IS NULL ");
+            } else {
+                sql.append("AND c.ParentID = ? ");
+                params.add(parentId);
+            }
+        }
+    }
+
+    private int setParameters(PreparedStatement stmt, List<Object> params, int startIndex) throws SQLException {
+        int idx = startIndex;
+        for (Object value : params) {
+            stmt.setObject(idx++, value);
+        }
+        return idx;
+    }
+
+    private void setNullableInt(PreparedStatement stmt, int index, Integer value) throws SQLException {
+        if (value == null) {
+            stmt.setNull(index, Types.INTEGER);
+        } else {
+            stmt.setInt(index, value);
+        }
+    }
+
+    private Category extractCategory(ResultSet rs) throws SQLException {
+        Category category = new Category();
+        category.setCategoryId(rs.getInt("CategoryID"));
+        category.setName(rs.getString("Name"));
+        category.setDescription(rs.getString("Description"));
+        int parentId = rs.getInt("ParentID");
+        category.setParentId(rs.wasNull() ? null : parentId);
+        category.setParentName(rs.getString("ParentName"));
+        category.setStatus(rs.getString("Status"));
+        category.setProductCount(rs.getInt("ProductCount"));
+        return category;
+    }
+}

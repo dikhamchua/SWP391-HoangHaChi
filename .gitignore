@@ -71,3 +71,10 @@ replay_pid*
 # AI tool configs (contain API tokens)
 .gemini/
 opencode.json
+
+# Harness durable layer
+harness.db
+harness.db-wal
+harness.db-shm
+scripts/bin/harness-cli
+.gitnexus

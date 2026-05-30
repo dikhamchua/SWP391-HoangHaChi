@@ -1,0 +1,159 @@
+package com.kiotretail.employee.controller;
+
+import com.kiotretail.employee.model.Branch;
+import com.kiotretail.employee.model.Employee;
+import com.kiotretail.employee.model.Role;
+import com.kiotretail.employee.service.EmployeeService;
+import com.kiotretail.shared.base.BaseServlet;
+import com.kiotretail.shared.base.PageResult;
+import com.kiotretail.shared.base.Pagination;
+import com.kiotretail.shared.constant.AppConstants;
+import com.kiotretail.shared.constant.ErrorMessages;
+import com.kiotretail.shared.constant.ViewPaths;
+import com.kiotretail.shared.exception.ServiceException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.util.List;
+
+public class EmployeeServlet extends BaseServlet {
+
+    private static final long serialVersionUID = 1L;
+
+    private EmployeeService employeeService;
+
+    @Override
+    public void init() {
+        employeeService = new EmployeeService();
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String action = getStringParam(request, AppConstants.PARAM_ACTION, "list");
+        try {
+            switch (action) {
+                case "view":
+                    handleView(request, response);
+                    break;
+                case "create":
+                    handleCreate(request, response);
+                    break;
+                case "edit":
+                    handleEdit(request, response);
+                    break;
+                case "list":
+                default:
+                    handleList(request, response);
+                    break;
+            }
+        } catch (ServiceException ex) {
+            request.setAttribute(AppConstants.ATTR_ERROR_MESSAGE, ex.getMessage());
+            forward(request, response, ViewPaths.EMPLOYEE_LIST);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String action = getStringParam(request, AppConstants.PARAM_ACTION, "");
+        try {
+            switch (action) {
+                case AppConstants.ACTION_ADD:
+                    handleAdd(request);
+                    break;
+                case AppConstants.ACTION_UPDATE:
+                    handleUpdate(request);
+                    break;
+                case AppConstants.ACTION_DELETE:
+                    handleDelete(request);
+                    break;
+                default:
+                    request.getSession().setAttribute(AppConstants.SESSION_FLASH_ERROR, ErrorMessages.INVALID_ACTION);
+                    break;
+            }
+        } catch (ServiceException ex) {
+            request.getSession().setAttribute(AppConstants.SESSION_FLASH_ERROR, ex.getMessage());
+        }
+        redirect(request, response, ViewPaths.REDIRECT_EMPLOYEES);
+    }
+
+    private void handleList(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int page = getIntParam(request, AppConstants.PARAM_PAGE, AppConstants.DEFAULT_PAGE);
+        int size = getIntParam(request, "size", AppConstants.DEFAULT_PAGE_SIZE);
+        Pagination pagination = Pagination.of(page, size);
+
+        PageResult<Employee> pageResult = employeeService.listEmployees(pagination);
+        List<Role> roles = employeeService.getAllRoles();
+        List<Branch> branches = employeeService.getActiveBranches();
+
+        request.setAttribute(AppConstants.ATTR_PAGE_RESULT, pageResult);
+        request.setAttribute(AppConstants.ATTR_ROLES, roles);
+        request.setAttribute(AppConstants.ATTR_BRANCHES, branches);
+        forward(request, response, ViewPaths.EMPLOYEE_LIST);
+    }
+
+    private void handleView(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int id = getIntParam(request, AppConstants.PARAM_ID, 0);
+        Employee employee = employeeService.getEmployeeById(id);
+        request.setAttribute(AppConstants.ATTR_EMPLOYEE, employee);
+        forward(request, response, ViewPaths.EMPLOYEE_DETAIL);
+    }
+
+    private void handleCreate(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setAttribute(AppConstants.ATTR_ROLES, employeeService.getAllRoles());
+        request.setAttribute(AppConstants.ATTR_BRANCHES, employeeService.getActiveBranches());
+        forward(request, response, ViewPaths.EMPLOYEE_CREATE);
+    }
+
+    private void handleEdit(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int id = getIntParam(request, AppConstants.PARAM_ID, 0);
+        Employee employee = employeeService.getEmployeeById(id);
+        request.setAttribute(AppConstants.ATTR_EMPLOYEE, employee);
+        request.setAttribute(AppConstants.ATTR_ROLES, employeeService.getAllRoles());
+        request.setAttribute(AppConstants.ATTR_BRANCHES, employeeService.getActiveBranches());
+        forward(request, response, ViewPaths.EMPLOYEE_EDIT);
+    }
+
+    private void handleAdd(HttpServletRequest request) {
+        Employee employee = buildEmployeeFromRequest(request, false);
+        String password = getStringParam(request, AppConstants.PARAM_PASSWORD, null);
+        employeeService.createEmployee(employee, password);
+        request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
+                String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_EMPLOYEE));
+    }
+
+    private void handleUpdate(HttpServletRequest request) {
+        Employee employee = buildEmployeeFromRequest(request, true);
+        employeeService.updateEmployee(employee);
+        request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
+                String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_EMPLOYEE));
+    }
+
+    private void handleDelete(HttpServletRequest request) {
+        int employeeId = getIntParam(request, "employeeId", 0);
+        employeeService.deleteEmployee(employeeId);
+        request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
+                String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_EMPLOYEE));
+    }
+
+    private Employee buildEmployeeFromRequest(HttpServletRequest request, boolean includeId) {
+        Employee employee = new Employee();
+        if (includeId) {
+            employee.setEmployeeId(getIntParam(request, "employeeId", 0));
+        }
+        employee.setFullName(getStringParam(request, AppConstants.PARAM_FULL_NAME, null));
+        employee.setEmail(getStringParam(request, AppConstants.PARAM_EMAIL, null));
+        employee.setPhone(getStringParam(request, AppConstants.PARAM_PHONE, null));
+        employee.setRoleId(getIntParam(request, "roleId", 0));
+        employee.setBranchId(getIntParam(request, "branchId", 0));
+        return employee;
+    }
+}
