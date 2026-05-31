@@ -32,7 +32,7 @@
 - Validate request parameters before calling DAOs.
 - Use redirects after successful POST operations.
 - Use forwards for initial page rendering and validation failure when preserving request attributes.
-- Use session flash messages consistently through `message` and `messageType` until a shared helper is introduced.
+- Use session flash messages via `flashMessage` and `messageType` attributes. Include `toast.jsp` in every page. Never use alert(), iziToast, or third-party toast libraries — use the built-in `showToast()` function (react-hot-toast style).
 - Do not put database access or multi-table business transactions in controllers.
 
 ## API Standards

@@ -126,28 +126,73 @@ function clearForm(formId) {
     }
 }
 
-// Show toast notification
-function showToast(message, type = 'info') {
-    const toastHtml = `
-        <div class="toast align-items-center text-white bg-${type} border-0 position-fixed bottom-0 end-0 m-3"
-             role="alert" style="z-index: 9999;">
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', toastHtml);
+// Show toast notification (react-hot-toast style)
+function showToast(message, type, duration) {
+    type = type || 'success';
+    duration = duration || 4000;
 
-    const toastElement = document.querySelector('.toast:last-child');
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
+    var container = document.querySelector('.kr-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'kr-toast-container';
+        document.body.appendChild(container);
+    }
 
-    toastElement.addEventListener('hidden.bs.toast', () => {
-        toastElement.remove();
+    var iconHtml = '';
+    if (type === 'loading') {
+        iconHtml = '<div class="kr-toast-icon-wrap"><div class="kr-toast-loader"></div></div>';
+    } else {
+        iconHtml = '<div class="kr-toast-icon-wrap"><div class="circle ' + type + '"></div></div>';
+    }
+
+    var toast = document.createElement('div');
+    toast.className = 'kr-toast';
+    toast.innerHTML = iconHtml + '<div class="kr-toast-msg">' + message + '</div>';
+    container.appendChild(toast);
+
+    if (type !== 'loading') {
+        var timer = setTimeout(function() { removeToast(toast); }, duration);
+        toast._timer = timer;
+    }
+
+    toast.addEventListener('mouseenter', function() {
+        if (toast._timer) clearTimeout(toast._timer);
     });
+    toast.addEventListener('mouseleave', function() {
+        if (type !== 'loading') {
+            toast._timer = setTimeout(function() { removeToast(toast); }, 2000);
+        }
+    });
+
+    function removeToast(el) {
+        if (el.classList.contains('removing')) return;
+        el.classList.add('removing');
+        el.addEventListener('animationend', function() { el.remove(); });
+    }
+
+    return toast;
+}
+
+function dismissToast(toast) {
+    if (!toast || toast.classList.contains('removing')) return;
+    toast.classList.add('removing');
+    toast.addEventListener('animationend', function() { toast.remove(); });
+}
+
+// Promise-style toast (loading -> success/error)
+function toastPromise(promise, msgs) {
+    msgs = msgs || {};
+    var loading = showToast(msgs.loading || 'Đang xử lý...', 'loading');
+    promise.then(function(result) {
+        dismissToast(loading);
+        var msg = typeof msgs.success === 'function' ? msgs.success(result) : (msgs.success || 'Thành công!');
+        showToast(msg, 'success');
+    }).catch(function(err) {
+        dismissToast(loading);
+        var msg = typeof msgs.error === 'function' ? msgs.error(err) : (msgs.error || 'Có lỗi xảy ra!');
+        showToast(msg, 'danger');
+    });
+    return promise;
 }
 
 // AJAX helper
@@ -258,6 +303,8 @@ window.KiotRetail = {
     showLoading,
     hideLoading,
     showToast,
+    dismissToast,
+    toastPromise,
     ajax,
     validateForm,
     clearForm,

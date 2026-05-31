@@ -97,7 +97,7 @@ com.kiotretail/
 
 ```
 WEB-INF/views/
-├── common/     # header.jsp, navbar.jsp, pagination.jsp, sidebar.jsp, footer.jsp
+├── common/     # header.jsp, navbar.jsp, pagination.jsp, sidebar.jsp, footer.jsp, toast.jsp
 ├── auth/       # login, register, forgot-password, change-password, role-selection
 ├── product/    # products, product-create, product-detail, product-edit, categories
 ├── customer/   # customers, customer-create, customer-edit, customer-detail
@@ -141,6 +141,7 @@ Do not modify protected areas unless the user explicitly asks or the active task
 - **View paths**: Use `ViewPaths.PRODUCT_LIST`, `ViewPaths.REDIRECT_PRODUCTS`, etc.
 - **Session keys**: Use `AppConstants.SESSION_EMPLOYEE`, `SESSION_ROLE_NAME`, `SESSION_BRANCH_ID`.
 - **Flash messages**: Use `AppConstants.FLASH_SUCCESS`, `FLASH_DANGER`, `FLASH_WARNING`.
+- **Toast notifications**: Use the built-in `showToast()` function (react-hot-toast style). Never use `alert()`, `confirm()` for feedback, iziToast, toastr, SweetAlert, or any third-party toast library. Session attributes: `flashMessage` + `messageType`. Every page must include `toast.jsp`. See `docs/patterns/REUSABLE_PATTERNS.md` for full usage.
 - **New domain**: Follow existing pattern — create `{domain}/controller/`, `service/`, `dao/`, `model/`, `dto/` packages.
 - **DAO naming**: `getById()`, `getAll()`, `get{Entity}s(filter, pagination)`, `count{Entity}s(filter)`, `insert()`, `update()`, `softDelete()`.
 - **Service naming**: `list{Entity}s()`, `get{Entity}ById()`, `create{Entity}()`, `update{Entity}()`, `delete{Entity}()`.
