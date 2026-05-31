@@ -11,12 +11,14 @@ import com.kiotretail.shared.exception.ServiceException;
 import com.kiotretail.shared.exception.ValidationException;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
 
+@WebServlet("/admin/categories")
 public class CategoryServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;
@@ -63,6 +65,12 @@ public class CategoryServlet extends BaseServlet {
                     break;
                 case "update":
                     handleUpdate(request, response);
+                    break;
+                case "delete":
+                    int categoryId = getIntParam(request, "categoryId", 0);
+                    categoryService.deleteCategory(categoryId);
+                    request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
+                            String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_CATEGORY));
                     break;
                 default:
                     redirect(request, response, REDIRECT_LIST);

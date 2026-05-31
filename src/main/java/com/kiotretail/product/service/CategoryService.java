@@ -130,6 +130,18 @@ public class CategoryService extends BaseService {
         return categoryDAO.update(category);
     }
 
+    public boolean deleteCategory(int categoryId) {
+        Category category = categoryDAO.getById(categoryId);
+        if (category == null) {
+            throw new NotFoundException(ENTITY_NAME, categoryId);
+        }
+        boolean deleted = categoryDAO.delete(categoryId);
+        if (!deleted) {
+            throw new ValidationException("Không thể xóa danh mục đang có sản phẩm");
+        }
+        return true;
+    }
+
     private void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new ValidationException("Category name is required");

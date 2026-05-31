@@ -174,6 +174,19 @@ public class CategoryDAO extends BaseDAO {
         return false;
     }
 
+    public boolean delete(int categoryId) {
+        String sql = "DELETE FROM Category WHERE CategoryID = ? AND NOT EXISTS (SELECT 1 FROM Product WHERE CategoryID = ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, categoryId);
+            stmt.setInt(2, categoryId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /**
      * Checks for duplicate category name (case-insensitive, trimmed).
      * If excludeId is provided, that row is excluded from the check (for updates).
