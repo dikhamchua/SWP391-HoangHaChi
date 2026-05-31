@@ -2,6 +2,7 @@ package com.kiotretail.employee.dao;
 
 import com.kiotretail.employee.model.Branch;
 import com.kiotretail.shared.base.BaseDAO;
+import com.kiotretail.shared.base.Pagination;
 import com.kiotretail.shared.constant.AppConstants;
 
 import java.sql.Connection;
@@ -38,6 +39,98 @@ public class BranchDAO extends BaseDAO {
             e.printStackTrace();
         }
         return branches;
+    }
+
+    /**
+     * Returns paginated list of branches ordered by BranchID DESC.
+     */
+    public List<Branch> getAll(Pagination pagination) {
+        List<Branch> branches = new ArrayList<>();
+        String sql = BASE_SELECT + "ORDER BY BranchID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, pagination.getOffset());
+            stmt.setInt(2, pagination.getSize());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    branches.add(extractBranch(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return branches;
+    }
+
+    /**
+     * Returns paginated branches with optional keyword filter (matches Name/Address/Phone).
+     */
+    public List<Branch> search(String keyword, Pagination pagination) {
+        List<Branch> branches = new ArrayList<>();
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        if (hasKeyword) {
+            sql.append("WHERE Name LIKE ? OR Address LIKE ? OR Phone LIKE ? ");
+        }
+        sql.append("ORDER BY BranchID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (hasKeyword) {
+                String pattern = "%" + keyword.trim() + "%";
+                stmt.setString(idx++, pattern);
+                stmt.setString(idx++, pattern);
+                stmt.setString(idx++, pattern);
+            }
+            stmt.setInt(idx++, pagination.getOffset());
+            stmt.setInt(idx, pagination.getSize());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    branches.add(extractBranch(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return branches;
+    }
+
+    /**
+     * Counts branches matching the given keyword (or all when keyword empty).
+     */
+    public int countAll(String keyword) {
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Branch ");
+        if (hasKeyword) {
+            sql.append("WHERE Name LIKE ? OR Address LIKE ? OR Phone LIKE ?");
+        }
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            if (hasKeyword) {
+                String pattern = "%" + keyword.trim() + "%";
+                stmt.setString(1, pattern);
+                stmt.setString(2, pattern);
+                stmt.setString(3, pattern);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Returns total branch count (no filter).
+     */
+    public int countAll() {
+        return countAll(null);
     }
 
     /**
@@ -79,6 +172,85 @@ public class BranchDAO extends BaseDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Inserts a new branch row. CreatedAt is left to the database default.
+     */
+    public boolean insert(Branch branch) {
+        String sql = "INSERT INTO Branch (Name, Address, Phone, Status) VALUES (?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, branch.getName());
+            stmt.setString(2, branch.getAddress());
+            stmt.setString(3, branch.getPhone());
+            stmt.setString(4, branch.getStatus() == null ? AppConstants.STATUS_ACTIVE : branch.getStatus());
+            return stmt.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Updates name/address/phone/status for an existing branch.
+     */
+    public boolean update(Branch branch) {
+        String sql = "UPDATE Branch SET Name = ?, Address = ?, Phone = ?, Status = ? WHERE BranchID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, branch.getName());
+            stmt.setString(2, branch.getAddress());
+            stmt.setString(3, branch.getPhone());
+            stmt.setString(4, branch.getStatus() == null ? AppConstants.STATUS_ACTIVE : branch.getStatus());
+            stmt.setInt(5, branch.getBranchId());
+            return stmt.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Hard delete by primary key.
+     */
+    public boolean delete(int branchId) {
+        String sql = "DELETE FROM Branch WHERE BranchID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, branchId);
+            return stmt.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a branch with the given name already exists.
+     * When excludeId is non-null, that row is ignored (useful for updates).
+     */
+    public boolean existsByName(String name, Integer excludeId) {
+        if (name == null || name.trim().isEmpty()) {
+            return false;
+        }
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM Branch WHERE Name = ?");
+        if (excludeId != null) {
+            sql.append(" AND BranchID <> ?");
+        }
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            stmt.setString(1, name.trim());
+            if (excludeId != null) {
+                stmt.setInt(2, excludeId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private Branch extractBranch(ResultSet rs) throws SQLException {

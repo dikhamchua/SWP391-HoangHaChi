@@ -29,6 +29,18 @@ public final class ViewPaths {
     public static final String EMPLOYEE_EDIT = "employee/employee-edit.jsp";
     public static final String EMPLOYEE_DETAIL = "employee/employee-detail.jsp";
 
+    // Branch views
+    public static final String BRANCH_LIST = "branch/branches.jsp";
+    public static final String BRANCH_CREATE = "branch/branch-create.jsp";
+    public static final String BRANCH_EDIT = "branch/branch-edit.jsp";
+    public static final String BRANCH_DETAIL = "branch/branch-detail.jsp";
+
+    // Supplier views
+    public static final String SUPPLIER_LIST = "supplier/suppliers.jsp";
+    public static final String SUPPLIER_CREATE = "supplier/supplier-create.jsp";
+    public static final String SUPPLIER_EDIT = "supplier/supplier-edit.jsp";
+    public static final String SUPPLIER_DETAIL = "supplier/supplier-detail.jsp";
+
     // Invoice views
     public static final String INVOICE_LIST = "invoice/invoices.jsp";
     public static final String INVOICE_DETAIL = "invoice/invoice-detail.jsp";
@@ -48,6 +60,8 @@ public final class ViewPaths {
     public static final String REDIRECT_CATEGORIES = "/admin/categories";
     public static final String REDIRECT_CUSTOMERS = "/admin/customers";
     public static final String REDIRECT_EMPLOYEES = "/admin/employees";
+    public static final String REDIRECT_BRANCHES = "/admin/branches";
+    public static final String REDIRECT_SUPPLIERS = "/admin/suppliers";
     public static final String REDIRECT_INVOICES = "/admin/invoices";
     public static final String REDIRECT_REPORTS = "/admin/reports";
     public static final String REDIRECT_POS = "/pos/sale";
