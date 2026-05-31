@@ -14,6 +14,7 @@ import com.kiotretail.shared.constant.ViewPaths;
 import com.kiotretail.shared.exception.ServiceException;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -26,6 +27,7 @@ import java.util.List;
  * Service-layer based controller for invoice management.
  * Handles listing, viewing, creating orders and adding payments.
  */
+@WebServlet("/admin/invoices")
 public class InvoiceServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;
@@ -160,6 +162,10 @@ public class InvoiceServlet extends BaseServlet {
             String paymentMethod = getStringParam(request, "paymentMethod", "");
             BigDecimal amount = parseBigDecimal(request.getParameter(AppConstants.PARAM_AMOUNT));
 
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ServiceException(ErrorMessages.PAYMENT_INVALID, 400);
+            }
+
             Payment payment = new Payment();
             payment.setOrderId(orderId);
             payment.setPaymentMethod(paymentMethod);
@@ -186,7 +192,7 @@ public class InvoiceServlet extends BaseServlet {
         try {
             return new BigDecimal(raw.trim());
         } catch (NumberFormatException ex) {
-            return BigDecimal.ZERO;
+            throw new ServiceException(String.format(ErrorMessages.INVALID_VALUE, "So tien"), 400);
         }
     }
 

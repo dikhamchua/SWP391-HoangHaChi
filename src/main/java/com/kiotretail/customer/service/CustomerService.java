@@ -68,6 +68,10 @@ public class CustomerService {
         return customerDAO.getCustomers(filter, pagination);
     }
 
+    private static final String PHONE_REGEX = "^0[0-9]{9,10}$";
+    private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+    private static final int MAX_NAME_LENGTH = 255;
+
     private void validateCustomer(Customer customer) {
         if (customer == null) {
             throw new ValidationException(String.format(ErrorMessages.NOT_FOUND, "Customer"));
@@ -75,8 +79,18 @@ public class CustomerService {
         if (customer.getFullName() == null || customer.getFullName().trim().isEmpty()) {
             throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Ho ten"));
         }
+        if (customer.getFullName().trim().length() > MAX_NAME_LENGTH) {
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Ho ten (toi da 255 ky tu)"));
+        }
         if (customer.getPhone() == null || customer.getPhone().trim().isEmpty()) {
             throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "So dien thoai"));
+        }
+        if (!customer.getPhone().trim().matches(PHONE_REGEX)) {
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "So dien thoai"));
+        }
+        if (customer.getEmail() != null && !customer.getEmail().trim().isEmpty()
+                && !customer.getEmail().trim().matches(EMAIL_REGEX)) {
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Email"));
         }
     }
 }

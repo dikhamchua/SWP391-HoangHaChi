@@ -12,12 +12,14 @@ import com.kiotretail.shared.constant.ViewPaths;
 import com.kiotretail.shared.exception.ServiceException;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.sql.Date;
 
+@WebServlet("/admin/customers")
 public class CustomerServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;
@@ -89,8 +91,8 @@ public class CustomerServlet extends BaseServlet {
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int page = getIntParam(request, AppConstants.PARAM_PAGE, AppConstants.DEFAULT_PAGE);
-        int size = getIntParam(request, "size", AppConstants.DEFAULT_PAGE_SIZE);
+        int page = Math.max(getIntParam(request, AppConstants.PARAM_PAGE, AppConstants.DEFAULT_PAGE), 1);
+        int size = Math.max(Math.min(getIntParam(request, "size", AppConstants.DEFAULT_PAGE_SIZE), AppConstants.MAX_PAGE_SIZE), 1);
         Pagination pagination = Pagination.of(page, size);
 
         CustomerFilterDTO filter = new CustomerFilterDTO();
