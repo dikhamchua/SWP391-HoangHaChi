@@ -1,0 +1,2402 @@
+{
+  "uiAnalysis": [
+    {
+      "fileName": "pos-product-management.html",
+      "domain": "product",
+      "features": [
+        "List products with pagination (15/30/50/100 rows per page)",
+        "Search products by code/name with scope selector",
+        "Multi-criteria sidebar filtering (category, stock, supplier, location, type, status, channel link, direct sale, expected stockout date, creation date)",
+        "Bulk selection via row checkboxes and select-all header checkbox",
+        "Create new product navigation (link to product-create.html)",
+        "Import products from file (link to product-import.html)",
+        "Export products to file (link to product-export.html)",
+        "Toggle column visibility (show/hide columns)",
+        "Table column settings",
+        "Expandable product rows for variants/details",
+        "Product detail navigation via code link (link to product-detail.html)",
+        "Summary row showing aggregate totals (total stock, total customer orders)",
+        "Top header utilities: notifications, help, settings, language switch (VI), user avatar",
+        "Quick action: start a sales transaction (Bán hàng)",
+        "Quick action: delivery shortcut (Giao hàng)"
+      ],
+      "formFields": [
+        "search_query: text, placeholder 'Tìm kiếm hàng hóa', optional",
+        "search_scope: dropdown (Theo mã, tên hàng), default scope selector",
+        "category_filter (Nhóm hàng): text/autocomplete input, placeholder 'Chọn nhóm hàng', optional",
+        "stock_status (Tồn kho): select, options [Tất cả, Còn hàng, Hết hàng, Dưới định mức], default 'Tất cả'",
+        "expected_stockout (Dự kiến hết hàng): radio, options [Toàn thời gian, Tùy chỉnh], default 'Toàn thời gian'",
+        "created_time (Thời gian tạo): radio, options [Toàn thời gian, Tùy chỉnh], default 'Toàn thời gian'",
+        "supplier_filter (Nhà cung cấp): select, placeholder 'Chọn nhà cung cấp', optional",
+        "location_filter (Vị trí): select, placeholder 'Chọn vị trí', optional",
+        "product_type (Loại hàng): select, options [Tất cả, Hàng hóa thường, Combo - Đóng gói, Dịch vụ], default 'Tất cả'",
+        "direct_sale (Bán trực tiếp): radio, options [Tất cả, Có, Không], default 'Tất cả'",
+        "channel_link (Liên kết kênh bán): radio, options [Tất cả, Có, Không], default 'Tất cả'",
+        "product_status (Trạng thái hàng hóa): select, options [Hàng đang kinh doanh, Ngừng kinh doanh], default 'Hàng đang kinh doanh'",
+        "select_all: checkbox in table header for bulk selection",
+        "row_select: checkbox per product row",
+        "page_size: select, options [15, 30, 50, 100] dòng, default 15"
+      ],
+      "components": [
+        "Top header bar with logo, delivery shortcut, language switcher, notification icon (with badge dot), help icon, settings icon, user avatar",
+        "Primary navigation tabs (Tổng quan, Hàng hóa active, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán with 'Mới' badge)",
+        "Sell-action button (Bán hàng) green CTA in navbar",
+        "Page header with title 'Hàng hóa'",
+        "Toolbar with combined search input (scope dropdown + text input + search icon), Create/Import/Export buttons, Show-Hide columns button, table settings icon button, help icon button",
+        "Sidebar filter panel with 10 filter sections (text input, select dropdowns, radio groups) and 'Tạo mới' link for creating a new category",
+        "Data table with columns: checkbox, expand toggle, image thumbnail, Mã hàng (code), Tên hàng (name), Giá bán, Giá vốn, Tồn kho, Khách đặt, Thời gian tạo, Dự kiến hết hàng",
+        "Summary row aggregating totals across the table",
+        "Product thumbnail placeholder badges (initials)",
+        "Pagination footer with page-size selector, Trang đầu/Trang trước/Trang sau/Trang cuối links, current-page indicator, and result-range info text"
+      ],
+      "dataModel": [
+        "Product { id: long, code: string (Mã hàng, e.g. 10225873544), name: string (Tên hàng), imageUrl: string?, thumbnailInitials: string (derived), sellingPrice: decimal (Giá bán), costPrice: decimal (Giá vốn), stockQuantity: int (Tồn kho), customerReservedQuantity: int (Khách đặt), createdAt: datetime (Thời gian tạo, dd/MM/yyyy HH:mm), expectedStockoutAt: datetime? (Dự kiến hết hàng), status: enum [ACTIVE 'Hàng đang kinh doanh', INACTIVE 'Ngừng kinh doanh'], productType: enum [NORMAL 'Hàng hóa thường', COMBO 'Combo - Đóng gói', SERVICE 'Dịch vụ'], directSale: boolean (Bán trực tiếp), channelLinked: boolean (Liên kết kênh bán), categoryId: FK -> Category, supplierId: FK -> Supplier, locationId: FK -> Location, minStockLevel: int? (định mức tồn) }",
+        "Category (Nhóm hàng) { id: long, name: string, parentId: FK? -> Category }",
+        "Supplier (Nhà cung cấp) { id: long, name: string }",
+        "Location (Vị trí kho/quầy) { id: long, name: string }",
+        "ProductVariant (implied by expand icon) { id: long, productId: FK -> Product, attributes: map, sku: string, sellingPrice: decimal, costPrice: decimal, stockQuantity: int }",
+        "Relationships: Product N..1 Category; Product N..1 Supplier; Product N..1 Location; Product 1..N ProductVariant; Product participates in Order/Invoice (Khách đặt count derived from open orders)"
+      ],
+      "apiEndpoints": [
+        "GET /api/products?search=&scope=&categoryId=&stockStatus=&supplierId=&locationId=&productType=&directSale=&channelLinked=&status=&createdFrom=&createdTo=&expectedStockoutFrom=&expectedStockoutTo=&page=&size= (list + filter + pagination)",
+        "GET /api/products/summary?{same filters} (totals for summary row)",
+        "GET /api/products/{id} (detail, target of product-detail.html)",
+        "GET /api/products/{id}/variants (expandable child rows)",
+        "POST /api/products (create, used by product-create.html)",
+        "PUT /api/products/{id} (update)",
+        "DELETE /api/products/{id} (delete)",
+        "PATCH /api/products/{id}/status (toggle ACTIVE/INACTIVE)",
+        "POST /api/products/import (file upload from product-import.html)",
+        "GET /api/products/export?{same filters} (download from product-export.html)",
+        "GET /api/categories, POST /api/categories (Nhóm hàng filter + 'Tạo mới')",
+        "GET /api/suppliers (Nhà cung cấp filter)",
+        "GET /api/locations (Vị trí filter)",
+        "GET /api/notifications/unread-count (header bell badge)"
+      ],
+      "navigation": [
+        "Top header logo: KiotViet (home/dashboard)",
+        "Top header: Giao hàng (delivery shortcut)",
+        "Top header: Language switch VI",
+        "Top header: Notifications bell (with red dot)",
+        "Top header: Help",
+        "Top header: Settings",
+        "Top header: User avatar (AD)",
+        "Primary nav tab: Tổng quan (Dashboard)",
+        "Primary nav tab: Hàng hóa (active - this page)",
+        "Primary nav tab: Mua hàng (Purchase)",
+        "Primary nav tab: Đơn hàng (Orders)",
+        "Primary nav tab: Khách hàng (Customers)",
+        "Primary nav tab: Nhân viên (Employees)",
+        "Primary nav tab: Sổ quỹ (Cash book)",
+        "Primary nav tab: Báo cáo (Reports)",
+        "Primary nav tab: Bán online (Online sales)",
+        "Primary nav tab: Thuế & Kế toán (Tax & Accounting, 'Mới' badge)",
+        "Primary nav CTA: Bán hàng (POS sale screen)",
+        "Toolbar link: Tạo mới -> product-create.html",
+        "Toolbar link: Import file -> product-import.html",
+        "Toolbar link: Xuất file -> product-export.html",
+        "Sidebar link: Tạo mới (under Nhóm hàng) -> create new category",
+        "Table row link: Mã hàng -> product-detail.html",
+        "Pagination links: Trang đầu, Trang trước, Trang sau, Trang cuối"
+      ]
+    },
+    {
+      "fileName": "pos-customer-management.html",
+      "domain": "customer",
+      "features": [
+        "Customer list with paginated table view",
+        "Search customers by code, name, or phone number",
+        "Create new customer (Khách hàng button)",
+        "Import customers from file (Import file)",
+        "Column visibility toggle (Ẩn hiện cột)",
+        "Multi-select customers via row checkboxes (bulk operations)",
+        "Filter by customer group (Nhóm khách hàng)",
+        "Filter by creation date (Toàn thời gian / Tùy chỉnh)",
+        "Filter by creator (Người tạo)",
+        "Filter by customer type (Cá nhân / Công ty)",
+        "Filter by gender (Nam / Nữ)",
+        "Filter by birthday range",
+        "Filter by last transaction date",
+        "Filter by total sales value range",
+        "Filter by current debt range",
+        "Filter by delivery area (Tỉnh/TP - Quận/Huyện)",
+        "Filter by status (Đang hoạt động / Ngừng hoạt động)",
+        "Pagination with page size selector (15/30/50/100 rows)",
+        "First/Previous/Next/Last page navigation",
+        "Summary row showing totals (Tổng cộng) for debt and sales",
+        "Click customer code to view detail (drill-down link)",
+        "Quick switch to sales POS (Bán hàng button)",
+        "Delivery shortcut (Giao hàng button)",
+        "Language switcher (VI)",
+        "Notifications, help, and settings icons",
+        "Top navigation tabs across modules"
+      ],
+      "formFields": [
+        "searchKeyword: text - search by code/name/phone (placeholder: 'Theo mã, tên, số điện thoại')",
+        "customerGroup: select - filter by customer group (default 'Tất cả các nhóm')",
+        "createdDateMode: radio - 'Toàn thời gian' or 'Tùy chỉnh'",
+        "creator: select - filter by creator user (default 'Chọn người tạo')",
+        "customerType: radio - 'Tất cả' / 'Cá nhân' / 'Công ty'",
+        "gender: radio - 'Tất cả' / 'Nam' / 'Nữ'",
+        "birthdayMode: radio - 'Toàn thời gian' or 'Tùy chỉnh'",
+        "lastTransactionMode: radio - 'Toàn thời gian' or 'Tùy chỉnh'",
+        "totalSalesFrom: text/number - lower bound (placeholder: 'Từ')",
+        "totalSalesTo: text/number - upper bound (placeholder: 'Tới')",
+        "totalSalesPeriod: radio - 'Toàn thời gian' or 'Tùy chỉnh'",
+        "currentDebtFrom: text/number - lower bound",
+        "currentDebtTo: text/number - upper bound",
+        "deliveryArea: select - province/district (default 'Chọn Tỉnh/TP - Quận/Huyện')",
+        "status: radio - 'Tất cả' / 'Đang hoạt động' (checked) / 'Ngừng hoạt động'",
+        "pageSize: select - 15/30/50/100 dòng",
+        "selectAll: checkbox - header checkbox to select all rows",
+        "rowSelect: checkbox - per-row selection"
+      ],
+      "components": [
+        "Topbar with logo, delivery button, language switcher, notification/help/settings icons, user avatar",
+        "Primary navigation tabs (Tổng quan, Hàng hóa, Mua hàng, Đơn hàng, Khách hàng [active], Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán [Mới badge])",
+        "Sell quick-action button (Bán hàng)",
+        "Page header with title 'Khách hàng'",
+        "Toolbar (search input, Add customer, Import file, Column toggle, Settings, Help)",
+        "Search input with magnifier icon",
+        "Left filter sidebar with multiple grouped filter sections (select dropdowns, radio groups, range inputs)",
+        "Customers data table (sticky header, summary row, body rows, hover state)",
+        "Row checkboxes for bulk selection",
+        "Right-aligned numeric columns for currency",
+        "Code link as drill-down to customer detail",
+        "Pagination bar (page size selector, page navigation, info text)",
+        "Fixed footer with support phone (1900 6522)"
+      ],
+      "dataModel": [
+        "Customer { customerId: int (PK), customerCode: string (e.g. 'KH000005', unique), customerName: string, phone: string, customerType: enum('INDIVIDUAL','COMPANY'), gender: enum('MALE','FEMALE','OTHER'), birthday: date, customerGroupId: int (FK -> CustomerGroup), createdBy: int (FK -> User), createdAt: datetime, lastTransactionAt: datetime, currentDebt: decimal, totalSales: decimal, totalSalesNetReturns: decimal, status: enum('ACTIVE','INACTIVE'), provinceId: int (FK), districtId: int (FK), wardId: int (FK), addressLine: string }",
+        "CustomerGroup { groupId: int (PK), groupName: string, description: string, createdAt: datetime }",
+        "User { userId: int (PK), username: string, fullName: string } -- referenced by Customer.createdBy",
+        "Province { provinceId: int (PK), name: string }",
+        "District { districtId: int (PK), provinceId: int (FK), name: string }",
+        "Ward { wardId: int (PK), districtId: int (FK), name: string }",
+        "Relationships: Customer N..1 CustomerGroup; Customer N..1 User (creator); Customer N..1 Province/District/Ward; Customer 1..N Invoice (implicit, drives totalSales/currentDebt aggregates)",
+        "Aggregates surfaced in list: SUM(currentDebt), SUM(totalSales), SUM(totalSalesNetReturns) across filtered set"
+      ],
+      "apiEndpoints": [
+        "No explicit fetch/form action present in HTML (static markup only). Inferred endpoints required for backend wiring:",
+        "GET /customers - list with query params: keyword, groupId, createdFrom, createdTo, createdBy, customerType, gender, birthdayFrom, birthdayTo, lastTxnFrom, lastTxnTo, totalSalesFrom, totalSalesTo, totalSalesPeriodFrom, totalSalesPeriodTo, debtFrom, debtTo, provinceId, districtId, status, page, pageSize",
+        "GET /customers/{id} - customer detail (drill-down from code link)",
+        "POST /customers - create new customer",
+        "PUT /customers/{id} - update customer",
+        "DELETE /customers/{id} - deactivate/delete customer",
+        "POST /customers/import - bulk import from file (CSV/Excel)",
+        "GET /customers/export - column export",
+        "GET /customer-groups - dropdown source",
+        "POST /customer-groups - create new group (Tạo mới link)",
+        "GET /users?role=creator - creator filter source",
+        "GET /locations/provinces, /locations/districts?provinceId=, /locations/wards?districtId= - delivery area cascade",
+        "GET /customers/summary - aggregate totals (debt, sales, sales-net-returns) for current filter"
+      ],
+      "navigation": [
+        "Tổng quan (Dashboard)",
+        "Hàng hóa (Products)",
+        "Mua hàng (Purchases)",
+        "Đơn hàng (Orders/Invoices)",
+        "Khách hàng (Customers) - active tab",
+        "Nhân viên (Employees)",
+        "Sổ quỹ (Cashbook)",
+        "Báo cáo (Reports)",
+        "Bán online (Online sales)",
+        "Thuế & Kế toán (Tax & Accounting) - new",
+        "Bán hàng (POS sell - primary CTA)",
+        "Giao hàng (Delivery)",
+        "Customer code link -> customer detail page",
+        "Tạo mới (link inside Nhóm khách hàng filter) -> create customer group"
+      ]
+    },
+    {
+      "fileName": "pos-employee-management.html",
+      "domain": "employee",
+      "features": [
+        "Danh sách nhân viên dạng bảng (employee list table)",
+        "Tìm kiếm nhân viên theo mã hoặc tên (search by code/name)",
+        "Lọc theo trạng thái: Đang làm việc / Đã nghỉ (status filter)",
+        "Lọc theo phòng ban (department filter dropdown)",
+        "Lọc theo chức danh (job title filter dropdown)",
+        "Tạo mới phòng ban inline (create department link)",
+        "Tạo mới chức danh inline (create job title link)",
+        "Thêm nhân viên mới (CREATE)",
+        "Xem chi tiết nhân viên (expand row READ)",
+        "Cập nhật thông tin nhân viên (UPDATE)",
+        "Ngừng làm việc / kích hoạt lại nhân viên (soft delete / status toggle)",
+        "Lấy mã xác nhận (generate confirmation code / reset password)",
+        "Duyệt yêu cầu (approve requests workflow)",
+        "Cài đặt cột hiển thị / Ẩn hiện cột (column visibility settings)",
+        "Chọn nhiều nhân viên qua checkbox (bulk selection)",
+        "Phân trang danh sách (pagination: trang đầu/trước/sau/cuối)",
+        "Tab chi tiết: Thông tin, Lịch làm việc, Thiết lập lương, Phiếu lương, Nợ và tạm ứng",
+        "Hiển thị nợ và tạm ứng theo nhân viên (debt/advance display)",
+        "Hiển thị avatar tự sinh từ chữ cái tên",
+        "Cảnh báo giới hạn gói: 'Đã sử dụng 1 nhân viên' với link Nâng gói"
+      ],
+      "formFields": [
+        "search: text - Tìm theo mã, tên nhân viên (free text search)",
+        "trangThai: radio - Đang làm việc | Đã nghỉ (default: Đang làm việc)",
+        "phongBan: select - Chọn phòng ban (department dropdown, optional)",
+        "chucDanh: select - Chọn chức danh (job title dropdown, optional)",
+        "maNhanVien: text - Mã nhân viên (auto-generated NV000001 pattern, required, unique)",
+        "maChamCong: text - Mã chấm công (timekeeping code MC001 pattern, optional, unique)",
+        "tenNhanVien: text - Tên nhân viên (required, max 100 chars)",
+        "soDienThoai: text - Số điện thoại (Vietnamese phone format 10 digits, required)",
+        "soCMND: text - Số CMND/CCCD (12 digits Vietnamese ID, optional, unique)",
+        "diaChi: text - Địa chỉ (street address, optional)",
+        "ngayBatDauLamViec: date - Ngày bắt đầu làm việc (DD/MM/YYYY, required)",
+        "ngaySinh: date - Ngày sinh (DD/MM/YYYY, optional)",
+        "gioiTinh: select - Giới tính: Nam | Nữ | Khác (optional)",
+        "email: email - Email (valid email format, optional, unique)",
+        "facebook: text - Facebook URL/handle (optional)",
+        "thietBiDiDong: text - Thiết bị di động (mobile device, optional)",
+        "phongBanId: select - Phòng ban (foreign key to department, required)",
+        "chucDanhId: select - Chức danh (foreign key to job title, required)",
+        "chiNhanhLamViec: select - Chi nhánh làm việc (working branch, required)",
+        "chiNhanhTraLuong: select - Chi nhánh trả lương (payroll branch, required)",
+        "taiKhoanKiotViet: text - Tài khoản KiotViet (login username, required, unique)",
+        "matKhau: password - Mật khẩu (min 6 chars, required on create)",
+        "ghiChu: textarea - Ghi chú (notes, optional)",
+        "checkbox bulk select: boolean - Multi-row selection"
+      ],
+      "components": [
+        "topbar (header) with logo, delivery button, language selector, notifications, help, settings, user avatar",
+        "navbar with main nav tabs: Tổng quan, Hàng hóa, Mua hàng, Đơn hàng, Khách hàng, Nhân viên (active), Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán",
+        "Sell button (Bán hàng) primary green CTA",
+        "page-header with title and usage note + upgrade link",
+        "toolbar: search input, primary 'Nhân viên' add button, 'Duyệt yêu cầu' button, settings icon button, 'Ẩn hiện cột' column toggle",
+        "sidebar filter panel: Trạng thái (radio), Phòng ban (select + create new link), Chức danh (select + create new link)",
+        "data table (table.employees) with columns: checkbox, avatar, mã NV, mã chấm công, tên, SĐT, CMND/CCCD, Nợ và tạm ứng (numeric right-aligned), Ghi chú",
+        "expanded-row inline detail panel (master-detail accordion pattern)",
+        "detail-tabs sub-navigation (5 tabs: Thông tin / Lịch làm việc / Thiết lập lương / Phiếu lương / Nợ và tạm ứng)",
+        "detail-header with large avatar + name + employee code",
+        "info-grid: 3-column attribute display layout",
+        "note-block for displaying ghi chú",
+        "detail-actions: Ngừng làm việc / Cập nhật / Lấy mã xác nhận buttons",
+        "avatar-circle component with 5 color variants based on initials",
+        "pagination bar: Trang đầu | Trang trước | [page#] | Trang sau | Trang cuối | Trang X / Y",
+        "footer-bar with hotline 1900 6522",
+        "checkbox controls (single + select-all in header)",
+        "Vietnamese diacritics throughout (i18n vi)"
+      ],
+      "dataModel": [
+        "Employee (NhanVien): id (PK), maNhanVien (unique e.g. NV000001), maChamCong (unique e.g. MC001), tenNhanVien, soDienThoai, soCMND, diaChi, ngayBatDauLamViec (date), ngaySinh (date), gioiTinh (enum: Nam/Nữ/Khác), email, facebook, thietBiDiDong, phongBanId (FK), chucDanhId (FK), chiNhanhLamViecId (FK), chiNhanhTraLuongId (FK), taiKhoanKiotViet (login), matKhauHash, ghiChu, trangThai (enum: DANG_LAM_VIEC | DA_NGHI), avatarColor, noVaTamUng (computed/aggregated decimal), createdAt, updatedAt, createdBy",
+        "Department (PhongBan): id (PK), tenPhongBan, moTa, trangThai - 1:N with Employee",
+        "JobTitle (ChucDanh): id (PK), tenChucDanh, moTa, trangThai - 1:N with Employee",
+        "Branch (ChiNhanh): id (PK), tenChiNhanh, diaChi, soDienThoai - 1:N with Employee for both chiNhanhLamViec and chiNhanhTraLuong",
+        "WorkSchedule (LichLamViec): id (PK), nhanVienId (FK), ngay, caLamViec, gioBatDau, gioKetThuc, ghiChu - N:1 with Employee (Lịch làm việc tab)",
+        "SalaryConfig (ThietLapLuong): id (PK), nhanVienId (FK), loaiLuong (theo giờ/ngày/tháng/sản phẩm), mucLuongCoBan, phuCap, hoaHong, congThucTinh, hieuLucTu - N:1 with Employee (Thiết lập lương tab)",
+        "Payslip (PhieuLuong): id (PK), nhanVienId (FK), kyLuongTu, kyLuongDen, soNgayCong, luongCoBan, phuCap, hoaHong, thuong, khauTru, baoHiem, thueTNCN, tongLuong, trangThai (chua_thanh_toan/da_thanh_toan), ngayThanhToan - N:1 with Employee (Phiếu lương tab)",
+        "DebtAdvance (NoVaTamUng): id (PK), nhanVienId (FK), loai (NO | TAM_UNG), soTien, ngayPhatSinh, ngayHoanTra, lyDo, trangThai - N:1 with Employee (Nợ và tạm ứng tab)",
+        "Approval/Request (YeuCau): id (PK), nhanVienId (FK), loaiYeuCau, noiDung, trangThai (cho_duyet/da_duyet/tu_choi), nguoiDuyet, ngayTao - N:1 with Employee (Duyệt yêu cầu workflow)",
+        "ConfirmationCode (MaXacNhan): id (PK), nhanVienId (FK), ma, hieuLucDen, daSuDung, mucDich (reset password / 2FA) - N:1 with Employee",
+        "Relationships: Employee N:1 Department, Employee N:1 JobTitle, Employee N:1 Branch (workingBranch), Employee N:1 Branch (payrollBranch), Employee 1:N WorkSchedule, Employee 1:N SalaryConfig (history), Employee 1:N Payslip, Employee 1:N DebtAdvance, Employee 1:N Approval"
+      ],
+      "apiEndpoints": [
+        "GET /api/employees?search=&status=&departmentId=&jobTitleId=&page=&size= - List with filters & pagination",
+        "GET /api/employees/{id} - Get employee detail (Thông tin tab)",
+        "POST /api/employees - Create new employee",
+        "PUT /api/employees/{id} - Update employee (Cập nhật button)",
+        "PATCH /api/employees/{id}/status - Toggle Ngừng làm việc / kích hoạt",
+        "DELETE /api/employees/{id} - Soft delete (if hard delete needed)",
+        "POST /api/employees/{id}/confirmation-code - Lấy mã xác nhận",
+        "GET /api/employees/{id}/work-schedule - Lịch làm việc tab",
+        "POST /api/employees/{id}/work-schedule - Add schedule entry",
+        "GET /api/employees/{id}/salary-config - Thiết lập lương tab",
+        "PUT /api/employees/{id}/salary-config - Update salary config",
+        "GET /api/employees/{id}/payslips?from=&to= - Phiếu lương tab",
+        "POST /api/employees/{id}/payslips - Create payslip",
+        "GET /api/employees/{id}/debt-advance - Nợ và tạm ứng tab",
+        "POST /api/employees/{id}/debt-advance - Add debt/advance record",
+        "GET /api/departments - Department dropdown options",
+        "POST /api/departments - Create new department (Tạo mới link)",
+        "GET /api/job-titles - Job title dropdown options",
+        "POST /api/job-titles - Create new job title (Tạo mới link)",
+        "GET /api/branches - Branch dropdown options",
+        "GET /api/employee-requests?status=cho_duyet - Duyệt yêu cầu list",
+        "PATCH /api/employee-requests/{id}/approve - Approve request",
+        "PATCH /api/employee-requests/{id}/reject - Reject request",
+        "GET /api/employees/export - Export to Excel (implied by toolbar pattern)",
+        "POST /api/employees/import - Import from Excel (implied)",
+        "GET /api/employees/columns-config - User column visibility preferences",
+        "PUT /api/employees/columns-config - Save Ẩn hiện cột preferences"
+      ],
+      "navigation": [
+        "Tổng quan (Dashboard) - /dashboard",
+        "Hàng hóa (Products) - /products",
+        "Mua hàng (Purchases) - /purchases",
+        "Đơn hàng (Orders/Invoices) - /orders",
+        "Khách hàng (Customers) - /customers",
+        "Nhân viên (Employees) - /employees [ACTIVE on this page]",
+        "Sổ quỹ (Cash book) - /cashbook",
+        "Báo cáo (Reports) - /reports",
+        "Bán online (Online sales) - /online-sales",
+        "Thuế & Kế toán (Tax & Accounting) - /tax-accounting [NEW badge]",
+        "Bán hàng (POS Sell) - /pos primary CTA",
+        "Sub-navigation tabs within employee detail: Thông tin (default) | Lịch làm việc | Thiết lập lương | Phiếu lương | Nợ và tạm ứng",
+        "Quick links in sidebar: 'Tạo mới' for Phòng ban and Chức danh (modal/drawer trigger)",
+        "Top-right menu: Notifications, Help, Settings, User profile (AD avatar)",
+        "Language selector: VI"
+      ]
+    },
+    {
+      "fileName": "pos-invoice-management.html",
+      "domain": "invoice",
+      "features": [
+        "Danh sách hóa đơn dạng bảng với phân trang (15/30/50/100 dòng)",
+        "Tìm kiếm theo mã hóa đơn (search-group với scope selector)",
+        "Lọc theo thời gian (Tháng này / Tùy chỉnh)",
+        "Lọc theo loại hóa đơn (Không giao hàng / Giao hàng)",
+        "Lọc theo trạng thái hóa đơn (Đang xử lý, Hoàn thành, Không giao được, Đã hủy)",
+        "Lọc theo trạng thái giao hàng",
+        "Lọc theo đối tác giao hàng",
+        "Lọc theo thời gian giao hàng (Toàn thời gian / Tùy chỉnh)",
+        "Lọc theo khu vực giao hàng (Tỉnh/TP - Quận/Huyện)",
+        "Lọc theo phương thức thanh toán",
+        "Lọc theo người tạo, người bán",
+        "Lọc theo bảng giá, kênh bán",
+        "Tạo mới hóa đơn (link sang invoice-create.html)",
+        "Import hóa đơn từ file (link sang invoice-import.html)",
+        "Export/Xuất file hóa đơn (link sang invoice-export.html)",
+        "Ẩn hiện cột bảng (column visibility toggle)",
+        "Cài đặt bảng / Trợ giúp",
+        "Chọn nhiều dòng qua checkbox (bulk action)",
+        "Hiển thị dòng tổng cộng (Tổng tiền hàng / Giảm giá / Khách đã trả)",
+        "Status indicator (status-dot xanh) cho từng hóa đơn",
+        "Click mã hóa đơn để xem chi tiết",
+        "Phân trang đầy đủ: Trang đầu / Trang trước / Trang sau / Trang cuối",
+        "Hiển thị phạm vi (1 - 15 trong 30 giao dịch)",
+        "Nút Bán hàng (sell-btn) chuyển sang màn POS",
+        "Top bar: Giao hàng button, ngôn ngữ VI, thông báo, trợ giúp, cài đặt, avatar người dùng"
+      ],
+      "formFields": [
+        "searchKeyword: text - Tìm kiếm hóa đơn",
+        "searchScope: select - Theo mã hóa đơn (scope tìm kiếm)",
+        "thoiGian: radio - Tháng này | Tùy chỉnh (mặc định: Tháng này)",
+        "loaiHoaDon[]: checkbox - Không giao hàng (checked), Giao hàng (checked)",
+        "trangThaiHoaDon[]: checkbox - Đang xử lý (checked), Hoàn thành (checked), Không giao được, Đã hủy",
+        "trangThaiGiaoHang: text - placeholder 'Chọn trạng thái'",
+        "doiTacGiaoHang: select - placeholder 'Chọn đối tác giao hàng'",
+        "thoiGianGH: radio - Toàn thời gian (default) | Tùy chỉnh",
+        "khuVucGiaoHang: select - 'Chọn Tỉnh/TP - Quận/Huyện'",
+        "phuongThucThanhToan: select - 'Chọn phương thức thanh toán...'",
+        "nguoiTao: select - 'Chọn người tạo'",
+        "nguoiBan: select - 'Chọn người bán'",
+        "bangGia: select - 'Chọn bảng giá'",
+        "kenhBan: select - 'Chọn kênh bán' (có link Tạo mới)",
+        "selectAll: checkbox - chọn tất cả dòng trong bảng",
+        "rowSelect: checkbox - chọn từng dòng hóa đơn",
+        "pageSize: select - 15/30/50/100 dòng"
+      ],
+      "components": [
+        "Topbar (logo KiotViet, delivery button, language switch, notification bell với dot, help, settings, avatar AD)",
+        "Navbar tabs (Tổng quan, Hàng hóa, Mua hàng, Đơn hàng [active], Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán [badge Mới])",
+        "Sell button (nav xanh - chuyển sang POS bán hàng)",
+        "Page header với tiêu đề 'Hóa đơn'",
+        "Toolbar (search-group với scope, các nút Tạo mới/Import/Xuất file, Ẩn hiện cột, Cài đặt bảng, Trợ giúp)",
+        "Sidebar filter panel (240px cố định bên trái)",
+        "Filter section repeater (label + input/select/radio/checkbox group)",
+        "Data table (table.products) với header xanh nhạt, hover row",
+        "Summary row (dòng Tổng cộng dạng bảng)",
+        "Status dot indicator (chấm xanh)",
+        "Code link (mã HD000xxx click sang chi tiết)",
+        "Pagination bar (page size selector + nav links + range info)",
+        "Footer bar fixed bottom (hotline 1900 6522)",
+        "SVG icons inline (eye, settings, help, search, plus, upload, download, chevron, cart, bell, phone)"
+      ],
+      "dataModel": [
+        "Invoice (Hóa đơn): id, invoiceCode (HD000xxx, format HD + 6 chữ số), invoiceDate (datetime - Thời gian), returnCode (Mã trả hàng - nullable, liên kết tới Return), customerId (FK -> Customer), customerCode (KH000xxx), customerName, totalAmount (Tổng tiền hàng - decimal), discount (Giảm giá - decimal), customerPaid (Khách đã trả - decimal), invoiceType (enum: NO_DELIVERY 'Không giao hàng' | DELIVERY 'Giao hàng'), invoiceStatus (enum: PROCESSING 'Đang xử lý' | COMPLETED 'Hoàn thành' | UNDELIVERABLE 'Không giao được' | CANCELED 'Đã hủy'), deliveryStatus (FK enum), deliveryPartnerId (FK -> DeliveryPartner), deliveryTime (datetime), deliveryArea (province + district), paymentMethodId (FK -> PaymentMethod), createdById (FK -> User/Employee - người tạo), soldById (FK -> User/Employee - người bán), priceListId (FK -> PriceList - bảng giá), saleChannelId (FK -> SaleChannel - kênh bán), branchId (FK -> Branch - cửa hàng/chi nhánh), createdAt, updatedAt",
+        "Customer: id, customerCode (KH000xxx), customerName, phone, address (mẫu dữ liệu: 'Anh Giang - Kim Mã', 'Anh Hoàng - Sài Gòn', 'Tuấn - Hà Nội', 'Phạm Thu Hương', 'Nguyễn Văn Hải')",
+        "DeliveryPartner: id, name (đối tác giao hàng - GHN/GHTK/Viettel Post...)",
+        "DeliveryStatus: id, code, label (Đang giao, Đã giao, Trả hàng, ...)",
+        "PaymentMethod: id, code, name (Tiền mặt, Chuyển khoản, Thẻ, Ví điện tử, ...)",
+        "PriceList (Bảng giá): id, name, isDefault",
+        "SaleChannel (Kênh bán): id, name (Tại quầy, Online, Facebook, Shopee, ...) - hỗ trợ tạo mới inline",
+        "User/Employee: id, username, fullName, role (người tạo / người bán)",
+        "Branch (Chi nhánh): id, name",
+        "Province/District: id, name, parentId (cho khu vực giao hàng)",
+        "Return (Trả hàng): id, returnCode, originInvoiceId - liên kết với Invoice qua returnCode",
+        "InvoiceItem (line item - implied cho tạo mới): invoiceId, productId, quantity, unitPrice, discount, lineTotal",
+        "Quan hệ: Invoice N-1 Customer; Invoice N-1 PaymentMethod; Invoice N-1 DeliveryPartner; Invoice N-1 SaleChannel; Invoice N-1 PriceList; Invoice N-1 User (createdBy, soldBy); Invoice 1-N InvoiceItem; Invoice 1-1 Return (optional)"
+      ],
+      "apiEndpoints": [
+        "GET /invoice/list - danh sách hóa đơn (search/filter/paginate)",
+        "GET /invoice/detail?code=HD000xxx hoặc /invoice/{id} - chi tiết hóa đơn",
+        "GET /invoice/create -> /invoice-create.html (form tạo mới)",
+        "POST /invoice/create - tạo hóa đơn",
+        "GET /invoice/import -> /invoice-import.html",
+        "POST /invoice/import - upload file",
+        "GET /invoice/export -> /invoice-export.html (xuất theo bộ lọc)",
+        "GET /invoice/summary - tổng cộng (Tổng tiền hàng/Giảm giá/Khách đã trả)",
+        "POST /invoice/bulk-action - thao tác hàng loạt theo checkbox",
+        "GET /api/customers/search - lookup khách hàng cho filter",
+        "GET /api/delivery-partners - dropdown đối tác giao hàng",
+        "GET /api/delivery-status - dropdown trạng thái giao hàng",
+        "GET /api/payment-methods - dropdown phương thức thanh toán",
+        "GET /api/users?role=creator|seller - dropdown người tạo / người bán",
+        "GET /api/price-lists - dropdown bảng giá",
+        "GET /api/sale-channels (GET/POST) - dropdown + tạo mới kênh bán",
+        "GET /api/locations/provinces, /api/locations/districts?provinceId= - khu vực giao hàng",
+        "GET /pos - màn POS bán hàng (nút Bán hàng)",
+        "Lưu ý: HTML là mockup tĩnh, không có form action/fetch trong markup - endpoints suy luận từ UI để định hướng backend"
+      ],
+      "navigation": [
+        "Top tab 'Tổng quan' -> /dashboard",
+        "Top tab 'Hàng hóa' -> /products",
+        "Top tab 'Mua hàng' -> /purchase",
+        "Top tab 'Đơn hàng' -> /invoices (active hiện tại)",
+        "Top tab 'Khách hàng' -> /customers",
+        "Top tab 'Nhân viên' -> /employees",
+        "Top tab 'Sổ quỹ' -> /cashbook",
+        "Top tab 'Báo cáo' -> /reports",
+        "Top tab 'Bán online' -> /online-sales",
+        "Top tab 'Thuế & Kế toán' (badge Mới) -> /accounting",
+        "Sell button 'Bán hàng' -> /pos (POS terminal)",
+        "Toolbar link 'Tạo mới' -> invoice-create.html",
+        "Toolbar link 'Import file' -> invoice-import.html",
+        "Toolbar link 'Xuất file' -> invoice-export.html",
+        "Code link mã hóa đơn (HD000046...) -> /invoices/{code} chi tiết",
+        "Sidebar link 'Tạo mới' (Kênh bán) -> mở modal tạo SaleChannel",
+        "Topbar: Giao hàng button, Notification (có badge dot), Help, Settings, Avatar (AD - dropdown user menu, đăng xuất)",
+        "Footer: hotline 1900 6522"
+      ]
+    },
+    {
+      "fileName": "pos-dashboard.html",
+      "domain": "dashboard",
+      "features": [
+        "Hiển thị kết quả bán hàng hôm nay (Doanh thu, Trả hàng)",
+        "Biểu đồ doanh thu thuần dạng bar chart theo ngày/giờ/thứ",
+        "Lọc dữ liệu theo khoảng thời gian (Hôm nay, Tháng này, Tháng trước, Tuần này)",
+        "Top 10 hàng hoá bán chạy (sắp xếp theo doanh thu thuần hoặc số lượng)",
+        "Top 10 khách mua nhiều nhất",
+        "Doanh thu theo nhân viên",
+        "Theo dõi chấm công nhân viên",
+        "Hiển thị danh sách hoạt động gần đây (recent activities feed)",
+        "Cảnh báo đăng nhập khác thường",
+        "Promo banners (QR thanh toán, Vay vốn)",
+        "Thanh điều hướng đa module (Tổng quan, Hàng hoá, Đơn hàng, Khách hàng, Nhân viên, Báo cáo, ...)",
+        "Topbar với thông báo, ngôn ngữ, avatar, trợ giúp, cài đặt",
+        "Empty state cho các widget chưa có dữ liệu",
+        "Hotline support floating button"
+      ],
+      "formFields": [
+        "select: Khoảng thời gian doanh thu (Hôm nay | Tháng này | Tháng trước)",
+        "select: Nhóm biểu đồ doanh thu (Theo ngày | Theo giờ | Theo thứ) - dạng tabs",
+        "select: Sắp xếp Top hàng hoá (Theo doanh thu thuần | Theo số lượng)",
+        "select: Khoảng thời gian Top hàng hoá (Tháng này | Tháng trước)",
+        "select: Khoảng thời gian Top khách hàng (Tháng này | Tháng trước)",
+        "select: Khoảng thời gian Doanh thu nhân viên (Hôm nay | Tuần này | Tháng này)",
+        "select: Khoảng thời gian Chấm công (Tháng này | Tháng trước)"
+      ],
+      "components": [
+        "Topbar (logo, language switcher, notification bell with badge, help icon, settings icon, user avatar)",
+        "Navbar with tabs navigation (Tổng quan active, Hàng hoá, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán + new badge)",
+        "Primary action button: Bán hàng (Sell)",
+        "Stats card: Sales result (today)",
+        "Bar chart card with chart-tabs (Theo ngày/giờ/thứ) and y-axis/x-axis labels",
+        "Two-column grid: Top products card + Top customers card (with select filters)",
+        "Two-column grid: Employee revenue card + Timekeeping card",
+        "Empty state component (icon + title + description + CTA link)",
+        "Right sidebar: promo cards (QR payment, Loan)",
+        "Alert warning banner (suspicious login)",
+        "Activity timeline list (scrollable, with colored dots: blue/green/orange)",
+        "Floating hotline button"
+      ],
+      "dataModel": [
+        "DashboardSummary { date, revenueToday: BigDecimal, returnsToday: BigDecimal }",
+        "RevenueSeries { period (DAY|HOUR|WEEKDAY), range (TODAY|THIS_MONTH|LAST_MONTH), points: List<RevenuePoint> }",
+        "RevenuePoint { label (e.g. '01'..'30'), value: BigDecimal }",
+        "TopProduct { productId, productCode, productName, quantitySold, netRevenue, rank }",
+        "TopCustomer { customerId, customerCode, customerName, totalSpent, orderCount, rank }",
+        "EmployeeRevenue { employeeId, employeeName, role, totalRevenue, orderCount }",
+        "TimekeepingSummary { employeeId, employeeName, workedHours, shifts, status }",
+        "RecentActivity { id, actorName, actorRole, actionType (SALE|PURCHASE|CUSTOMER_ADD|PRICE_UPDATE|...), referenceCode (HDxxx, PNxxx, KHxxx, SPxxx), amount, createdAt, severity }",
+        "LoginAnomaly { id, userId, ip, location, timestamp, status }",
+        "User { id, fullName, role, avatarInitials } (referenced in topbar/activities)",
+        "Order/Invoice header reference (HDxxx codes) - linkage from Activity to Invoice domain",
+        "Purchase Note reference (PNxxx codes) - linkage to Purchase domain",
+        "Customer reference (KHxxx codes)",
+        "Product reference (SPxxx codes)"
+      ],
+      "apiEndpoints": [
+        "GET /api/dashboard/sales-summary?date={today} -> { revenue, returns }",
+        "GET /api/dashboard/revenue-chart?range={TODAY|THIS_MONTH|LAST_MONTH}&groupBy={DAY|HOUR|WEEKDAY} -> RevenueSeries",
+        "GET /api/dashboard/top-products?range={range}&sortBy={NET_REVENUE|QUANTITY}&limit=10 -> List<TopProduct>",
+        "GET /api/dashboard/top-customers?range={range}&limit=10 -> List<TopCustomer>",
+        "GET /api/dashboard/employee-revenue?range={TODAY|THIS_WEEK|THIS_MONTH} -> List<EmployeeRevenue>",
+        "GET /api/dashboard/timekeeping?range={range} -> TimekeepingSummary",
+        "GET /api/dashboard/recent-activities?limit=10 -> List<RecentActivity>",
+        "GET /api/dashboard/login-anomalies/count -> { count }",
+        "Note: HTML is static — no fetch() calls or form actions present. Endpoints inferred from widget data needs."
+      ],
+      "navigation": [
+        "pos-dashboard.html (Tổng quan - active)",
+        "pos-product-management.html (Hàng hoá)",
+        "# (Mua hàng - placeholder)",
+        "pos-invoice-management.html (Đơn hàng)",
+        "pos-customer-management.html (Khách hàng)",
+        "pos-employee-management.html (Nhân viên)",
+        "# (Sổ quỹ - placeholder)",
+        "pos-report-sales.html (Báo cáo)",
+        "# (Bán online - placeholder)",
+        "# (Thuế & Kế toán - placeholder, badge 'Mới')",
+        "Bán hàng button (POS sell entry)",
+        "Topbar: Giao hàng, VI language, notifications, help, settings, avatar (AD)"
+      ]
+    },
+    {
+      "fileName": "pos-sale.html",
+      "domain": "pos",
+      "features": [
+        "Multi-tab invoice management (open multiple concurrent invoices, add/close tabs)",
+        "Product search by name/code with F3 hotkey",
+        "Customer search and selection with F4 hotkey",
+        "Add new customer (quick create from POS)",
+        "Add product to cart by clicking from product list",
+        "Cart line item management (increase/decrease/edit quantity, remove item)",
+        "Order note (textarea for ghi chú đơn hàng)",
+        "Real-time cart totals (item count, total amount in VND)",
+        "Product list view toggle (grid view vs list view)",
+        "Product filter button",
+        "Pagination of product list (current page / total pages)",
+        "Three POS sales modes: Bán nhanh (quick), Bán thường (normal), Bán giao hàng (delivery)",
+        "Checkout / payment action (THANH TOÁN button)",
+        "Vietnamese number formatting (toLocaleString vi-VN)",
+        "Sticky header with logo, search, settings, support, account",
+        "Footer with hotline and version info"
+      ],
+      "formFields": [
+        "productSearch: text (placeholder 'Tìm hàng hóa (F3)', global product search)",
+        "customerSearch: text (placeholder 'Tìm khách hàng (F4)', customer lookup)",
+        "cartNote: textarea (placeholder 'Ghi chú đơn hàng', optional, max-length not specified)",
+        "qtyInput: text/number per cart line (min=1, integer; reset to 1 if invalid/blank)",
+        "saleMode: implicit radio via sidebar tabs (values: quick | normal | delivery)"
+      ],
+      "components": [
+        "Top header bar (logo, global product search, mode switch button, invoice tabs, account/support/settings icons)",
+        "Invoice tab strip (active tab + close X button + add new tab + button)",
+        "Two-column main layout: cart panel (left) and product/customer panel (right)",
+        "Cart list with rows: index, remove icon, product code + stock meta, product name, qty controls, unit price, line total",
+        "Quantity stepper (minus button, numeric input, plus button)",
+        "Cart footer with note textarea and summary (item count badge + grand total)",
+        "Customer search bar with add-customer (+) button and view toggle icon buttons (grid, list, filter)",
+        "Product list rows with thumbnail placeholder, product name, product code, price",
+        "Pagination control (prev arrow, current/total page indicator, next arrow)",
+        "Primary checkout button (full-width THANH TOAN)",
+        "Right sidebar with sale-mode tabs (Bán nhanh, Bán thường, Bán giao hàng) and bottom hotline + help/settings icons",
+        "Footer bar with hotline 1900 6522, help, settings, version label"
+      ],
+      "dataModel": [
+        "Invoice/Order { id, code, status (draft/completed/cancelled), saleMode (quick|normal|delivery), customerId (nullable), employeeId, branchId, note, subTotal, discount, totalAmount, createdAt, updatedAt }",
+        "OrderItem/InvoiceLine { id, orderId, productId, productCode, productName (snapshot), quantity (>=1), unitPrice, lineTotal, note }",
+        "Product { id, code (e.g. 10136004331), name, price, stockQty, reservedQty (KH đặt), thumbnailUrl, categoryId }",
+        "Customer { id, code, name, phone, email, address, debt, totalSpent }",
+        "Employee/User { id, username, fullName, role } (cashier session)",
+        "Branch/Store { id, name } (multi-store implied by KiotViet pattern)",
+        "PosSession/CartTab { tabId, invoiceId, items[], note, customerId, saleMode, isActive } (client-side, mirrors backend draft order)",
+        "Relations: Order N:1 Customer, Order N:1 Employee, Order 1:N OrderItem, OrderItem N:1 Product, Order N:1 Branch"
+      ],
+      "apiEndpoints": [
+        "GET /api/products?search={q}&page={n}&size={s} (product search + paginated list for POS right panel)",
+        "GET /api/products/{code} (lookup by barcode/SKU when scanning)",
+        "GET /api/customers?search={q} (customer search F4)",
+        "POST /api/customers (quick add customer from + button)",
+        "POST /api/orders (create draft invoice / new tab)",
+        "GET /api/orders/{id} (load invoice into a tab)",
+        "PUT /api/orders/{id} (update items, qty, note, customer, saleMode)",
+        "POST /api/orders/{id}/items (add line item)",
+        "PUT /api/orders/{id}/items/{itemId} (update qty)",
+        "DELETE /api/orders/{id}/items/{itemId} (remove line)",
+        "POST /api/orders/{id}/checkout (THANH TOÁN: finalize payment, deduct stock, create invoice)",
+        "DELETE /api/orders/{id} (close/cancel draft tab)"
+      ],
+      "navigation": [
+        "Header logo: KiotViet (link to home/dashboard)",
+        "Header global product search (F3 focus)",
+        "Header mode switch button: 'Chế độ nhập' (toggles input mode)",
+        "Invoice tabs: 'Hóa đơn 1' active + close X + add (+) tab to spawn new invoice",
+        "Header right icons: Account, Support, Settings",
+        "Right sidebar sale-mode tabs (left rail): Bán nhanh, Bán thường (active), Bán giao hàng",
+        "Right panel customer-bar actions: Add customer (+), grid view, list view, filter",
+        "Right panel pagination: prev page, '1/2', next page",
+        "Right panel primary CTA: THANH TOÁN (checkout)",
+        "Footer: hotline 1900 6522, help, settings, version 2.0",
+        "Note: page is single-screen POS; cross-domain navigation (products, customers, reports) is not embedded here — handled by separate menu/app shell"
+      ]
+    },
+    {
+      "fileName": "pos-report-sales.html",
+      "domain": "report",
+      "features": [
+        "Sales report dashboard",
+        "Time-range filtering (Tuần này / Tùy chỉnh)",
+        "Display mode toggle (Biểu đồ vs Báo cáo)",
+        "Sales channel filter (Kênh bán)",
+        "Sales method filter (Phương thức bán hàng)",
+        "Price list filter (Bảng giá)",
+        "Concern/dimension filter (Mối quan tâm: Thời gian, Sản phẩm, Khách hàng, Nhân viên)",
+        "Bar chart visualization of net revenue",
+        "Export/Download report",
+        "Print report",
+        "Expand/Fullscreen chart view",
+        "Promotional banner with CTA",
+        "Banner dismiss action",
+        "Top navigation between modules",
+        "Quick Sell button shortcut",
+        "Notifications indicator",
+        "Language switcher (VI)",
+        "Help and Settings shortcuts"
+      ],
+      "formFields": [
+        "kieuHienThi: radio (Biểu đồ | Báo cáo)",
+        "moiQuanTam: select (Thời gian | Sản phẩm | Khách hàng | Nhân viên)",
+        "bangGia: multi-select (price list IDs)",
+        "thoiGian: chip toggle (Tuần này | Tùy chỉnh) with optional fromDate/toDate when custom",
+        "phuongThucBanHang: multi-select (sales method IDs)",
+        "kenhBan: multi-select (sales channel IDs)"
+      ],
+      "components": [
+        "Topbar with logo, delivery button, language, notifications, help, settings, avatar",
+        "Primary navigation tabs (Tổng quan, Hàng hóa, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo (active), Bán online, Thuế & Kế toán)",
+        "Sell action button (Bán hàng)",
+        "Filter sidebar with sections",
+        "Radio group",
+        "Single select dropdown",
+        "Multi-select dropdowns",
+        "Time chip selector",
+        "Card container with header and action icons",
+        "Bar chart area with X axis (dates) and Y axis (values)",
+        "Promotional banner with icon, text, CTA, close button",
+        "Fixed footer bar with hotline"
+      ],
+      "dataModel": [
+        "SalesReport { reportId, periodFrom: date, periodTo: date, granularity: enum(DAY|WEEK|MONTH|QUARTER|YEAR), netRevenue: decimal, grossRevenue: decimal, discountTotal: decimal, returnTotal: decimal, orderCount: int }",
+        "SalesReportPoint { reportId FK, label: string (e.g. 25/05), bucketDate: date, netRevenue: decimal, orderCount: int }",
+        "PriceList { priceListId PK, code, name, status, effectiveFrom, effectiveTo }",
+        "SalesChannel { channelId PK, code, name (POS/Online/Facebook/Shopee/...), active }",
+        "SalesMethod { methodId PK, code, name (Tại quầy/Giao hàng/Online), active }",
+        "Invoice { invoiceId PK, code, customerId FK, employeeId FK, channelId FK, methodId FK, priceListId FK, total, discount, netTotal, status, createdAt }",
+        "InvoiceItem { invoiceItemId PK, invoiceId FK, productId FK, quantity, unitPrice, discount, lineTotal }",
+        "Customer { customerId PK, code, name, phone }",
+        "Employee { employeeId PK, code, name }",
+        "Product { productId PK, code, name, categoryId }",
+        "Relationships: Invoice 1-* InvoiceItem; Invoice *-1 Customer/Employee/SalesChannel/SalesMethod/PriceList; SalesReport aggregates Invoice rows over filters; SalesReportPoint *-1 SalesReport"
+      ],
+      "apiEndpoints": [
+        "GET /api/reports/sales/summary?from=&to=&granularity=&channelIds=&methodIds=&priceListIds=&dimension=",
+        "GET /api/reports/sales/chart?from=&to=&granularity=&channelIds=&methodIds=&priceListIds=",
+        "GET /api/reports/sales/table?from=&to=&dimension=(time|product|customer|employee)&page=&size=",
+        "GET /api/reports/sales/export?format=(xlsx|csv|pdf)&from=&to=&dimension=",
+        "GET /api/sales-channels",
+        "GET /api/sales-methods",
+        "GET /api/price-lists"
+      ],
+      "navigation": [
+        "Tổng quan -> /dashboard",
+        "Hàng hóa -> /products",
+        "Mua hàng -> /purchases",
+        "Đơn hàng -> /orders",
+        "Khách hàng -> /customers",
+        "Nhân viên -> /employees",
+        "Sổ quỹ -> /cashbook",
+        "Báo cáo -> /reports (active: /reports/sales)",
+        "Bán online -> /online-sales",
+        "Thuế & Kế toán -> /tax-accounting (Mới)",
+        "Bán hàng (CTA) -> /pos"
+      ]
+    },
+    {
+      "fileName": "product-create.html",
+      "domain": "product",
+      "features": [
+        "Create new product (Thêm mới hàng hóa)",
+        "Auto-generate product code if blank",
+        "Client-side form validation (required fields: name, sell price)",
+        "Image upload via file input (accept image/*)",
+        "Toggle for direct selling (bán trực tiếp)",
+        "Save and redirect to product list",
+        "Save and add new (reset form, continue creating)",
+        "Cancel and return to product list",
+        "Sidebar navigation menu for product management module (List/Create/Import/Export)",
+        "Breadcrumb navigation",
+        "Top-level main navigation (Tổng quan, Hàng hóa, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán)",
+        "Quick action buttons (Giao hàng, Bán hàng, Notifications, Help, Settings)"
+      ],
+      "formFields": [
+        "productCode: text, optional, auto-generated if empty (Mã hàng hóa)",
+        "productName: text, required (Tên hàng hóa)",
+        "categoryId/nhóm hàng: select, options [Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm] (Nhóm hàng)",
+        "productType/loại hàng: select, options [Hàng hóa thường, Combo - Đóng gói, Dịch vụ] (Loại hàng)",
+        "barcode: text, optional (Barcode)",
+        "unit/đơn vị tính: select, options [Cái, Hộp, Gói, Chai, Kg, Lít] (Đơn vị tính)",
+        "sellPrice: number, required, min 0 (Giá bán)",
+        "costPrice/giá vốn: number, optional (Giá vốn)",
+        "weight: number, gram (Trọng lượng)",
+        "initialStock/tồn kho ban đầu: number (Tồn kho ban đầu)",
+        "minStock/tồn kho tối thiểu: number (Tồn kho tối thiểu)",
+        "location/vị trí: text (Vị trí - Kệ, ngăn)",
+        "supplierId/nhà cung cấp: select, options [Công ty ABC, Đại lý XYZ] (Nhà cung cấp)",
+        "image/hình ảnh: file upload, accept=image/* (Hình ảnh sản phẩm)",
+        "description/mô tả: textarea, optional (Mô tả)",
+        "allowDirectSell/bán trực tiếp: toggle boolean, default true (Bán trực tiếp)"
+      ],
+      "components": [
+        "topbar header (logo, delivery button, language switcher, notification bell with red dot, help icon, settings icon, user avatar)",
+        "main navbar with horizontal tabs and 'Bán hàng' CTA",
+        "sidebar-menu (left vertical menu for product module)",
+        "breadcrumb",
+        "page-title",
+        "form (id=productForm, novalidate, client-side JS validation)",
+        "form-card sections (Thông tin cơ bản, Giá & Tồn kho, Thông tin bổ sung)",
+        "form-grid 2-column and 3-column layouts",
+        "form-group with label, input/select/textarea, error message, hint text",
+        "form-label with required indicator (red asterisk)",
+        "form-input (text, number)",
+        "form-select (dropdown)",
+        "form-textarea",
+        "image-upload (dashed-border drop zone, hidden file input)",
+        "toggle switch (toggle-row with on/off slider)",
+        "actions bar with btn-primary (Lưu hàng hóa), btn-success (Lưu & Thêm mới), btn-secondary (Hủy bỏ)"
+      ],
+      "dataModel": [
+        "Product { id, code (string, auto-gen if empty), name (string, required), categoryId (FK -> ProductCategory), productType (enum: NORMAL/COMBO/SERVICE), barcode (string), unit (string: Cái/Hộp/Gói/Chai/Kg/Lít), sellPrice (decimal, required >=0), costPrice (decimal), weight (int, grams), initialStock (int), minStock (int), location (string), supplierId (FK -> Supplier), imageUrl (string), description (text), allowDirectSell (boolean, default true), createdAt, updatedAt }",
+        "ProductCategory { id, name } - examples: Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm",
+        "Supplier { id, name, ... } - examples: Công ty ABC, Đại lý XYZ",
+        "Inventory { productId, quantityOnHand, minStock, location } - relationship 1:1 with Product or 1:N if multi-warehouse",
+        "Unit (lookup or enum): Cái, Hộp, Gói, Chai, Kg, Lít",
+        "Relationships: Product N:1 ProductCategory, Product N:1 Supplier, Product 1:1 Inventory (or 1:N for multi-location), Product N:1 Unit"
+      ],
+      "apiEndpoints": [
+        "No real backend endpoints wired. Form action is intercepted by JS (e.preventDefault) and only triggers alert + window.location.href = 'pos-product-management.html'",
+        "Implied endpoints needed for backend: POST /products (create), GET /products/categories (dropdown), GET /products/units (dropdown), GET /suppliers (dropdown), POST /products/upload-image (image upload), GET /products/generate-code (auto-generate product code)",
+        "Cancel link navigates to pos-product-management.html",
+        "Sidebar menu links: pos-product-management.html, product-create.html, product-import.html, product-export.html"
+      ],
+      "navigation": [
+        "Top main nav: Tổng quan, Hàng hóa (active), Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán (badge: Mới)",
+        "Sidebar (Quản lý hàng hóa): Danh sách hàng hóa -> pos-product-management.html, Thêm mới hàng hóa -> product-create.html (active), Import file -> product-import.html, Xuất file -> product-export.html",
+        "Breadcrumb: Hàng hóa > Thêm mới hàng hóa",
+        "Cancel button -> pos-product-management.html",
+        "After successful save -> redirect to pos-product-management.html"
+      ]
+    },
+    {
+      "fileName": "product-detail.html",
+      "domain": "product",
+      "features": [
+        "view-product-detail",
+        "edit-product-redirect",
+        "delete-product-with-confirmation",
+        "tab-navigation-info-inventory-history",
+        "view-stock-information",
+        "view-transaction-history",
+        "breadcrumb-navigation",
+        "sidebar-menu-navigation"
+      ],
+      "formFields": [
+        "productName:text:readonly",
+        "productCode:text:readonly",
+        "barcode:text:readonly",
+        "category:text:readonly",
+        "productType:text:readonly",
+        "unit:text:readonly",
+        "sellingPrice:number:readonly",
+        "costPrice:number:readonly",
+        "weight:number:readonly",
+        "supplier:text:readonly",
+        "location:text:readonly",
+        "directSale:boolean:readonly",
+        "description:textarea:readonly",
+        "createdDate:datetime:readonly",
+        "currentStock:number:readonly",
+        "minStock:number:readonly",
+        "availableStock:number:readonly",
+        "reservedStock:number:readonly",
+        "inTransitStock:number:readonly",
+        "expectedOutOfStockDate:date:readonly"
+      ],
+      "components": [
+        "topbar-header",
+        "main-navigation-tabs",
+        "sidebar-menu",
+        "breadcrumb",
+        "product-header-card-with-thumbnail",
+        "detail-tabs",
+        "info-detail-rows",
+        "stock-detail-rows",
+        "transaction-history-table",
+        "edit-button",
+        "delete-button-with-confirm",
+        "tab-switcher-javascript"
+      ],
+      "dataModel": [
+        "Product{id, name, code, barcode, categoryId, productType, unit, sellingPrice, costPrice, weight, supplierId, location, directSale:boolean, description, createdAt, imageUrl}",
+        "Category{id, name}",
+        "Supplier{id, name}",
+        "Inventory{productId, currentStock, minStock, availableStock, reservedStock, inTransitStock, expectedOutOfStockDate}",
+        "InventoryTransaction{id, timestamp, transactionType:enum[IMPORT,SALE,ADJUSTMENT], referenceCode, productId, quantityChange:signed, stockAfter}",
+        "Relationships: Product N:1 Category, Product N:1 Supplier, Product 1:1 Inventory, Product 1:N InventoryTransaction"
+      ],
+      "apiEndpoints": [
+        "GET /products/{id} -> product detail (Thông tin tab)",
+        "GET /products/{id}/inventory -> stock information (Tồn kho tab)",
+        "GET /products/{id}/transactions -> transaction history (Lịch sử giao dịch tab)",
+        "GET /products/{id}/edit -> redirect to product-edit.html",
+        "POST/DELETE /products/{id} -> delete product (product-delete-confirm.html flow)"
+      ],
+      "navigation": [
+        "topbar:Giao hang, Notifications, Help, Settings, User avatar",
+        "main-nav-tabs:Tong quan, Hang hoa(active), Mua hang, Don hang, Khach hang, Nhan vien, So quy, Bao cao, Ban online, Thue & Ke toan",
+        "sell-button:Ban hang",
+        "sidebar-menu:Danh sach hang hoa(active link to pos-product-management.html), Them moi hang hoa(product-create.html), Import file(product-import.html), Xuat file(product-export.html)",
+        "breadcrumb:Hang hoa(pos-product-management.html) / Chi tiet hang hoa",
+        "page-actions:Chinh sua(product-edit.html), Xoa(product-delete-confirm.html)"
+      ]
+    },
+    {
+      "fileName": "product-edit.html",
+      "domain": "product",
+      "features": [
+        "Edit existing product (Update operation in CRUD)",
+        "Form validation client-side (required fields: tên hàng hóa, giá bán)",
+        "Delete product with confirmation dialog (redirects to product-delete-confirm.html)",
+        "Cancel edit and return to product listing",
+        "Image upload/change for product photo",
+        "Toggle switch for direct sale enable/disable",
+        "Read-only fields for product code (mã hàng hóa) and stock quantity (tồn kho)",
+        "Inline error messages for validation failures",
+        "Breadcrumb navigation (Hàng hóa / Chỉnh sửa hàng hóa)",
+        "Form organized into 3 sections: Thông tin cơ bản, Giá & Tồn kho, Thông tin bổ sung",
+        "Submit triggers update flow then redirects to product list"
+      ],
+      "formFields": [
+        "productCode (text, readonly, value=10225873544) - Mã hàng hóa",
+        "productName (text, required) - Tên hàng hóa",
+        "category (select) - Nhóm hàng [Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm]",
+        "productType (select) - Loại hàng [Hàng hóa thường, Combo - Đóng gói, Dịch vụ]",
+        "barcode (text) - Barcode",
+        "unit (select) - Đơn vị tính [Cái, Hộp, Gói, Chai, Kg, Lít]",
+        "sellPrice (number, required, min=0) - Giá bán",
+        "costPrice (number) - Giá vốn",
+        "weight (number, gram) - Trọng lượng",
+        "stockQuantity (number, readonly) - Tồn kho",
+        "minStock (number) - Tồn kho tối thiểu",
+        "location (text) - Vị trí (kệ/ngăn)",
+        "supplier (select) - Nhà cung cấp [Công ty ABC, Đại lý XYZ]",
+        "productImage (file, accept=image/*) - Hình ảnh sản phẩm",
+        "description (textarea) - Mô tả",
+        "directSale (toggle/boolean) - Cho phép bán trực tiếp"
+      ],
+      "components": [
+        "Top header bar with logo, delivery button, language selector, notification icon, help icon, settings icon, user avatar",
+        "Main navigation bar with tabs (Tổng quan, Hàng hóa active, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán)",
+        "Sell button (Bán hàng) in nav",
+        "Left sidebar menu (QUẢN LÝ HÀNG HÓA) with 4 menu items",
+        "Breadcrumb navigation",
+        "Form with 3 form-card sections",
+        "Two-column form-grid and three-column form-grid layouts",
+        "Text inputs, number inputs, select dropdowns, textarea",
+        "Image upload component with dashed border placeholder",
+        "Hidden file input triggered by click",
+        "Toggle switch component (custom CSS)",
+        "Action buttons: btn-primary (Cập nhật), btn-secondary (Hủy bỏ), btn-danger (Xóa hàng hóa)",
+        "Inline form-error spans for validation messages",
+        "JavaScript form submit handler with client-side validation",
+        "Confirm dialog (native confirm) for delete action"
+      ],
+      "dataModel": [
+        "Product entity: id (PK), code (unique, auto-generated, readonly), name (required, varchar), categoryId (FK -> Category), productType (enum: REGULAR/COMBO/SERVICE), barcode (varchar), unitId (FK -> Unit) or unit (varchar), sellPrice (decimal, required, >=0), costPrice (decimal), weight (int, gram), stockQuantity (int, derived from inventory transactions), minStock (int), location (varchar), supplierId (FK -> Supplier), imageUrl (varchar), description (text), directSale (boolean), createdAt, updatedAt, isActive (boolean for soft delete)",
+        "Category entity: id (PK), name (e.g. Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm)",
+        "Unit entity: id (PK), name (e.g. Cái, Hộp, Gói, Chai, Kg, Lít)",
+        "Supplier entity: id (PK), name (e.g. Công ty ABC, Đại lý XYZ), contact info",
+        "Relationship: Product N:1 Category, Product N:1 Unit, Product N:1 Supplier",
+        "Inventory: stockQuantity is read-only here, modified via separate import/export vouchers (phiếu nhập/xuất) - implies InventoryTransaction entity"
+      ],
+      "apiEndpoints": [
+        "No explicit fetch/AJAX calls present - form uses preventDefault and simulates success with alert+redirect",
+        "Implied backend endpoints needed: GET /products/{id} (load product for edit, e.g. id=10225873544), PUT or POST /products/{id} (update product), DELETE /products/{id} (remove product), POST /products/{id}/image (upload product image), GET /categories (populate Nhóm hàng dropdown), GET /units (populate Đơn vị tính dropdown), GET /suppliers (populate Nhà cung cấp dropdown)",
+        "Form action attribute is empty (handled via JS submit listener)",
+        "Cancel link: pos-product-management.html",
+        "Delete link: product-delete-confirm.html?id={productCode}",
+        "After successful update redirects to: pos-product-management.html"
+      ],
+      "navigation": [
+        "Top nav tabs: Tổng quan (#), Hàng hóa (# - active), Mua hàng (#), Đơn hàng (#), Khách hàng (#), Nhân viên (#), Sổ quỹ (#), Báo cáo (#), Bán online (#), Thuế & Kế toán (# - badge: Mới)",
+        "Sidebar (QUẢN LÝ HÀNG HÓA): Danh sách hàng hóa -> pos-product-management.html (active marker but actually the listing page), Thêm mới hàng hóa -> product-create.html, Import file -> product-import.html, Xuất file -> product-export.html",
+        "Breadcrumb: Hàng hóa (pos-product-management.html) / Chỉnh sửa hàng hóa",
+        "Cancel button -> pos-product-management.html",
+        "Delete button -> product-delete-confirm.html (after confirm dialog)",
+        "Submit (Cập nhật) -> redirects to pos-product-management.html on success"
+      ]
+    },
+    {
+      "fileName": "product-delete-confirm.html",
+      "domain": "product",
+      "features": [
+        "Delete product confirmation dialog",
+        "Product deletion with warning message",
+        "Display product information before deletion (thumbnail, name, code, stock)",
+        "Cancel deletion option",
+        "Navigation back to product list",
+        "Sidebar menu for product management (list, create, import, export)",
+        "Breadcrumb navigation",
+        "Warning notice about transaction history deletion",
+        "Suggestion to use status change instead of deletion"
+      ],
+      "formFields": [
+        "No actual form fields - this is a confirmation dialog",
+        "Display only: product thumbnail (image)",
+        "Display only: product name (text)",
+        "Display only: product code (10225873544)",
+        "Display only: stock quantity (Tồn kho: 150)",
+        "Action button: Xóa hàng hóa (Delete product) - btn-danger with onclick handler",
+        "Action button: Hủy bỏ (Cancel) - btn-secondary as link to pos-product-management.html"
+      ],
+      "components": [
+        "Top header bar (topbar) with logo, delivery button, language selector, notifications, help, settings, avatar",
+        "Main navigation bar (navbar) with tabs: Tổng quan, Hàng hóa (active), Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán",
+        "Sell button (Bán hàng) in navbar",
+        "Sidebar menu (sidebar-menu) with QUẢN LÝ HÀNG HÓA section",
+        "Breadcrumb navigation (Hàng hóa / Xác nhận xóa)",
+        "Confirmation card (confirm-card) with max-width 560px",
+        "Warning icon circle (confirm-icon) with trash bin SVG",
+        "Product info preview card (confirm-product) with thumbnail, name, code",
+        "Warning notice box (confirm-warning) with alert icon",
+        "Action buttons row: Delete (btn-danger) and Cancel (btn-secondary)",
+        "Inline JavaScript alert + redirect on delete confirmation"
+      ],
+      "dataModel": [
+        "Product entity fields displayed:",
+        "- id/code: String (e.g., '10225873544')",
+        "- name: String (e.g., 'Bánh mì Staff chà bông 55gr')",
+        "- thumbnail/image: Image or initials placeholder ('BM')",
+        "- stockQuantity (tồn kho): Integer (e.g., 150)",
+        "- status: enum (active/inactive - implied by 'Ngừng kinh doanh' suggestion)",
+        "Implied relationships:",
+        "- Product has transaction history (lịch sử giao dịch) - cascade delete consideration",
+        "- Product belongs to inventory system",
+        "Soft delete vs hard delete: Warning suggests soft delete (status change) is preferred over hard delete"
+      ],
+      "apiEndpoints": [
+        "No real API endpoints - mock alert() and redirect only",
+        "Implied DELETE endpoint: DELETE /api/products/{id} or /products/delete?id={id}",
+        "Implied redirect target: pos-product-management.html (product list page)",
+        "Implied alternative: PATCH /api/products/{id}/status to change status to 'Ngừng kinh doanh' (discontinued)"
+      ],
+      "navigation": [
+        "Top nav tabs: Tổng quan, Hàng hóa (active), Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán (Mới badge)",
+        "Sidebar menu items under QUẢN LÝ HÀNG HÓA:",
+        "- Danh sách hàng hóa -> pos-product-management.html (active)",
+        "- Thêm mới hàng hóa -> product-create.html",
+        "- Import file -> product-import.html",
+        "- Xuất file -> product-export.html",
+        "Breadcrumb: Hàng hóa (link to pos-product-management.html) / Xác nhận xóa",
+        "Action links:",
+        "- Delete button -> alert + redirect to pos-product-management.html",
+        "- Cancel button -> pos-product-management.html"
+      ]
+    },
+    {
+      "fileName": "product-export.html",
+      "domain": "product",
+      "features": [
+        "Export product data to file",
+        "Format selection (Excel/CSV/PDF)",
+        "Filter by product category (Nhóm hàng)",
+        "Filter by status (Đang kinh doanh / Ngừng kinh doanh)",
+        "Cancel/Back navigation to product list",
+        "Sidebar navigation between product management pages (List, Create, Import, Export)",
+        "Top navigation bar with main modules (Tổng quan, Hàng hóa, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán)",
+        "Notification bell, help, settings, language switcher, user avatar in top header",
+        "Quick action: Bán hàng (Sell) and Giao hàng (Delivery) buttons"
+      ],
+      "formFields": [
+        "format: radio (excel|csv|pdf), required, default=excel - Định dạng xuất",
+        "category: select (Tất cả nhóm hàng | Thực phẩm | Đồ uống | Gia dụng | Mỹ phẩm) - Nhóm hàng",
+        "status: select (Tất cả | Đang kinh doanh | Ngừng kinh doanh) - Trạng thái"
+      ],
+      "components": [
+        "Top header bar (topbar) with logo, delivery button, language, notifications, help, settings, avatar",
+        "Main navigation tabs (navbar) with active tab highlighting and 'Mới' badge",
+        "Sidebar menu (sidebar-menu) with 4 product management items (Danh sách hàng hóa, Thêm mới hàng hóa, Import file, Xuất file)",
+        "Breadcrumb navigation (Hàng hóa / Xuất file)",
+        "Page title heading",
+        "Form card 1: Chọn định dạng xuất - Radio card list with 3 export format options (Excel, CSV, PDF) showing icon + name + description",
+        "Form card 2: Phạm vi xuất - 2-column form grid with category and status select dropdowns",
+        "Action bar with primary submit button (Xuất file) and secondary back button (Quay lại)",
+        "Custom radio card component (.export-option) with selected state styling",
+        "Custom select dropdown with chevron icon"
+      ],
+      "dataModel": [
+        "Product (Hàng hóa): id, code, name, category (Nhóm hàng - relation), status (Đang kinh doanh|Ngừng kinh doanh), price, stock, createdAt, image",
+        "ProductCategory (Nhóm hàng): id, name - referenced as filter source (Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm)",
+        "ProductStatus enum: ACTIVE (Đang kinh doanh), INACTIVE (Ngừng kinh doanh)",
+        "ExportRequest (implied DTO): format (excel|csv|pdf), categoryId (nullable=All), status (nullable=All)",
+        "ExportFormat enum: XLSX, CSV, PDF"
+      ],
+      "apiEndpoints": [
+        "No real endpoints wired - submit handler is alert('Đang xuất file...') placeholder",
+        "Implied backend endpoint needed: GET/POST /products/export?format={excel|csv|pdf}&categoryId={id}&status={status} returning file download (Content-Disposition: attachment)",
+        "Implied: GET /product-categories to populate Nhóm hàng dropdown dynamically (currently hardcoded options)",
+        "Navigation links (anchor href) only - no fetch/AJAX calls present"
+      ],
+      "navigation": [
+        "Top nav tabs: Tổng quan, Hàng hóa (active), Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán (Mới badge)",
+        "Sidebar (QUẢN LÝ HÀNG HÓA): pos-product-management.html (Danh sách hàng hóa), product-create.html (Thêm mới hàng hóa), product-import.html (Import file), product-export.html (Xuất file - active)",
+        "Breadcrumb: Hàng hóa (link to pos-product-management.html) / Xuất file",
+        "Back button: Quay lại -> pos-product-management.html",
+        "Header buttons (no href): Giao hàng, Bán hàng, notifications, help, settings"
+      ]
+    },
+    {
+      "fileName": "product-import.html",
+      "domain": "product",
+      "features": [
+        "Tai file mau Excel template (download)",
+        "Upload file du lieu (drag-and-drop hoac click chon file)",
+        "Ho tro dinh dang file: .xlsx, .xls, .csv",
+        "Gioi han kich thuoc file toi da 5MB",
+        "Quy trinh import 4 buoc: Tai mau -> Dien du lieu -> Upload -> Xac nhan",
+        "Bat dau import du lieu hang hoa hang loat",
+        "Quay lai trang danh sach hang hoa",
+        "Hien thi huong dan import",
+        "Validate dinh dang file truoc khi xu ly",
+        "Drag-and-drop file upload voi visual feedback (dragover state)",
+        "Sidebar menu navigation cho cum chuc nang Quan ly hang hoa"
+      ],
+      "formFields": [
+        "importFile: file input, accept=.xlsx,.xls,.csv, required, max 5MB",
+        "dropZone: drag-and-drop zone (khong phai input chinh thuc, kich hoat file picker)"
+      ],
+      "components": [
+        "Topbar header (logo, delivery button, language selector, notifications, help, settings, avatar)",
+        "Navigation tabs (Tong quan, Hang hoa active, Mua hang, Don hang, Khach hang, Nhan vien, So quy, Bao cao, Ban online, Thue & Ke toan)",
+        "Sidebar menu (Quan ly hang hoa group: Danh sach hang hoa, Them moi hang hoa, Import file active, Xuat file)",
+        "Breadcrumb navigation (Hang hoa / Import file)",
+        "Page title",
+        "Form card: Huong dan import (4 steps indicator)",
+        "Step indicator component (numbered circles voi label va hint)",
+        "Form card: Tai len file du lieu",
+        "Upload zone (drag-and-drop) voi icon, title, description, browse button",
+        "Hidden file input cho file picker",
+        "Action buttons (Tai file mau, Bat dau import, Quay lai)",
+        "Sell button (Ban hang) - global action"
+      ],
+      "dataModel": [
+        "Product (hang hoa) - entity duoc import hang loat tu file Excel/CSV",
+        "ImportSession/ImportLog - phien import voi: id, fileName, fileSize, fileType, uploadedBy, uploadedAt, status (pending/processing/success/failed), totalRows, successRows, failedRows, errorDetails",
+        "ProductImportRow - dong du lieu trong file: maHang (productCode), tenHang (productName), nhomHang (categoryId), giaVon (costPrice), giaBan (sellPrice), tonKho (stockQty), donVi (unit), barcode, moTa (description), trangThai (status)",
+        "Quan he: ImportSession 1-N ImportRow, ImportSession N-1 User (nhan vien import), ProductImportRow N-1 Product (sau khi import thanh cong)"
+      ],
+      "apiEndpoints": [
+        "GET /products/import-template - tai file mau Excel (.xlsx)",
+        "POST /products/import - upload va xu ly file import (multipart/form-data, field: importFile)",
+        "GET /products/import/validate - validate file truoc khi import (optional preview)",
+        "GET /products - danh sach hang hoa (link Quay lai tro ve pos-product-management.html)",
+        "GET /products/export - xuat file (lien ket sang product-export.html)",
+        "Khong co fetch/AJAX truc tiep trong HTML - chi co onclick alert() placeholder cho 'Downloading template...' va 'Vui long chon file truoc!'"
+      ],
+      "navigation": [
+        "Top nav tabs: Tong quan, Hang hoa (active), Mua hang, Don hang, Khach hang, Nhan vien, So quy, Bao cao, Ban online, Thue & Ke toan (Moi)",
+        "Sidebar menu (Quan ly hang hoa): pos-product-management.html (Danh sach hang hoa), product-create.html (Them moi hang hoa), product-import.html (Import file - active), product-export.html (Xuat file)",
+        "Breadcrumb: pos-product-management.html (Hang hoa) -> Import file",
+        "Quay lai button -> pos-product-management.html",
+        "Sell button (Ban hang) - global"
+      ]
+    },
+    {
+      "fileName": "kiotviet-product-create-v2.html",
+      "domain": "product",
+      "features": [
+        "Create new product (form-based)",
+        "Auto-generate product code if blank",
+        "Client-side form validation (required: name, sellPrice)",
+        "Image upload (single file, image/* accept)",
+        "Toggle for direct sale flag",
+        "Save and redirect to product list",
+        "Save & Continue (reset form for new entry)",
+        "Cancel/redirect back to product list",
+        "Sidebar navigation between product management screens (List, Create, Import, Export)",
+        "Top-level app navigation (Tổng quan, Hàng hóa, Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán)",
+        "Language switcher (VI)",
+        "Notifications, Help, Settings icons",
+        "Quick access: Giao hàng (Delivery), Bán hàng (Sell)"
+      ],
+      "formFields": [
+        "productCode: text, optional, placeholder 'Mã tự động nếu để trống' (auto-generated if blank)",
+        "productName: text, REQUIRED, placeholder 'Nhập tên hàng hóa', error 'Vui lòng nhập tên hàng hóa'",
+        "categoryGroup (Nhóm hàng): select, optional, options [Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm]",
+        "productType (Loại hàng): select, options [Hàng hóa thường, Combo - Đóng gói, Dịch vụ]",
+        "barcode: text, optional, placeholder 'Nhập mã barcode'",
+        "unit (Đơn vị tính): select, options [Cái, Hộp, Gói, Chai, Kg, Lít]",
+        "sellPrice (Giá bán): number, REQUIRED, min 0, error 'Vui lòng nhập giá bán'",
+        "costPrice (Giá vốn): number, optional, default 0",
+        "weight (Trọng lượng - gram): number, optional, default 0",
+        "initialStock (Tồn kho ban đầu): number, optional, default 0",
+        "minStock (Tồn kho tối thiểu): number, optional, default 0",
+        "location (Vị trí - Kệ, ngăn): text, optional",
+        "supplier (Nhà cung cấp): select, optional, options [Công ty ABC, Đại lý XYZ]",
+        "image (Hình ảnh sản phẩm): file input, accept image/*",
+        "description (Mô tả): textarea, optional",
+        "directSale (Bán trực tiếp): toggle/boolean, default true ('Cho phép bán trực tiếp')"
+      ],
+      "components": [
+        "Topbar (logo, delivery button, language switcher, notification bell with red dot, help, settings, avatar)",
+        "Navbar (horizontal nav-tabs with active state, 'Mới' badge, green Bán hàng CTA)",
+        "Sidebar menu (QUẢN LÝ HÀNG HÓA: Danh sách, Thêm mới [active], Import file, Xuất file)",
+        "Breadcrumb (Hàng hóa / Thêm mới hàng hóa)",
+        "Page title (h1)",
+        "Form cards (3 sections: Thông tin cơ bản, Giá & Tồn kho, Thông tin bổ sung)",
+        "Form grid (2-column and 3-column layouts)",
+        "Text inputs, number inputs, selects, textarea",
+        "Image upload drop-zone (dashed border, click triggers hidden file input)",
+        "Toggle switch (custom CSS, JS class toggle)",
+        "Action buttons (Lưu hàng hóa - primary, Lưu & Thêm mới - success, Hủy bỏ - secondary)",
+        "Inline validation error messages",
+        "Required field marker (red asterisk)"
+      ],
+      "dataModel": [
+        "Product entity: id (PK), code (unique, auto-gen if null), name (NOT NULL), categoryId/groupId (FK -> Category), productType (enum: NORMAL, COMBO, SERVICE), barcode, unitId (FK -> Unit) or unit (string)",
+        "sellPrice (DECIMAL, NOT NULL, >=0), costPrice (DECIMAL, default 0), weightGram (INT, default 0)",
+        "initialStock/onHand (INT, default 0), minStock (INT, default 0), location (VARCHAR)",
+        "supplierId (FK -> Supplier, nullable), imageUrl (VARCHAR), description (TEXT), directSale (BOOLEAN, default true)",
+        "createdAt, updatedAt, createdBy, status/active flag",
+        "Category entity: id, name (Thực phẩm, Đồ uống, Gia dụng, Mỹ phẩm)",
+        "Unit entity: id, name (Cái, Hộp, Gói, Chai, Kg, Lít) - or static enum/lookup",
+        "Supplier entity: id, name, contactInfo - referenced by FK",
+        "ProductImage entity (optional, if multi-image): id, productId, url, sortOrder",
+        "Relationships: Product N-1 Category, Product N-1 Unit, Product N-1 Supplier, Product 1-N ProductImage"
+      ],
+      "apiEndpoints": [
+        "POST /products (form submit; currently client-only with alert + redirect to pos-product-management.html)",
+        "POST /products/save-and-new (implied by saveAndNew() handler)",
+        "GET /products/next-code (implied: server auto-generates productCode when blank)",
+        "GET /categories (populate Nhóm hàng select)",
+        "GET /units (populate Đơn vị tính select)",
+        "GET /suppliers (populate Nhà cung cấp select)",
+        "POST /products/upload-image (implied by file input, no current endpoint wired)",
+        "GET /products (Danh sách - sidebar link to pos-product-management.html)",
+        "POST /products/import (Import file - sidebar link)",
+        "GET /products/export (Xuất file - sidebar link)"
+      ],
+      "navigation": [
+        "Topbar logo -> pos-product-management.html",
+        "Main nav: Tổng quan, Hàng hóa (active), Mua hàng, Đơn hàng, Khách hàng, Nhân viên, Sổ quỹ, Báo cáo, Bán online, Thuế & Kế toán (badge: Mới)",
+        "Sidebar (QUẢN LÝ HÀNG HÓA): Danh sách hàng hóa -> pos-product-management.html, Thêm mới hàng hóa -> product-create.html (active), Import file -> product-import.html, Xuất file -> product-export.html",
+        "Breadcrumb: Hàng hóa -> Thêm mới hàng hóa",
+        "Form actions: Lưu hàng hóa (submit -> redirect pos-product-management.html), Lưu & Thêm mới (reset form), Hủy bỏ -> pos-product-management.html",
+        "Quick action button: Bán hàng (POS shortcut)"
+      ]
+    },
+    {
+      "fileName": "index.html",
+      "domain": "product",
+      "features": [
+        "List products in paginated table (12 per page, 156 total, 13 pages)",
+        "Search by product code or name (text input with placeholder 'Tim theo ma, ten hang')",
+        "Filter by category/group (Tat ca hang hoa, Do uong with sub-groups Tra sua/Ca phe/Nuoc ep/Khac, Thuc pham, My pham, Thoi trang, Dien tu)",
+        "Filter dropdown buttons: Loc, Nhom hang, Ton kho",
+        "Bulk selection via checkbox column (header + per-row)",
+        "Add new product (btn-primary '+ Them moi')",
+        "Import products (Import button)",
+        "Export products (Export button)",
+        "Row-level action menu (three-dot button per row for edit/delete)",
+        "Display product image/thumbnail (36x36 placeholder with initials)",
+        "Visual stock status indicator (stock-low red highlight when quantity <= 5, stock-ok normal)",
+        "Product status badge (Dang ban / Ngung ban)",
+        "Sidebar category counts (per-group product count e.g. 156, 42, 18)",
+        "Pagination controls (prev, numbered pages 1/2/3/.../13, next)",
+        "Top navigation tabs: Tong quan, Hang hoa (active), Giao dich, Doi tac, So quy, Bao cao",
+        "User avatar in topbar (NV initials)"
+      ],
+      "formFields": [
+        "search:text:placeholder='Tim theo ma, ten hang...':optional - search keyword over code/name",
+        "selectAll:checkbox:header-level bulk selector",
+        "rowSelect:checkbox:per-row selector for bulk actions",
+        "categoryFilter:dropdown(button 'Nhom hang'):filter by product group",
+        "stockFilter:dropdown(button 'Ton kho'):filter by stock level (low/normal/out)",
+        "advancedFilter:button('Loc'):open advanced filter panel"
+      ],
+      "components": [
+        "Topbar with brand + horizontal nav menu + user avatar",
+        "Left sidebar with category tree (group + sub-group, with item counts)",
+        "Toolbar with search-box, filter buttons, import/export buttons, primary 'Them moi' button",
+        "Sticky-header data table with columns: checkbox, image, code, name, sale price, cost price, stock, status, actions",
+        "Status badges (status-active green, status-inactive gray)",
+        "Image cell placeholder (36x36 rounded with initials)",
+        "Row action button (three-dot menu trigger - implies dropdown/modal for edit/delete)",
+        "Pagination bar with page info text + prev/next + numbered page buttons",
+        "Sub-list nested sidebar items (indented children for sub-categories)"
+      ],
+      "dataModel": [
+        "Product { id, code (Ma hang, e.g. SP001), name (Ten hang), salePrice (Gia ban, currency VND), costPrice (Gia von, currency VND), stockQuantity (Ton kho, integer), status (active='Dang ban' | inactive='Ngung ban'), imageUrl (thumbnail), categoryId (FK to Category) }",
+        "Category { id, name (e.g. Do uong, Thuc pham, My pham, Thoi trang, Dien tu), parentId (nullable, supports nesting e.g. Tra sua/Ca phe under Do uong), productCount (derived) }",
+        "Relationship: Product belongs-to Category (many-to-one); Category self-referencing tree (parent/child for sub-groups)",
+        "Derived: low-stock threshold (visual rule: stock <= ~5 flagged red as 'stock-low')",
+        "Derived: pagination metadata { totalItems: 156, pageSize: 12, currentPage, totalPages: 13 }"
+      ],
+      "apiEndpoints": [
+        "NONE - Static HTML mockup with no fetch() calls, no form actions, no AJAX. All buttons and links use href='#' or have no handlers. Inferred backend endpoints needed: GET /products (search, categoryId, stockFilter, page, size), POST /products (create), PUT /products/{id} (update), DELETE /products/{id}, POST /products/import (file upload), GET /products/export, GET /categories (tree with counts), GET /categories/{id}/products"
+      ],
+      "navigation": [
+        "Topbar nav (horizontal): Tong quan (#), Hang hoa (# active), Giao dich (#), Doi tac (#), So quy (#), Bao cao (#)",
+        "Sidebar (Nhom hang section): Tat ca hang hoa [156] (active), Do uong [42] -> {Tra sua [18], Ca phe [12], Nuoc ep [8], Khac [4]}, Thuc pham [38], My pham [24], Thoi trang [31], Dien tu [21]",
+        "Brand: 'POS Admin' (top-left)",
+        "User: avatar 'NV' (top-right)",
+        "All links currently use href='#' - no real routing implemented in this static mockup"
+      ]
+    }
+  ],
+  "codeAnalysis": {
+    "existingServlets": [
+      {
+        "name": "LoginServlet",
+        "urlPattern": "/login",
+        "methods": [
+          "GET shows login form (auth/login.jsp)",
+          "POST authenticates by Email or Phone via EmployeeDAO.login, sets session attributes (employee, employeeId, employeeName, roleName, branchName, canViewCategory, canManageCategory, canAccessPos), supports remember-me 7 days, redirects to /role-selection"
+        ]
+      },
+      {
+        "name": "LogoutServlet",
+        "urlPattern": "/logout",
+        "methods": [
+          "GET/POST invalidates session, sets no-cache headers, redirects to /login"
+        ]
+      },
+      {
+        "name": "RegisterServlet",
+        "urlPattern": "/register",
+        "methods": [
+          "GET shows auth/register.jsp",
+          "POST validates fields (fullName, email, phone, roleId, branchId), checks email uniqueness via isEmailExists, generates random password via EmailUtil, sends email, calls registerEmployee, auto-login then redirect to /change-password"
+        ]
+      },
+      {
+        "name": "ForgotPasswordServlet",
+        "urlPattern": "/forgot-password",
+        "methods": [
+          "GET shows auth/forgot-password.jsp",
+          "POST action=send-otp validates fullName+email match, generates 6-digit OTP, stores in session, emails user, forwards reset-password.jsp",
+          "POST action=reset-password validates OTP and password regex, calls updatePasswordByEmail"
+        ]
+      },
+      {
+        "name": "ChangePasswordServlet",
+        "urlPattern": "/change-password",
+        "methods": [
+          "GET requires session employee, shows auth/change-password.jsp",
+          "POST validates currentPassword and newPassword regex, calls EmployeeDAO.updatePassword, invalidates session on success"
+        ]
+      },
+      {
+        "name": "RoleSelectionServlet",
+        "urlPattern": "/role-selection",
+        "methods": [
+          "GET shows auth/role-selection.jsp",
+          "POST role=pos redirects to /pos/sale, otherwise to /admin/dashboard"
+        ]
+      },
+      {
+        "name": "DashboardServlet",
+        "urlPattern": "/admin/dashboard",
+        "methods": [
+          "GET aggregates totalProducts, lowStockProducts, outOfStockProducts, recentProducts (top 5) via ProductDAO.getAllProducts(1,1000), forwards admin/dashboard.jsp"
+        ]
+      },
+      {
+        "name": "ProductServlet",
+        "urlPattern": "/admin/products",
+        "methods": [
+          "GET action=list|search|view forwards admin/products.jsp or product-detail.jsp",
+          "POST action=add validates SKU/name/categoryId/price then calls ProductDAO.addProduct",
+          "POST action=update calls ProductDAO.updateProduct",
+          "POST action=delete soft-deletes via ProductDAO.deleteProduct"
+        ]
+      },
+      {
+        "name": "CategoryServlet",
+        "urlPattern": "/admin/categories",
+        "methods": [
+          "GET listCategories with filters keyword/status/parentName, pagination, printMode, role checks via RolePermissionUtil.canViewCategory",
+          "POST action=add validates and creates parent on the fly via resolveParentId",
+          "POST action=update validates cycle prevention via isDescendant and updates"
+        ]
+      },
+      {
+        "name": "BaseController (REST dispatcher)",
+        "urlPattern": "/api/* (annotation @WebServlet)",
+        "methods": [
+          "service routes URI to ApiAction map; currently only /api/products -> GetProductsAction returning ApiResponse JSON via Gson; returns 404 for unknown paths and 500 wrapped ApiResponse on exception"
+        ]
+      }
+    ],
+    "existingDAOs": [
+      {
+        "name": "EmployeeDAO",
+        "methods": [
+          "login(identifier,password) SELECT Employee JOIN Role JOIN Branch WHERE (Email=? OR Phone=?) AND PasswordHash=? AND Status='active'",
+          "getAllEmployees() SELECT employees JOIN roles JOIN branches (BROKEN: uses snake_case lowercase tables that do not exist in DBFinora schema)",
+          "getEmployeeById(id) (BROKEN: same snake_case mismatch)",
+          "addEmployee(Employee) INSERT employees ... (BROKEN: schema mismatch, also missing setString index 5 for username binding)",
+          "updateEmployee(Employee) UPDATE employees ... (BROKEN: schema mismatch)",
+          "deleteEmployee(id) UPDATE employees SET status='inactive' (BROKEN: schema mismatch)",
+          "checkUsernameExists(username) (BROKEN: no username column in Employee schema)",
+          "checkEmailExists(email) (BROKEN: lowercase table)",
+          "updatePasswordByEmail(email,newPassword) UPDATE Employee SET PasswordHash=? WHERE Email=?",
+          "checkUsernameAndEmailMatch (BROKEN: lowercase schema)",
+          "updatePassword(employeeId,currentPassword,newPassword) verifies then UPDATE Employee SET PasswordHash",
+          "isEmailExists(email) SELECT COUNT(*) FROM Employee WHERE Email=?",
+          "registerEmployee(fullName,email,phone,password,roleId,branchId,status) INSERT into Employee with plaintext PasswordHash",
+          "checkFullNameAndEmailMatch(fullName,email) SELECT COUNT(*) FROM Employee LOWER(TRIM(...)) match"
+        ]
+      },
+      {
+        "name": "ProductDAO",
+        "methods": [
+          "getAllProducts(page,limit) delegates to getProducts",
+          "getProducts(page,limit,keyword,categoryId,status) SELECT Product LEFT JOIN Category with dynamic filters, OFFSET/FETCH NEXT pagination",
+          "getProductById(id) SELECT Product JOIN Category WHERE ProductID=?",
+          "searchProducts(keyword) SELECT WHERE SKU LIKE ? OR Name LIKE ?",
+          "getProductsByCategory(categoryId) SELECT WHERE CategoryID=? AND Status='active'",
+          "addProduct(Product) INSERT Product (CategoryID,Name,SKU,Price,CostPrice,StockAlertQty,Status)",
+          "updateProduct(Product) UPDATE Product SET Name,CategoryID,Price,CostPrice,StockAlertQty,Status WHERE ProductID=?",
+          "updateStock(productId,quantity) UPDATE Product SET StockAlertQty = StockAlertQty + ? (NOTE: this is bumping the alert threshold, not actual stock; real stock lives in Warehouse table - logic bug)",
+          "deleteProduct(id) UPDATE Product SET Status='inactive' WHERE ProductID=?"
+        ]
+      },
+      {
+        "name": "CategoryDAO",
+        "methods": [
+          "getCategories(keyword,status,parentName,page,limit) JOIN self for parent and Product for product count, GROUP BY, OFFSET/FETCH",
+          "getAllCategories() and getActiveCategories() convenience wrappers",
+          "countCategories / countRootCategories / countLinkedProducts with same filters",
+          "getCategoryById(id)",
+          "addCategory(Category) INSERT Category(Name,Description,ParentID,Status)",
+          "updateCategory(Category) UPDATE Category SET Name,Description,ParentID,Status WHERE CategoryID=?",
+          "existsById(id), isCategoryNameExists(name,excludeId), getCategoryIdByName(name)",
+          "isDescendant(categoryId,candidateParentId) recursive CTE to prevent parent-cycles"
+        ]
+      }
+    ],
+    "existingModels": [
+      {
+        "name": "Employee (model)",
+        "fields": [
+          "employeeId",
+          "employeeCode",
+          "fullName",
+          "email",
+          "phone",
+          "password",
+          "roleId",
+          "roleName",
+          "branchId",
+          "branchName",
+          "department",
+          "position",
+          "status",
+          "createdAt"
+        ]
+      },
+      {
+        "name": "Product (model)",
+        "fields": [
+          "productId",
+          "productCode (SKU)",
+          "productName",
+          "categoryId",
+          "categoryName",
+          "unit",
+          "costPrice",
+          "sellingPrice",
+          "stockQuantity",
+          "minStock",
+          "maxStock",
+          "imageUrl",
+          "status",
+          "createdAt",
+          "isLowStock(), isOutOfStock() helpers"
+        ]
+      },
+      {
+        "name": "Category (model)",
+        "fields": [
+          "categoryId",
+          "name",
+          "description",
+          "parentId",
+          "parentName",
+          "status",
+          "productCount",
+          "isActive() helper"
+        ]
+      },
+      {
+        "name": "api.dto.Product (REST DTO)",
+        "fields": [
+          "productId, productCode, productName, categoryId, categoryName, unit, costPrice, sellingPrice, stockQuantity, minStock, maxStock, imageUrl, status (Gson serialization shape)"
+        ]
+      },
+      {
+        "name": "api.dto.Category (REST DTO)",
+        "fields": [
+          "minimal DTO mirror used by REST layer"
+        ]
+      },
+      {
+        "name": "api.dto.Variant (REST DTO)",
+        "fields": [
+          "scaffold for product variants - no DAO/table support yet"
+        ]
+      },
+      {
+        "name": "api.dto.ProductListResponse",
+        "fields": [
+          "wrapper for paginated product responses"
+        ]
+      }
+    ],
+    "dbSchema": {
+      "tables": [
+        "Role(RoleID PK identity, Name unique, Description) - seeded: Owner, StoreManager, SalesStaff, WarehouseStaff",
+        "Branch(BranchID PK, Name, Address, Phone, Status, CreatedAt)",
+        "Employee(EmployeeID PK, RoleID FK->Role, BranchID FK->Branch, FullName, Email unique, Phone, PasswordHash, Status, CreatedAt) - passwords stored plaintext (123456)",
+        "Customer(CustomerID PK, FullName, Phone unique, Email, Address, DoB, Gender, MembershipTier, Points, CreatedAt)",
+        "Supplier(SupplierID PK, Name, Phone, Email, Address, Status, CreatedAt)",
+        "Category(CategoryID PK, Name, Description, ParentID FK->Category self, Status) - hierarchical",
+        "Product(ProductID PK, CategoryID FK, Name, SKU unique, Price, CostPrice, StockAlertQty, Status, CreatedAt) - no built-in stock column; alert threshold only",
+        "Warehouse(WarehouseID PK, BranchID FK, EmployeeID FK, ProductID FK, Name, Address, Status, Quantity, AvailableQuantity, MinQuantity, MaxQuantity, UpdatedAt, CreatedAt) - actual stock lives here per (Branch,Product)",
+        "Orders(OrderID PK, BranchID FK, EmployeeID FK, CustomerID FK nullable, SupplierID FK nullable, OrderCode unique, OrderType, Subtotal, DiscountAmount, TotalAmount, Status, CreatedAt) - polymorphic order: sale/purchase",
+        "OrderDetail(OrderDetailID PK, OrderID FK, ProductID FK, Quantity, UnitPrice, Subtotal)",
+        "Payments(PaymentsID PK, OrderID FK, PaymentMethod, Amount, PaidAt, Reference, Status, CreatedAt)",
+        "FinanceTransaction(TransactionID PK, BranchID FK, EmployeeID FK, TransactionCode unique, TransactionDate, TransactionType, Amount, ReferenceID, ReferenceType, Note, CreatedAt)",
+        "StockTransfer(StockTransferID PK, BranchID, EmployeeID, ProductID, FromWarehouseID, ToWarehouseID, TransferCode unique, TransferDate, Quantity, Status, Note, CreatedAt)",
+        "WarehouseTransaction(WarehouseTransactionID PK, WarehouseID, ProductID, BeforeQuantity, Quantity, TransactionType, AfterQuantity, UnitCost, ReferenceType, ReferenceID, CreatedBy FK Employee, CreatedAt) - audit trail of stock moves",
+        "AuditLog(AuditLogID PK, EmployeeID FK, Action, EntityName, EntityID, OldData, NewData, CreatedAt)"
+      ],
+      "relationships": [
+        "Employee.RoleID -> Role.RoleID",
+        "Employee.BranchID -> Branch.BranchID",
+        "Category.ParentID -> Category.CategoryID (self, cycle-protected via CategoryDAO.isDescendant)",
+        "Product.CategoryID -> Category.CategoryID",
+        "Warehouse.BranchID/EmployeeID/ProductID -> respective tables (one row per (Branch,Product))",
+        "Orders.BranchID/EmployeeID/CustomerID/SupplierID -> respective tables; OrderDetail.OrderID -> Orders, OrderDetail.ProductID -> Product",
+        "Payments.OrderID -> Orders.OrderID",
+        "FinanceTransaction.BranchID/EmployeeID -> respective tables; ReferenceID/ReferenceType is polymorphic",
+        "StockTransfer.FromWarehouseID/ToWarehouseID -> Warehouse, plus Branch/Employee/Product",
+        "WarehouseTransaction.WarehouseID -> Warehouse, ProductID -> Product, CreatedBy -> Employee",
+        "AuditLog.EmployeeID -> Employee"
+      ]
+    },
+    "webXmlMappings": [
+      "Filter EncodingFilter on /* (UTF-8)",
+      "Filter AuthFilter on /admin/* and /pos/* (only these are auth-protected)",
+      "context-param db.url=jdbc:sqlserver://localhost:1433;databaseName=DBFinora;trustServerCertificate=true, db.username=sa, db.password=123",
+      "Servlet LoginServlet -> /login",
+      "Servlet LogoutServlet -> /logout",
+      "Servlet RegisterServlet -> /register",
+      "Servlet ForgotPasswordServlet -> /forgot-password",
+      "Servlet ChangePasswordServlet -> /change-password",
+      "Servlet RoleSelectionServlet -> /role-selection",
+      "Servlet DashboardServlet -> /admin/dashboard",
+      "Servlet ProductServlet -> /admin/products",
+      "Servlet CategoryServlet -> /admin/categories",
+      "TODO comment block at lines 103-104: 'Các servlet sau chưa được implement, sẽ bổ sung sau' lists InvoiceServlet, CustomerServlet, EmployeeServlet, RolePermissionServlet, ReportServlet, POSServlet (none of these are declared or mapped)",
+      "BaseController is registered via @WebServlet('/api/*') annotation, NOT in web.xml",
+      "welcome-file index.jsp; error-page 404 -> /WEB-INF/views/error/404.jsp; error-page 500 -> /WEB-INF/views/error/500.jsp",
+      "session-timeout 30 minutes, cookie http-only true secure false",
+      "RoleSelectionServlet redirects to /pos/sale on POS choice, but no servlet maps to /pos/sale (auth filter would block but nothing serves it)"
+    ],
+    "gaps": [
+      "POSServlet -> /pos/sale (referenced by RoleSelectionServlet redirect AND by AuthFilter pattern /pos/*; no class exists, no JSP serving the actual POS sale screen). Highest-priority gap for a 'POS' system.",
+      "InvoiceServlet -> /admin/invoices or /pos/checkout (TODO in web.xml). No Orders/OrderDetail/Payments DAO or controller exists. Cannot create, list, refund, or print sale invoices.",
+      "CustomerServlet -> /admin/customers (TODO). Customer table is seeded but unreachable from UI; no CustomerDAO, no Customer model class.",
+      "EmployeeServlet -> /admin/employees (TODO). EmployeeDAO has CRUD methods but they target non-existent lowercase tables (employees, roles, branches, employee_id, full_name, etc.) and reference removed columns username/department/position - all CRUD beyond login/register/password is broken.",
+      "RolePermissionServlet -> /admin/roles (TODO). Role table exists with seed data, but no DAO, no model, and RolePermissionUtil only encodes hard-coded role-name checks (canViewCategory, canManageCategory, canAccessPos) - not data-driven permissions.",
+      "ReportServlet -> /admin/reports (TODO). No revenue, profit, top-product, stock-aging, branch-comparison reports; FinanceTransaction table is unused.",
+      "Supplier domain: Supplier table seeded, but no SupplierDAO, no Supplier model, no SupplierServlet. Required for purchase orders.",
+      "Branch domain: Branch table seeded and referenced by login session, but no BranchDAO/Branch model/BranchServlet. Hardcoded selection in RegisterServlet.",
+      "Warehouse / Inventory: Warehouse and WarehouseTransaction tables exist; ProductDAO.updateStock incorrectly mutates StockAlertQty instead of Warehouse.Quantity. No WarehouseDAO, no Warehouse model, no stock-in/stock-out workflow, no link from sales to stock decrement.",
+      "StockTransfer: table exists, no DAO/model/servlet. Cross-branch transfers unsupported.",
+      "Orders / OrderDetail / Payments: schema is in place for sales, returns, purchases; zero Java code touches them. POS cannot persist transactions.",
+      "FinanceTransaction: schema present, no code. No revenue ledger.",
+      "AuditLog: schema present, no code. AuthFilter and CRUD writes do not log audit entries despite EmployeeID FK suggesting it.",
+      "EmployeeDAO inconsistencies: getAllEmployees / getEmployeeById / addEmployee / updateEmployee / deleteEmployee / checkUsernameExists / checkEmailExists / checkUsernameAndEmailMatch query a snake_case schema that does NOT match DBFinora.sql (PascalCase). These methods will throw SQLException at runtime. Needs full rewrite to match Employee(EmployeeID,FullName,Email,Phone,PasswordHash,RoleID,BranchID,Status,CreatedAt).",
+      "Password handling: PasswordHash column stores plaintext. registerEmployee, login, updatePassword, updatePasswordByEmail all bypass hashing. CLAUDE.md flags auth as a high-risk lane.",
+      "REST API: only GET /api/products is wired; api/dto/Variant exists but no Variant table or DAO; no /api/categories, /api/orders, /api/customers, /api/login endpoints.",
+      "ApiResponse + BaseController do not enforce HTTP method (always service). No POST/PUT/DELETE handling, no auth check on /api/*.",
+      "ProductServlet image/url field is in model but never read from request or stored - no image upload pipeline.",
+      "Product variants: api.dto.Variant present but Product schema has no variant child table.",
+      "JSP layout: dashboard, products, categories present; admin/employees.jsp, admin/customers.jsp, admin/suppliers.jsp, admin/branches.jsp, admin/warehouses.jsp, admin/orders.jsp, admin/reports.jsp, pos/sale.jsp do not exist (or at least nothing maps to them).",
+      "AuthFilter only protects /admin/* and /pos/*; /api/* is wide open."
+    ]
+  },
+  "plan": {
+    "domains": [
+      {
+        "name": "shared",
+        "priority": 1,
+        "packages": [
+          "com.kiotretail.shared.config",
+          "com.kiotretail.shared.filter",
+          "com.kiotretail.shared.util",
+          "com.kiotretail.shared.base",
+          "com.kiotretail.shared.exception"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/shared/base/BaseServlet.java",
+          "src/main/java/com/kiotretail/shared/base/BaseService.java",
+          "src/main/java/com/kiotretail/shared/base/BaseDAO.java",
+          "src/main/java/com/kiotretail/shared/base/Pagination.java",
+          "src/main/java/com/kiotretail/shared/base/PageResult.java",
+          "src/main/java/com/kiotretail/shared/exception/ServiceException.java",
+          "src/main/java/com/kiotretail/shared/exception/ValidationException.java",
+          "src/main/java/com/kiotretail/shared/exception/NotFoundException.java",
+          "src/main/java/com/kiotretail/shared/util/PasswordUtil.java",
+          "src/main/java/com/kiotretail/shared/util/CodeGenerator.java",
+          "src/main/java/com/kiotretail/shared/util/SessionUtil.java",
+          "src/main/java/com/kiotretail/shared/util/JsonUtil.java",
+          "src/main/java/com/kiotretail/shared/util/CurrencyUtil.java",
+          "src/main/java/com/kiotretail/shared/util/DateUtil.java",
+          "src/main/java/com/kiotretail/shared/config/AppConfig.java"
+        ],
+        "movedFiles": [
+          {
+            "from": "src/main/java/com/kiotretail/util/DatabaseUtil.java",
+            "to": "src/main/java/com/kiotretail/shared/util/DatabaseUtil.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/util/EmailUtil.java",
+            "to": "src/main/java/com/kiotretail/shared/util/EmailUtil.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/util/RolePermissionUtil.java",
+            "to": "src/main/java/com/kiotretail/shared/util/RolePermissionUtil.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/util/TestConnection.java",
+            "to": "src/main/java/com/kiotretail/shared/util/TestConnection.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/filter/AuthFilter.java",
+            "to": "src/main/java/com/kiotretail/shared/filter/AuthFilter.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/filter/EncodingFilter.java",
+            "to": "src/main/java/com/kiotretail/shared/filter/EncodingFilter.java"
+          }
+        ],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/common/topbar.jsp",
+          "src/main/webapp/WEB-INF/views/common/navbar.jsp",
+          "src/main/webapp/WEB-INF/views/common/admin-sidebar.jsp",
+          "src/main/webapp/WEB-INF/views/common/pagination.jsp",
+          "src/main/webapp/WEB-INF/views/common/footer-bar.jsp",
+          "src/main/webapp/WEB-INF/views/common/footer.jsp",
+          "src/main/webapp/WEB-INF/views/common/header.jsp",
+          "src/main/webapp/WEB-INF/views/common/sidebar.jsp",
+          "src/main/webapp/WEB-INF/views/error/404.jsp",
+          "src/main/webapp/WEB-INF/views/error/500.jsp"
+        ],
+        "servletMappings": [
+          "AuthFilter -> /admin/*, /pos/*, /api/* (extend coverage to API)",
+          "EncodingFilter -> /*"
+        ]
+      },
+      {
+        "name": "product",
+        "priority": 2,
+        "packages": [
+          "com.kiotretail.product.controller",
+          "com.kiotretail.product.service",
+          "com.kiotretail.product.dao",
+          "com.kiotretail.product.model",
+          "com.kiotretail.product.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/product/service/ProductService.java",
+          "src/main/java/com/kiotretail/product/service/CategoryService.java",
+          "src/main/java/com/kiotretail/product/service/SupplierService.java",
+          "src/main/java/com/kiotretail/product/service/InventoryService.java",
+          "src/main/java/com/kiotretail/product/dao/SupplierDAO.java",
+          "src/main/java/com/kiotretail/product/dao/WarehouseDAO.java",
+          "src/main/java/com/kiotretail/product/dao/WarehouseTransactionDAO.java",
+          "src/main/java/com/kiotretail/product/model/Supplier.java",
+          "src/main/java/com/kiotretail/product/model/Warehouse.java",
+          "src/main/java/com/kiotretail/product/model/WarehouseTransaction.java",
+          "src/main/java/com/kiotretail/product/controller/SupplierServlet.java",
+          "src/main/java/com/kiotretail/product/controller/ProductImportServlet.java",
+          "src/main/java/com/kiotretail/product/controller/ProductExportServlet.java",
+          "src/main/java/com/kiotretail/product/controller/ProductImageUploadServlet.java",
+          "src/main/java/com/kiotretail/product/dto/ProductFilterDTO.java",
+          "src/main/java/com/kiotretail/product/dto/ProductSummaryDTO.java"
+        ],
+        "movedFiles": [
+          {
+            "from": "src/main/java/com/kiotretail/controller/ProductServlet.java",
+            "to": "src/main/java/com/kiotretail/product/controller/ProductServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/controller/CategoryServlet.java",
+            "to": "src/main/java/com/kiotretail/product/controller/CategoryServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/dao/ProductDAO.java",
+            "to": "src/main/java/com/kiotretail/product/dao/ProductDAO.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/dao/CategoryDAO.java",
+            "to": "src/main/java/com/kiotretail/product/dao/CategoryDAO.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/model/Product.java",
+            "to": "src/main/java/com/kiotretail/product/model/Product.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/model/Category.java",
+            "to": "src/main/java/com/kiotretail/product/model/Category.java"
+          },
+          {
+            "from": "src/main/webapp/WEB-INF/views/admin/products.jsp",
+            "to": "src/main/webapp/WEB-INF/views/product/products.jsp"
+          },
+          {
+            "from": "src/main/webapp/WEB-INF/views/admin/categories.jsp",
+            "to": "src/main/webapp/WEB-INF/views/product/categories.jsp"
+          }
+        ],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/product/products.jsp (refactored from admin/products.jsp + KIOT-Viet/pos-product-management.html)",
+          "src/main/webapp/WEB-INF/views/product/product-create.jsp (from KIOT-Viet/product-create.html)",
+          "src/main/webapp/WEB-INF/views/product/product-edit.jsp (from KIOT-Viet/product-edit.html)",
+          "src/main/webapp/WEB-INF/views/product/product-detail.jsp (from KIOT-Viet/product-detail.html)",
+          "src/main/webapp/WEB-INF/views/product/product-delete-confirm.jsp (from KIOT-Viet/product-delete-confirm.html)",
+          "src/main/webapp/WEB-INF/views/product/product-import.jsp (from KIOT-Viet/product-import.html)",
+          "src/main/webapp/WEB-INF/views/product/product-export.jsp (from KIOT-Viet/product-export.html)",
+          "src/main/webapp/WEB-INF/views/product/categories.jsp (kept)",
+          "src/main/webapp/WEB-INF/views/product/suppliers.jsp"
+        ],
+        "servletMappings": [
+          "/admin/products (existing, repointed to product.controller.ProductServlet)",
+          "/admin/products/create",
+          "/admin/products/edit",
+          "/admin/products/detail",
+          "/admin/products/delete",
+          "/admin/products/import",
+          "/admin/products/export",
+          "/admin/products/upload-image",
+          "/admin/categories (existing, repointed)",
+          "/admin/suppliers"
+        ]
+      },
+      {
+        "name": "customer",
+        "priority": 3,
+        "packages": [
+          "com.kiotretail.customer.controller",
+          "com.kiotretail.customer.service",
+          "com.kiotretail.customer.dao",
+          "com.kiotretail.customer.model",
+          "com.kiotretail.customer.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/customer/controller/CustomerServlet.java",
+          "src/main/java/com/kiotretail/customer/controller/CustomerImportServlet.java",
+          "src/main/java/com/kiotretail/customer/controller/CustomerExportServlet.java",
+          "src/main/java/com/kiotretail/customer/service/CustomerService.java",
+          "src/main/java/com/kiotretail/customer/service/CustomerGroupService.java",
+          "src/main/java/com/kiotretail/customer/dao/CustomerDAO.java",
+          "src/main/java/com/kiotretail/customer/dao/CustomerGroupDAO.java",
+          "src/main/java/com/kiotretail/customer/model/Customer.java",
+          "src/main/java/com/kiotretail/customer/model/CustomerGroup.java",
+          "src/main/java/com/kiotretail/customer/dto/CustomerFilterDTO.java",
+          "src/main/java/com/kiotretail/customer/dto/CustomerSummaryDTO.java"
+        ],
+        "movedFiles": [],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/customer/customers.jsp (from KIOT-Viet/pos-customer-management.html)",
+          "src/main/webapp/WEB-INF/views/customer/customer-create.jsp",
+          "src/main/webapp/WEB-INF/views/customer/customer-edit.jsp",
+          "src/main/webapp/WEB-INF/views/customer/customer-detail.jsp"
+        ],
+        "servletMappings": [
+          "/admin/customers",
+          "/admin/customers/create",
+          "/admin/customers/edit",
+          "/admin/customers/detail",
+          "/admin/customers/delete",
+          "/admin/customers/import",
+          "/admin/customers/export"
+        ]
+      },
+      {
+        "name": "employee",
+        "priority": 4,
+        "packages": [
+          "com.kiotretail.employee.controller",
+          "com.kiotretail.employee.service",
+          "com.kiotretail.employee.dao",
+          "com.kiotretail.employee.model",
+          "com.kiotretail.employee.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/employee/controller/EmployeeServlet.java",
+          "src/main/java/com/kiotretail/employee/controller/RolePermissionServlet.java",
+          "src/main/java/com/kiotretail/employee/controller/BranchServlet.java",
+          "src/main/java/com/kiotretail/employee/service/AuthService.java",
+          "src/main/java/com/kiotretail/employee/service/EmployeeService.java",
+          "src/main/java/com/kiotretail/employee/service/RoleService.java",
+          "src/main/java/com/kiotretail/employee/service/BranchService.java",
+          "src/main/java/com/kiotretail/employee/dao/RoleDAO.java",
+          "src/main/java/com/kiotretail/employee/dao/BranchDAO.java",
+          "src/main/java/com/kiotretail/employee/dao/AuditLogDAO.java",
+          "src/main/java/com/kiotretail/employee/model/Role.java",
+          "src/main/java/com/kiotretail/employee/model/Branch.java",
+          "src/main/java/com/kiotretail/employee/model/AuditLog.java",
+          "src/main/java/com/kiotretail/employee/dto/EmployeeFilterDTO.java"
+        ],
+        "movedFiles": [
+          {
+            "from": "src/main/java/com/kiotretail/controller/LoginServlet.java",
+            "to": "src/main/java/com/kiotretail/employee/controller/LoginServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/controller/LogoutServlet.java",
+            "to": "src/main/java/com/kiotretail/employee/controller/LogoutServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/controller/RegisterServlet.java",
+            "to": "src/main/java/com/kiotretail/employee/controller/RegisterServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/controller/ForgotPasswordServlet.java",
+            "to": "src/main/java/com/kiotretail/employee/controller/ForgotPasswordServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/controller/ChangePasswordServlet.java",
+            "to": "src/main/java/com/kiotretail/employee/controller/ChangePasswordServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/controller/RoleSelectionServlet.java",
+            "to": "src/main/java/com/kiotretail/employee/controller/RoleSelectionServlet.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/dao/EmployeeDAO.java",
+            "to": "src/main/java/com/kiotretail/employee/dao/EmployeeDAO.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/model/Employee.java",
+            "to": "src/main/java/com/kiotretail/employee/model/Employee.java"
+          }
+        ],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/employee/employees.jsp (from KIOT-Viet/pos-employee-management.html)",
+          "src/main/webapp/WEB-INF/views/employee/employee-create.jsp",
+          "src/main/webapp/WEB-INF/views/employee/employee-edit.jsp",
+          "src/main/webapp/WEB-INF/views/employee/employee-detail.jsp",
+          "src/main/webapp/WEB-INF/views/employee/roles.jsp",
+          "src/main/webapp/WEB-INF/views/employee/branches.jsp"
+        ],
+        "servletMappings": [
+          "/login (kept)",
+          "/logout (kept)",
+          "/register (kept)",
+          "/forgot-password (kept)",
+          "/change-password (kept)",
+          "/role-selection (kept)",
+          "/admin/employees",
+          "/admin/employees/create",
+          "/admin/employees/edit",
+          "/admin/employees/detail",
+          "/admin/employees/delete",
+          "/admin/roles",
+          "/admin/branches"
+        ]
+      },
+      {
+        "name": "invoice",
+        "priority": 5,
+        "packages": [
+          "com.kiotretail.invoice.controller",
+          "com.kiotretail.invoice.service",
+          "com.kiotretail.invoice.dao",
+          "com.kiotretail.invoice.model",
+          "com.kiotretail.invoice.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/invoice/controller/InvoiceServlet.java",
+          "src/main/java/com/kiotretail/invoice/controller/InvoiceDetailServlet.java",
+          "src/main/java/com/kiotretail/invoice/controller/PaymentServlet.java",
+          "src/main/java/com/kiotretail/invoice/service/InvoiceService.java",
+          "src/main/java/com/kiotretail/invoice/service/OrderDetailService.java",
+          "src/main/java/com/kiotretail/invoice/service/PaymentService.java",
+          "src/main/java/com/kiotretail/invoice/dao/InvoiceDAO.java",
+          "src/main/java/com/kiotretail/invoice/dao/OrderDetailDAO.java",
+          "src/main/java/com/kiotretail/invoice/dao/PaymentDAO.java",
+          "src/main/java/com/kiotretail/invoice/model/Invoice.java",
+          "src/main/java/com/kiotretail/invoice/model/OrderDetail.java",
+          "src/main/java/com/kiotretail/invoice/model/Payment.java",
+          "src/main/java/com/kiotretail/invoice/dto/InvoiceFilterDTO.java",
+          "src/main/java/com/kiotretail/invoice/dto/InvoiceSummaryDTO.java",
+          "src/main/java/com/kiotretail/invoice/dto/CheckoutRequestDTO.java"
+        ],
+        "movedFiles": [],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/invoice/invoices.jsp (from KIOT-Viet/pos-invoice-management.html)",
+          "src/main/webapp/WEB-INF/views/invoice/invoice-detail.jsp",
+          "src/main/webapp/WEB-INF/views/invoice/invoice-create.jsp",
+          "src/main/webapp/WEB-INF/views/invoice/invoice-print.jsp"
+        ],
+        "servletMappings": [
+          "/admin/invoices",
+          "/admin/invoices/detail",
+          "/admin/invoices/create",
+          "/admin/invoices/cancel",
+          "/admin/invoices/print",
+          "/admin/payments"
+        ]
+      },
+      {
+        "name": "pos",
+        "priority": 6,
+        "packages": [
+          "com.kiotretail.pos.controller",
+          "com.kiotretail.pos.service",
+          "com.kiotretail.pos.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/pos/controller/POSServlet.java",
+          "src/main/java/com/kiotretail/pos/controller/POSCheckoutServlet.java",
+          "src/main/java/com/kiotretail/pos/controller/POSCartServlet.java",
+          "src/main/java/com/kiotretail/pos/service/POSService.java",
+          "src/main/java/com/kiotretail/pos/service/CartService.java",
+          "src/main/java/com/kiotretail/pos/dto/CartItem.java",
+          "src/main/java/com/kiotretail/pos/dto/CartTab.java",
+          "src/main/java/com/kiotretail/pos/dto/CartSession.java",
+          "src/main/java/com/kiotretail/pos/dto/CheckoutResponseDTO.java"
+        ],
+        "movedFiles": [],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/pos/sale.jsp (from KIOT-Viet/pos-sale.html)"
+        ],
+        "servletMappings": [
+          "/pos/sale (resolves the missing redirect target from RoleSelectionServlet)",
+          "/pos/cart",
+          "/pos/checkout"
+        ]
+      },
+      {
+        "name": "report",
+        "priority": 7,
+        "packages": [
+          "com.kiotretail.report.controller",
+          "com.kiotretail.report.service",
+          "com.kiotretail.report.dao",
+          "com.kiotretail.report.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/report/controller/ReportServlet.java",
+          "src/main/java/com/kiotretail/report/controller/SalesReportServlet.java",
+          "src/main/java/com/kiotretail/report/service/DashboardService.java",
+          "src/main/java/com/kiotretail/report/service/SalesReportService.java",
+          "src/main/java/com/kiotretail/report/dao/ReportDAO.java",
+          "src/main/java/com/kiotretail/report/dao/FinanceTransactionDAO.java",
+          "src/main/java/com/kiotretail/report/model/FinanceTransaction.java",
+          "src/main/java/com/kiotretail/report/dto/DashboardSummaryDTO.java",
+          "src/main/java/com/kiotretail/report/dto/RevenueSeriesDTO.java",
+          "src/main/java/com/kiotretail/report/dto/RevenuePointDTO.java",
+          "src/main/java/com/kiotretail/report/dto/TopProductDTO.java",
+          "src/main/java/com/kiotretail/report/dto/TopCustomerDTO.java",
+          "src/main/java/com/kiotretail/report/dto/EmployeeRevenueDTO.java",
+          "src/main/java/com/kiotretail/report/dto/RecentActivityDTO.java",
+          "src/main/java/com/kiotretail/report/dto/SalesReportDTO.java"
+        ],
+        "movedFiles": [
+          {
+            "from": "src/main/java/com/kiotretail/controller/DashboardServlet.java",
+            "to": "src/main/java/com/kiotretail/report/controller/DashboardServlet.java"
+          },
+          {
+            "from": "src/main/webapp/WEB-INF/views/admin/dashboard.jsp",
+            "to": "src/main/webapp/WEB-INF/views/report/dashboard.jsp"
+          }
+        ],
+        "jspViews": [
+          "src/main/webapp/WEB-INF/views/report/dashboard.jsp (refactored from admin/dashboard.jsp + KIOT-Viet/pos-dashboard.html)",
+          "src/main/webapp/WEB-INF/views/report/sales-report.jsp (from KIOT-Viet/pos-report-sales.html)",
+          "src/main/webapp/WEB-INF/views/report/revenue-report.jsp",
+          "src/main/webapp/WEB-INF/views/report/top-products-report.jsp",
+          "src/main/webapp/WEB-INF/views/report/employee-revenue-report.jsp"
+        ],
+        "servletMappings": [
+          "/admin/dashboard (kept, repointed to report.controller.DashboardServlet)",
+          "/admin/reports",
+          "/admin/reports/sales",
+          "/admin/reports/revenue",
+          "/admin/reports/top-products",
+          "/admin/reports/employee-revenue"
+        ]
+      },
+      {
+        "name": "api",
+        "priority": 8,
+        "packages": [
+          "com.kiotretail.api",
+          "com.kiotretail.api.product",
+          "com.kiotretail.api.product.action",
+          "com.kiotretail.api.product.dto",
+          "com.kiotretail.api.customer.action",
+          "com.kiotretail.api.customer.dto",
+          "com.kiotretail.api.invoice.action",
+          "com.kiotretail.api.invoice.dto",
+          "com.kiotretail.api.dashboard.action",
+          "com.kiotretail.api.dashboard.dto"
+        ],
+        "newFiles": [
+          "src/main/java/com/kiotretail/api/product/action/GetProductByIdAction.java",
+          "src/main/java/com/kiotretail/api/product/action/CreateProductAction.java",
+          "src/main/java/com/kiotretail/api/product/action/UpdateProductAction.java",
+          "src/main/java/com/kiotretail/api/product/action/DeleteProductAction.java",
+          "src/main/java/com/kiotretail/api/product/action/GetCategoriesAction.java",
+          "src/main/java/com/kiotretail/api/product/action/GetSuppliersAction.java",
+          "src/main/java/com/kiotretail/api/customer/action/GetCustomersAction.java",
+          "src/main/java/com/kiotretail/api/customer/action/CreateCustomerAction.java",
+          "src/main/java/com/kiotretail/api/customer/dto/CustomerDTO.java",
+          "src/main/java/com/kiotretail/api/invoice/action/GetInvoicesAction.java",
+          "src/main/java/com/kiotretail/api/invoice/action/CreateInvoiceAction.java",
+          "src/main/java/com/kiotretail/api/invoice/dto/InvoiceDTO.java",
+          "src/main/java/com/kiotretail/api/dashboard/action/GetSalesSummaryAction.java",
+          "src/main/java/com/kiotretail/api/dashboard/action/GetRevenueChartAction.java",
+          "src/main/java/com/kiotretail/api/dashboard/action/GetTopProductsAction.java",
+          "src/main/java/com/kiotretail/api/dashboard/dto/DashboardDTO.java"
+        ],
+        "movedFiles": [
+          {
+            "from": "src/main/java/com/kiotretail/api/action/GetProductsAction.java",
+            "to": "src/main/java/com/kiotretail/api/product/action/GetProductsAction.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/api/dto/Product.java",
+            "to": "src/main/java/com/kiotretail/api/product/dto/Product.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/api/dto/Category.java",
+            "to": "src/main/java/com/kiotretail/api/product/dto/Category.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/api/dto/Variant.java",
+            "to": "src/main/java/com/kiotretail/api/product/dto/Variant.java"
+          },
+          {
+            "from": "src/main/java/com/kiotretail/api/dto/ProductListResponse.java",
+            "to": "src/main/java/com/kiotretail/api/product/dto/ProductListResponse.java"
+          }
+        ],
+        "jspViews": [],
+        "servletMappings": [
+          "/api/* (BaseController retained, dispatcher map expanded; HTTP method enforced via doGet/doPost/doPut/doDelete)"
+        ]
+      }
+    ],
+    "sharedPackage": {
+      "purpose": "Cross-cutting infrastructure consumed by every domain: DB access, filters, base classes for the new Controller -> Service -> DAO layering, password hashing (replaces the current plaintext PasswordHash flow), shared exceptions, pagination primitives, and reusable JSP fragments (topbar, navbar, sidebar, pagination, footer-bar) extracted from KIOT-Viet HTML so domain views stay thin.",
+      "files": [
+        "src/main/java/com/kiotretail/shared/base/BaseServlet.java",
+        "src/main/java/com/kiotretail/shared/base/BaseService.java",
+        "src/main/java/com/kiotretail/shared/base/BaseDAO.java",
+        "src/main/java/com/kiotretail/shared/base/Pagination.java",
+        "src/main/java/com/kiotretail/shared/base/PageResult.java",
+        "src/main/java/com/kiotretail/shared/exception/ServiceException.java",
+        "src/main/java/com/kiotretail/shared/exception/ValidationException.java",
+        "src/main/java/com/kiotretail/shared/exception/NotFoundException.java",
+        "src/main/java/com/kiotretail/shared/util/DatabaseUtil.java",
+        "src/main/java/com/kiotretail/shared/util/EmailUtil.java",
+        "src/main/java/com/kiotretail/shared/util/RolePermissionUtil.java",
+        "src/main/java/com/kiotretail/shared/util/PasswordUtil.java",
+        "src/main/java/com/kiotretail/shared/util/CodeGenerator.java",
+        "src/main/java/com/kiotretail/shared/util/SessionUtil.java",
+        "src/main/java/com/kiotretail/shared/util/JsonUtil.java",
+        "src/main/java/com/kiotretail/shared/util/CurrencyUtil.java",
+        "src/main/java/com/kiotretail/shared/util/DateUtil.java",
+        "src/main/java/com/kiotretail/shared/util/TestConnection.java",
+        "src/main/java/com/kiotretail/shared/filter/AuthFilter.java",
+        "src/main/java/com/kiotretail/shared/filter/EncodingFilter.java",
+        "src/main/java/com/kiotretail/shared/config/AppConfig.java",
+        "src/main/webapp/WEB-INF/views/common/topbar.jsp",
+        "src/main/webapp/WEB-INF/views/common/navbar.jsp",
+        "src/main/webapp/WEB-INF/views/common/admin-sidebar.jsp",
+        "src/main/webapp/WEB-INF/views/common/pagination.jsp",
+        "src/main/webapp/WEB-INF/views/common/footer-bar.jsp"
+      ]
+    },
+    "packageStructure": {
+      "com.kiotretail": {
+        "shared": {
+          "config": [
+            "AppConfig.java"
+          ],
+          "filter": [
+            "AuthFilter.java (moved)",
+            "EncodingFilter.java (moved)"
+          ],
+          "util": [
+            "DatabaseUtil.java (moved)",
+            "EmailUtil.java (moved)",
+            "RolePermissionUtil.java (moved)",
+            "TestConnection.java (moved)",
+            "PasswordUtil.java (NEW - BCrypt)",
+            "CodeGenerator.java (NEW - SP/KH/NV/HD codes)",
+            "SessionUtil.java (NEW)",
+            "JsonUtil.java (NEW - Gson wrapper)",
+            "CurrencyUtil.java (NEW - VND format)",
+            "DateUtil.java (NEW)"
+          ],
+          "base": [
+            "BaseServlet.java (NEW - common request/forward helpers)",
+            "BaseService.java (NEW - tx + validation hooks)",
+            "BaseDAO.java (NEW - connection + close helpers)",
+            "Pagination.java (NEW)",
+            "PageResult.java (NEW)"
+          ],
+          "exception": [
+            "ServiceException.java",
+            "ValidationException.java",
+            "NotFoundException.java"
+          ]
+        },
+        "product": {
+          "controller": [
+            "ProductServlet.java (moved)",
+            "CategoryServlet.java (moved)",
+            "SupplierServlet.java (NEW)",
+            "ProductImportServlet.java (NEW)",
+            "ProductExportServlet.java (NEW)",
+            "ProductImageUploadServlet.java (NEW)"
+          ],
+          "service": [
+            "ProductService.java (NEW)",
+            "CategoryService.java (NEW)",
+            "SupplierService.java (NEW)",
+            "InventoryService.java (NEW - bridges Product <-> Warehouse)"
+          ],
+          "dao": [
+            "ProductDAO.java (moved + fix updateStock to hit Warehouse)",
+            "CategoryDAO.java (moved)",
+            "SupplierDAO.java (NEW)",
+            "WarehouseDAO.java (NEW)",
+            "WarehouseTransactionDAO.java (NEW)"
+          ],
+          "model": [
+            "Product.java (moved)",
+            "Category.java (moved)",
+            "Supplier.java (NEW)",
+            "Warehouse.java (NEW)",
+            "WarehouseTransaction.java (NEW)"
+          ],
+          "dto": [
+            "ProductFilterDTO.java",
+            "ProductSummaryDTO.java"
+          ]
+        },
+        "customer": {
+          "controller": [
+            "CustomerServlet.java (NEW)",
+            "CustomerImportServlet.java (NEW)",
+            "CustomerExportServlet.java (NEW)"
+          ],
+          "service": [
+            "CustomerService.java (NEW)",
+            "CustomerGroupService.java (NEW)"
+          ],
+          "dao": [
+            "CustomerDAO.java (NEW)",
+            "CustomerGroupDAO.java (NEW)"
+          ],
+          "model": [
+            "Customer.java (NEW)",
+            "CustomerGroup.java (NEW)"
+          ],
+          "dto": [
+            "CustomerFilterDTO.java",
+            "CustomerSummaryDTO.java"
+          ]
+        },
+        "employee": {
+          "controller": [
+            "LoginServlet.java (moved)",
+            "LogoutServlet.java (moved)",
+            "RegisterServlet.java (moved)",
+            "ForgotPasswordServlet.java (moved)",
+            "ChangePasswordServlet.java (moved)",
+            "RoleSelectionServlet.java (moved)",
+            "EmployeeServlet.java (NEW - admin CRUD)",
+            "RolePermissionServlet.java (NEW)",
+            "BranchServlet.java (NEW)"
+          ],
+          "service": [
+            "AuthService.java (NEW - extracts login/register/password from servlets, uses PasswordUtil)",
+            "EmployeeService.java (NEW)",
+            "RoleService.java (NEW)",
+            "BranchService.java (NEW)"
+          ],
+          "dao": [
+            "EmployeeDAO.java (moved + REWRITE - schema match Employee/Role/Branch PascalCase)",
+            "RoleDAO.java (NEW)",
+            "BranchDAO.java (NEW)",
+            "AuditLogDAO.java (NEW)"
+          ],
+          "model": [
+            "Employee.java (moved)",
+            "Role.java (NEW)",
+            "Branch.java (NEW)",
+            "AuditLog.java (NEW)"
+          ],
+          "dto": [
+            "EmployeeFilterDTO.java"
+          ]
+        },
+        "invoice": {
+          "controller": [
+            "InvoiceServlet.java (NEW)",
+            "InvoiceDetailServlet.java (NEW)",
+            "PaymentServlet.java (NEW)"
+          ],
+          "service": [
+            "InvoiceService.java (NEW)",
+            "OrderDetailService.java (NEW)",
+            "PaymentService.java (NEW)"
+          ],
+          "dao": [
+            "InvoiceDAO.java (NEW - Orders table)",
+            "OrderDetailDAO.java (NEW)",
+            "PaymentDAO.java (NEW)"
+          ],
+          "model": [
+            "Invoice.java (NEW)",
+            "OrderDetail.java (NEW)",
+            "Payment.java (NEW)"
+          ],
+          "dto": [
+            "InvoiceFilterDTO.java",
+            "InvoiceSummaryDTO.java",
+            "CheckoutRequestDTO.java"
+          ]
+        },
+        "pos": {
+          "controller": [
+            "POSServlet.java (NEW - resolves /pos/sale gap)",
+            "POSCartServlet.java (NEW)",
+            "POSCheckoutServlet.java (NEW - writes Orders + OrderDetail + Payments + WarehouseTransaction)"
+          ],
+          "service": [
+            "POSService.java (NEW)",
+            "CartService.java (NEW - session-backed multi-tab carts)"
+          ],
+          "dto": [
+            "CartItem.java",
+            "CartTab.java",
+            "CartSession.java",
+            "CheckoutResponseDTO.java"
+          ]
+        },
+        "report": {
+          "controller": [
+            "DashboardServlet.java (moved)",
+            "ReportServlet.java (NEW)",
+            "SalesReportServlet.java (NEW)"
+          ],
+          "service": [
+            "DashboardService.java (NEW)",
+            "SalesReportService.java (NEW)"
+          ],
+          "dao": [
+            "ReportDAO.java (NEW)",
+            "FinanceTransactionDAO.java (NEW)"
+          ],
+          "model": [
+            "FinanceTransaction.java (NEW)"
+          ],
+          "dto": [
+            "DashboardSummaryDTO.java",
+            "RevenueSeriesDTO.java",
+            "RevenuePointDTO.java",
+            "TopProductDTO.java",
+            "TopCustomerDTO.java",
+            "EmployeeRevenueDTO.java",
+            "RecentActivityDTO.java",
+            "SalesReportDTO.java"
+          ]
+        },
+        "api": {
+          "_root": [
+            "BaseController.java (kept; gain method routing + AuthFilter coverage)",
+            "ApiAction.java (kept)",
+            "ApiResponse.java (kept)"
+          ],
+          "product": {
+            "action": [
+              "GetProductsAction.java (moved)",
+              "GetProductByIdAction.java (NEW)",
+              "CreateProductAction.java (NEW)",
+              "UpdateProductAction.java (NEW)",
+              "DeleteProductAction.java (NEW)",
+              "GetCategoriesAction.java (NEW)",
+              "GetSuppliersAction.java (NEW)"
+            ],
+            "dto": [
+              "Product.java (moved)",
+              "Category.java (moved)",
+              "Variant.java (moved)",
+              "ProductListResponse.java (moved)"
+            ]
+          },
+          "customer": {
+            "action": [
+              "GetCustomersAction.java (NEW)",
+              "CreateCustomerAction.java (NEW)"
+            ],
+            "dto": [
+              "CustomerDTO.java"
+            ]
+          },
+          "invoice": {
+            "action": [
+              "GetInvoicesAction.java (NEW)",
+              "CreateInvoiceAction.java (NEW)"
+            ],
+            "dto": [
+              "InvoiceDTO.java"
+            ]
+          },
+          "dashboard": {
+            "action": [
+              "GetSalesSummaryAction.java (NEW)",
+              "GetRevenueChartAction.java (NEW)",
+              "GetTopProductsAction.java (NEW)"
+            ],
+            "dto": [
+              "DashboardDTO.java"
+            ]
+          }
+        }
+      },
+      "webapp": {
+        "WEB-INF/views/auth": [
+          "login.jsp",
+          "register.jsp",
+          "forgot-password.jsp",
+          "reset-password.jsp",
+          "change-password.jsp",
+          "role-selection.jsp"
+        ],
+        "WEB-INF/views/common": [
+          "header.jsp",
+          "footer.jsp",
+          "sidebar.jsp",
+          "topbar.jsp (NEW)",
+          "navbar.jsp (NEW)",
+          "admin-sidebar.jsp (NEW)",
+          "pagination.jsp (NEW)",
+          "footer-bar.jsp (NEW)"
+        ],
+        "WEB-INF/views/product": [
+          "products.jsp (moved + KiotViet styling)",
+          "product-create.jsp",
+          "product-edit.jsp",
+          "product-detail.jsp",
+          "product-delete-confirm.jsp",
+          "product-import.jsp",
+          "product-export.jsp",
+          "categories.jsp (moved)",
+          "suppliers.jsp"
+        ],
+        "WEB-INF/views/customer": [
+          "customers.jsp",
+          "customer-create.jsp",
+          "customer-edit.jsp",
+          "customer-detail.jsp"
+        ],
+        "WEB-INF/views/employee": [
+          "employees.jsp",
+          "employee-create.jsp",
+          "employee-edit.jsp",
+          "employee-detail.jsp",
+          "roles.jsp",
+          "branches.jsp"
+        ],
+        "WEB-INF/views/invoice": [
+          "invoices.jsp",
+          "invoice-detail.jsp",
+          "invoice-create.jsp",
+          "invoice-print.jsp"
+        ],
+        "WEB-INF/views/pos": [
+          "sale.jsp"
+        ],
+        "WEB-INF/views/report": [
+          "dashboard.jsp (moved)",
+          "sales-report.jsp",
+          "revenue-report.jsp",
+          "top-products-report.jsp",
+          "employee-revenue-report.jsp"
+        ],
+        "WEB-INF/views/error": [
+          "404.jsp",
+          "500.jsp"
+        ],
+        "WEB-INF/views/admin": "REMOVED after migration (replaced by domain folders product/, employee/, customer/, invoice/, report/)"
+      }
+    },
+    "migrationSteps": [
+      "Phase 0 - Branch + safety net. Create branch refactor/modular-monolith. Run mvn clean package on main first to capture a working baseline. Snapshot DBFinora schema. Add a smoke test list (login + product list + category list + dashboard) that must pass after every phase.",
+      "Phase 1 - Shared foundation (priority 1). Create com.kiotretail.shared.{config,filter,util,base,exception}. Move DatabaseUtil, EmailUtil, RolePermissionUtil, TestConnection -> shared.util. Move AuthFilter, EncodingFilter -> shared.filter. Add PasswordUtil (BCrypt jBCrypt 0.4 in pom.xml), CodeGenerator, SessionUtil, JsonUtil, CurrencyUtil, DateUtil. Add BaseServlet (common forward/redirect/error helpers), BaseService (validation + transaction helper using a single Connection), BaseDAO (connection acquire/release), Pagination, PageResult, ServiceException, ValidationException, NotFoundException. Update web.xml filter-class FQNs. Run mvn clean package; smoke test login + dashboard.",
+      "Phase 2 - Product domain (priority 2). Move ProductServlet, CategoryServlet -> product.controller. Move ProductDAO, CategoryDAO -> product.dao. Move Product, Category models -> product.model. Add ProductService, CategoryService, SupplierService, InventoryService and route servlets through services. Fix ProductDAO.updateStock to mutate Warehouse.Quantity (via WarehouseDAO + WarehouseTransaction audit) instead of StockAlertQty. Add SupplierDAO/WarehouseDAO/WarehouseTransactionDAO + Supplier/Warehouse/WarehouseTransaction models. Move existing JSPs to views/product/. Convert KIOT-Viet/product-create.html, product-edit.html, product-detail.html, product-delete-confirm.html, product-import.html, product-export.html into matching JSPs that include common/topbar.jsp + common/navbar.jsp + common/admin-sidebar.jsp. Add SupplierServlet, ProductImportServlet, ProductExportServlet, ProductImageUploadServlet. Run mvn clean package; smoke test product list/create/edit.",
+      "Phase 3 - Customer domain (priority 3). Create com.kiotretail.customer.{controller,service,dao,model,dto}. Add Customer, CustomerGroup models. Add CustomerDAO (PascalCase Customer table from DBFinora.sql) and CustomerGroupDAO. Add CustomerService, CustomerGroupService. Add CustomerServlet (/admin/customers with list/search/filter/create/edit/delete), CustomerImportServlet, CustomerExportServlet. Convert KIOT-Viet/pos-customer-management.html -> customer/customers.jsp; create customer-create/edit/detail.jsp using common fragments. Run mvn clean package; smoke test customer CRUD.",
+      "Phase 4 - Employee domain (priority 4) - HIGH-RISK lane (auth + password). Per CLAUDE.md, draft a story under docs/stories/ before code. Move all auth servlets (Login, Logout, Register, ForgotPassword, ChangePassword, RoleSelection) -> employee.controller. Move EmployeeDAO -> employee.dao and REWRITE every CRUD method to match DBFinora PascalCase schema (Employee, Role, Branch); drop references to non-existent username/department/position columns. Extract login/register/password flows into AuthService; replace plaintext PasswordHash with BCrypt via PasswordUtil (one-time backfill script for the 123456 seeds documented in the story). Add RoleDAO, BranchDAO, AuditLogDAO + Role/Branch/AuditLog models. Add EmployeeService, RoleService, BranchService. Add EmployeeServlet, RolePermissionServlet, BranchServlet. Convert KIOT-Viet/pos-employee-management.html -> employee/employees.jsp + create/edit/detail/roles/branches JSPs. Wire AuditLogDAO into AuthService and CRUD services. Run mvn clean package; smoke test login (old hash + new hash), register, change-password, employee CRUD.",
+      "Phase 5 - Invoice domain (priority 5). Add Invoice, OrderDetail, Payment models against existing Orders/OrderDetail/Payments tables. Add InvoiceDAO, OrderDetailDAO, PaymentDAO. Add InvoiceService (orchestrates Order + OrderDetail + Payment + WarehouseTransaction in a single shared.base.BaseService transaction), OrderDetailService, PaymentService. Add InvoiceServlet, InvoiceDetailServlet, PaymentServlet. Convert KIOT-Viet/pos-invoice-management.html -> invoice/invoices.jsp; create invoice-detail.jsp, invoice-create.jsp, invoice-print.jsp. Run mvn clean package; smoke test invoice list, filter, detail.",
+      "Phase 6 - POS domain (priority 6) - resolves /pos/sale gap. Add CartItem, CartTab, CartSession DTOs (HttpSession-backed, multi-tab per pos-sale.html). Add CartService (add/remove/update qty/clear/switch tab/load draft) and POSService (search products, search customers, finalize checkout). Add POSServlet (/pos/sale GET renders pos/sale.jsp), POSCartServlet (/pos/cart for AJAX cart ops), POSCheckoutServlet (/pos/checkout consumes invoice.service.InvoiceService + product.service.InventoryService inside one transaction; emits FinanceTransaction record). Convert KIOT-Viet/pos-sale.html -> pos/sale.jsp. Run mvn clean package; end-to-end test: login -> role-selection?role=pos -> /pos/sale -> add items -> checkout -> Orders/OrderDetail/Payments rows + Warehouse.Quantity decremented + WarehouseTransaction audit row.",
+      "Phase 7 - Report domain (priority 7). Move DashboardServlet -> report.controller. Move admin/dashboard.jsp -> report/dashboard.jsp and refactor to KIOT-Viet/pos-dashboard.html layout (revenue card, bar chart, top-products, top-customers, employee revenue, timekeeping, recent activities, login anomaly banner). Add DashboardService, SalesReportService backed by ReportDAO (aggregations over Orders + OrderDetail + Payments + Customer + Employee) and FinanceTransactionDAO. Add DashboardSummaryDTO, RevenueSeriesDTO, RevenuePointDTO, TopProductDTO, TopCustomerDTO, EmployeeRevenueDTO, RecentActivityDTO, SalesReportDTO. Add ReportServlet, SalesReportServlet. Convert KIOT-Viet/pos-report-sales.html -> report/sales-report.jsp. Run mvn clean package; smoke test dashboard renders real data, sales-report filters work.",
+      "Phase 8 - API layer expansion (priority 8). Reorganize com.kiotretail.api into api.product.{action,dto}, api.customer.{action,dto}, api.invoice.{action,dto}, api.dashboard.{action,dto}. Move GetProductsAction + Product/Category/Variant/ProductListResponse DTOs into api.product. Make BaseController dispatch by HTTP method (doGet/doPost/doPut/doDelete) instead of always service(). Add Get/Create/Update/Delete actions for Product, Customer, Invoice, plus dashboard endpoints. Have actions delegate to domain services (no DAO calls from actions). Extend AuthFilter url-pattern to include /api/* so the REST surface is no longer wide open. Smoke test GET /api/products still works and new endpoints return ApiResponse JSON.",
+      "Phase 9 - Common JSP layout extraction. Carve KIOT-Viet topbar (logo + delivery + lang VI + bell + help + settings + avatar + Bán hàng CTA), navbar (10 module tabs with active state), admin-sidebar (per-domain side menus), pagination control, footer-bar (hotline 1900 6522) into common/*.jsp fragments. Replace inline duplications across product/, customer/, employee/, invoice/, report/ JSPs with <jsp:include>. Add a JSP attribute or request var (activeTab) to drive navbar active state per page.",
+      "Phase 10 - web.xml + URL backward compatibility. Repoint every existing <servlet-class> to its new FQN (com.kiotretail.{domain}.controller.X). Keep every existing <url-pattern> intact (/login, /logout, /register, /forgot-password, /change-password, /role-selection, /admin/dashboard, /admin/products, /admin/categories) - only the class FQN changes, so all current bookmarks/links keep working. Add new mappings for /pos/sale, /admin/customers, /admin/employees, /admin/invoices, /admin/reports, /admin/suppliers, /admin/branches, /admin/roles. Remove the TODO comment block. Update <filter-class> FQNs to shared.filter.*. Add /api/* to AuthFilter url-pattern. Update <error-page> JSP locations only if files moved.",
+      "Phase 11 - Cleanup + verification. Delete now-empty old packages (com.kiotretail.controller, com.kiotretail.dao, com.kiotretail.model, com.kiotretail.filter, com.kiotretail.util) and views/admin/. Run mvn clean package and the full smoke-test list. Update docs/ARCHITECTURE.md with the new layout. Per CLAUDE.md Done Definition: state what changed, run validation commands, capture friction in docs/HARNESS_BACKLOG.md if any."
+    ],
+    "webXmlChanges": [
+      "Update <filter-class> for EncodingFilter: com.kiotretail.filter.EncodingFilter -> com.kiotretail.shared.filter.EncodingFilter",
+      "Update <filter-class> for AuthFilter: com.kiotretail.filter.AuthFilter -> com.kiotretail.shared.filter.AuthFilter",
+      "Extend AuthFilter <url-pattern>: keep /admin/* and /pos/*, ADD /api/* (closes the 'REST API is wide open' gap)",
+      "Update <servlet-class> for LoginServlet -> com.kiotretail.employee.controller.LoginServlet (url-pattern /login UNCHANGED for backward compatibility)",
+      "Update <servlet-class> for LogoutServlet -> com.kiotretail.employee.controller.LogoutServlet (/logout unchanged)",
+      "Update <servlet-class> for RegisterServlet -> com.kiotretail.employee.controller.RegisterServlet (/register unchanged)",
+      "Update <servlet-class> for ForgotPasswordServlet -> com.kiotretail.employee.controller.ForgotPasswordServlet (/forgot-password unchanged)",
+      "Update <servlet-class> for ChangePasswordServlet -> com.kiotretail.employee.controller.ChangePasswordServlet (/change-password unchanged)",
+      "Update <servlet-class> for RoleSelectionServlet -> com.kiotretail.employee.controller.RoleSelectionServlet (/role-selection unchanged)",
+      "Update <servlet-class> for DashboardServlet -> com.kiotretail.report.controller.DashboardServlet (/admin/dashboard unchanged)",
+      "Update <servlet-class> for ProductServlet -> com.kiotretail.product.controller.ProductServlet (/admin/products unchanged)",
+      "Update <servlet-class> for CategoryServlet -> com.kiotretail.product.controller.CategoryServlet (/admin/categories unchanged)",
+      "Add NEW <servlet>: SupplierServlet -> com.kiotretail.product.controller.SupplierServlet -> /admin/suppliers",
+      "Add NEW <servlet>: ProductImportServlet -> /admin/products/import",
+      "Add NEW <servlet>: ProductExportServlet -> /admin/products/export",
+      "Add NEW <servlet>: ProductImageUploadServlet -> /admin/products/upload-image",
+      "Add NEW <servlet>: CustomerServlet -> com.kiotretail.customer.controller.CustomerServlet -> /admin/customers",
+      "Add NEW <servlet>: CustomerImportServlet -> /admin/customers/import",
+      "Add NEW <servlet>: CustomerExportServlet -> /admin/customers/export",
+      "Add NEW <servlet>: EmployeeServlet -> com.kiotretail.employee.controller.EmployeeServlet -> /admin/employees",
+      "Add NEW <servlet>: RolePermissionServlet -> /admin/roles",
+      "Add NEW <servlet>: BranchServlet -> /admin/branches",
+      "Add NEW <servlet>: InvoiceServlet -> com.kiotretail.invoice.controller.InvoiceServlet -> /admin/invoices",
+      "Add NEW <servlet>: InvoiceDetailServlet -> /admin/invoices/detail",
+      "Add NEW <servlet>: PaymentServlet -> /admin/payments",
+      "Add NEW <servlet>: POSServlet -> com.kiotretail.pos.controller.POSServlet -> /pos/sale (resolves the dangling redirect from RoleSelectionServlet)",
+      "Add NEW <servlet>: POSCartServlet -> /pos/cart",
+      "Add NEW <servlet>: POSCheckoutServlet -> /pos/checkout",
+      "Add NEW <servlet>: ReportServlet -> com.kiotretail.report.controller.ReportServlet -> /admin/reports",
+      "Add NEW <servlet>: SalesReportServlet -> /admin/reports/sales",
+      "Remove the TODO comment block in web.xml (lines 103-104) about unimplemented servlets",
+      "Leave BaseController as @WebServlet('/api/*') annotation-driven - no web.xml entry needed; just confirm AuthFilter now covers /api/*",
+      "Keep <welcome-file>index.jsp</welcome-file>, <session-timeout>30</session-timeout>, db.* <context-param>s, and <error-page> 404/500 mappings unchanged (they still resolve correctly because error JSPs and DB config did not move)"
+    ]
+  }
+}

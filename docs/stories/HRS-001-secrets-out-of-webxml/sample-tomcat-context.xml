@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sample Tomcat context for KiotRetail.
+  Copy to: <TOMCAT_HOME>/conf/Catalina/localhost/kiotretail.xml
+  This file is gitignored to prevent accidental commit of credentials.
+
+  Tomcat resolves ${env:VAR} by reading process environment.
+  Set DB_USER and DB_PASSWORD before starting Tomcat.
+
+  See: docs/stories/HRS-001-secrets-out-of-webxml/
+-->
+<Context docBase="C:\path\to\SWP391_Group_5\target\kiotretail" path="/kiotretail">
+    <Resource name="jdbc/KiotRetailDS"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+              url="jdbc:sqlserver://localhost:1433;databaseName=DBFinora;trustServerCertificate=true"
+              username="${env:DB_USER}"
+              password="${env:DB_PASSWORD}"
+              maxTotal="20"
+              maxIdle="5"
+              maxWaitMillis="10000"
+              validationQuery="SELECT 1"
+              testOnBorrow="true"/>
+</Context>
