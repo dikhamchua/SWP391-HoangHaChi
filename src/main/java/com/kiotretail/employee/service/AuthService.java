@@ -29,7 +29,8 @@ public class AuthService {
     public Employee login(String email, String password) {
         Employee employee = employeeDAO.getByEmail(email);
         if (employee == null) {
-            throw new ServiceException(ErrorMessages.EMAIL_NOT_FOUND, 401);
+            // Use a generic message to prevent user enumeration via login responses.
+            throw new ServiceException(ErrorMessages.INVALID_CREDENTIALS, 401);
         }
 
         if (!AppConstants.STATUS_ACTIVE.equalsIgnoreCase(employee.getStatus())) {
@@ -39,12 +40,12 @@ public class AuthService {
         String storedHash = employee.getPasswordHash();
         if (PasswordUtil.isHashed(storedHash)) {
             if (!PasswordUtil.verify(password, storedHash)) {
-                throw new ServiceException(ErrorMessages.WRONG_PASSWORD, 401);
+                throw new ServiceException(ErrorMessages.INVALID_CREDENTIALS, 401);
             }
         } else {
             // Legacy plaintext path: compare directly, upgrade to BCrypt on match.
             if (storedHash == null || !storedHash.equals(password)) {
-                throw new ServiceException(ErrorMessages.WRONG_PASSWORD, 401);
+                throw new ServiceException(ErrorMessages.INVALID_CREDENTIALS, 401);
             }
             String newHash = PasswordUtil.hash(password);
             employeeDAO.updatePassword(employee.getEmployeeId(), newHash);

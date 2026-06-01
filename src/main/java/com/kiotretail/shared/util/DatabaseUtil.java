@@ -5,33 +5,45 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Database Connection Utility
- * Quản lý kết nối cơ sở dữ liệu SQL Server
+ * Database Connection Utility - MySQL.
+ *
+ * Credentials read from environment variables with safe local-dev defaults.
+ * Override via DB_URL / DB_USER / DB_PASSWORD when deploying. See HRS-001.
  */
 public class DatabaseUtil {
 
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=DBFinora;trustServerCertificate=true";
-    private static final String USERNAME = "sa";
-    private static final String PASSWORD = "123";
+    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+
+    private static final String DEFAULT_URL =
+        "jdbc:mysql://localhost:3306/DBFinora"
+        + "?useUnicode=true"
+        + "&characterEncoding=UTF-8"
+        + "&serverTimezone=Asia/Ho_Chi_Minh"
+        + "&useSSL=false"
+        + "&allowPublicKeyRetrieval=true";
+
+    private static final String JDBC_URL  = envOr("DB_URL", DEFAULT_URL);
+    private static final String DB_USER   = envOr("DB_USER", "root");
+    private static final String DB_SECRET = envOr("DB_PASSWORD", "root");
 
     static {
         try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            Class.forName(DRIVER);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("SQL Server JDBC Driver not found", e);
+            throw new RuntimeException("MySQL JDBC Driver not found", e);
         }
     }
 
-    /**
-     * Lấy kết nối đến database
-     */
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+    private static String envOr(String key, String fallback) {
+        String v = System.getenv(key);
+        return (v == null || v.isEmpty()) ? fallback : v;
     }
 
-    /**
-     * Đóng kết nối
-     */
+    /** Tao connection moi moi lan goi (khong dung pool). */
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(JDBC_URL, DB_USER, DB_SECRET);
+    }
+
     public static void closeConnection(Connection conn) {
         if (conn != null) {
             try {
@@ -42,15 +54,19 @@ public class DatabaseUtil {
         }
     }
 
-    /**
-     * Test kết nối
-     */
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {
             return conn != null && !conn.isClosed();
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /** Quick smoke test: java -cp ... com.kiotretail.shared.util.DatabaseUtil */
+    public static void main(String[] args) throws SQLException {
+        try (Connection c = getConnection()) {
+            System.out.println("Connected: " + c);
         }
     }
 }
