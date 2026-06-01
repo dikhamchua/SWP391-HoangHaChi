@@ -49,7 +49,7 @@ public class ProductDAO extends BaseDAO {
         appendFilterClauses(sql, params, filter);
 
         sql.append("ORDER BY ").append(resolveOrderBy(filter)).append(' ');
-        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append("LIMIT ?, ?");
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -203,21 +203,23 @@ public class ProductDAO extends BaseDAO {
      */
     public List<Product> searchByKeyword(String keyword, int limit) {
         List<Product> products = new ArrayList<>();
-        if (keyword == null || keyword.trim().isEmpty() || limit <= 0) {
+        if (limit <= 0) {
             return products;
         }
-        String sql = "SELECT TOP (?) p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
+        String sql = "SELECT p.ProductID, p.CategoryID, p.Name AS ProductName, p.SKU, p.Price, p.CostPrice, " +
                      "p.StockAlertQty, p.Status, p.CreatedAt, c.Name AS CategoryName " +
                      "FROM Product p " +
                      "LEFT JOIN Category c ON p.CategoryID = c.CategoryID " +
                      "WHERE p.Name LIKE ? OR p.SKU LIKE ? " +
-                     "ORDER BY p.Name";
+                     "ORDER BY p.Name " +
+                     "LIMIT ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            String pattern = "%" + keyword.trim() + "%";
-            stmt.setInt(1, limit);
+            String kw = (keyword == null) ? "" : keyword.trim();
+            String pattern = "%" + kw + "%";
+            stmt.setString(1, pattern);
             stmt.setString(2, pattern);
-            stmt.setString(3, pattern);
+            stmt.setInt(3, limit);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     products.add(extractProduct(rs));

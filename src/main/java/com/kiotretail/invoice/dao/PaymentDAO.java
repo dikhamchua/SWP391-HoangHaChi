@@ -17,7 +17,7 @@ import java.util.List;
  *
  * Table: Payments (PaymentsID INT PK IDENTITY, OrderID INT FK, PaymentMethod VARCHAR,
  *                  Amount DECIMAL(18,2), PaidAt DATETIME, Reference NVARCHAR,
- *                  Status VARCHAR DEFAULT 'pending', CreatedAt DATETIME DEFAULT GETDATE())
+ *                  Status VARCHAR DEFAULT 'pending', CreatedAt DATETIME DEFAULT NOW())
  *
  * All statements are parameterized PreparedStatements.
  */

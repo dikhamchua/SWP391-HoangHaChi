@@ -15,6 +15,7 @@ import com.kiotretail.shared.exception.ServiceException;
 import com.kiotretail.shared.exception.ValidationException;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -27,6 +28,7 @@ import java.util.List;
  * Service-layer based controller for product management.
  * Replaces the legacy {@code com.kiotretail.controller.ProductServlet}.
  */
+@WebServlet("/admin/products")
 public class ProductServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;

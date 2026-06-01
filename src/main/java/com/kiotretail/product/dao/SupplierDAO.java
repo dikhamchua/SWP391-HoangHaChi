@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.kiotretail.shared.exception.ServiceException;
 
 /**
  * Supplier DAO
@@ -35,7 +36,7 @@ public class SupplierDAO extends BaseDAO {
                 suppliers.add(extractSupplier(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return suppliers;
     }
@@ -53,7 +54,7 @@ public class SupplierDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return suppliers;
     }
@@ -68,7 +69,7 @@ public class SupplierDAO extends BaseDAO {
         if (hasKeyword) {
             sql.append("WHERE Name LIKE ? OR Phone LIKE ? OR Email LIKE ? OR Address LIKE ? ");
         }
-        sql.append("ORDER BY SupplierID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append("ORDER BY SupplierID DESC LIMIT ?, ?");
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -88,7 +89,7 @@ public class SupplierDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return suppliers;
     }
@@ -118,7 +119,7 @@ public class SupplierDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return 0;
     }
@@ -139,7 +140,7 @@ public class SupplierDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return null;
     }
@@ -156,9 +157,8 @@ public class SupplierDAO extends BaseDAO {
             stmt.setString(5, supplier.getStatus() == null ? AppConstants.STATUS_ACTIVE : supplier.getStatus());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     public boolean update(Supplier supplier) {
@@ -174,9 +174,8 @@ public class SupplierDAO extends BaseDAO {
             stmt.setInt(6, supplier.getSupplierId());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -189,9 +188,8 @@ public class SupplierDAO extends BaseDAO {
             stmt.setInt(1, supplierId);
             return stmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     public boolean softDelete(int supplierId) {
@@ -203,9 +201,8 @@ public class SupplierDAO extends BaseDAO {
             stmt.setInt(2, supplierId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -230,9 +227,8 @@ public class SupplierDAO extends BaseDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     private Supplier extractSupplier(ResultSet rs) throws SQLException {

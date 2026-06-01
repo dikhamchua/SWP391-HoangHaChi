@@ -21,7 +21,7 @@ import java.util.Set;
  * Table: Customer (CustomerID INT PK IDENTITY, FullName NVARCHAR, Phone VARCHAR UNIQUE,
  *                  Email NVARCHAR, Address NVARCHAR, DoB DATE, Gender VARCHAR,
  *                  MembershipTier NVARCHAR, Points INT DEFAULT 0,
- *                  CreatedAt DATETIME DEFAULT GETDATE())
+ *                  CreatedAt DATETIME DEFAULT NOW())
  *
  * All queries use parameterized PreparedStatements; no string concatenation of user input.
  */
@@ -49,7 +49,7 @@ public class CustomerDAO extends BaseDAO {
         appendFilterClauses(sql, params, filter);
 
         sql.append("ORDER BY ").append(resolveOrderBy(filter)).append(' ');
-        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append("LIMIT ?, ?");
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {

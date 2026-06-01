@@ -49,7 +49,7 @@ public class OrderDAO extends BaseDAO {
         appendFilterClauses(sql, params, filter);
 
         sql.append("ORDER BY o.CreatedAt DESC ");
-        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append("LIMIT ?, ?");
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -226,11 +226,11 @@ public class OrderDAO extends BaseDAO {
             params.add(filter.getEmployeeId());
         }
         if (filter.getDateFrom() != null && !filter.getDateFrom().trim().isEmpty()) {
-            sql.append("AND o.CreatedAt >= ? ");
+            sql.append("AND o.CreatedAt >= CAST(? AS date) ");
             params.add(filter.getDateFrom().trim());
         }
         if (filter.getDateTo() != null && !filter.getDateTo().trim().isEmpty()) {
-            sql.append("AND o.CreatedAt <= ? ");
+            sql.append("AND o.CreatedAt < DATEADD(day, 1, CAST(? AS date)) ");
             params.add(filter.getDateTo().trim());
         }
     }

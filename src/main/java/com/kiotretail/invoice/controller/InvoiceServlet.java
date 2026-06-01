@@ -36,6 +36,7 @@ public class InvoiceServlet extends BaseServlet {
     private static final String VIEW_LIST = ViewPaths.INVOICE_LIST;
     private static final String VIEW_DETAIL = ViewPaths.INVOICE_DETAIL;
     private static final String VIEW_CREATE = ViewPaths.INVOICE_CREATE;
+    private static final String VIEW_PRINT = ViewPaths.INVOICE_PRINT;
 
     private InvoiceService invoiceService;
 
@@ -54,6 +55,9 @@ public class InvoiceServlet extends BaseServlet {
             switch (action) {
                 case "view":
                     handleView(request, response);
+                    break;
+                case "print":
+                    handlePrint(request, response);
                     break;
                 case "create":
                     handleCreateForm(request, response);
@@ -129,6 +133,21 @@ public class InvoiceServlet extends BaseServlet {
         forward(request, response, VIEW_DETAIL);
     }
 
+    private void handlePrint(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        int id = getIntParam(request, AppConstants.PARAM_ID, 0);
+        Order order = invoiceService.getOrderById(id);
+        List<OrderDetail> details = invoiceService.getOrderDetails(id);
+        List<Payment> payments = invoiceService.getOrderPayments(id);
+
+        request.setAttribute(AppConstants.ATTR_ORDER, order);
+        request.setAttribute(AppConstants.ATTR_ORDER_DETAILS, details);
+        request.setAttribute(AppConstants.ATTR_PAYMENTS, payments);
+
+        forward(request, response, VIEW_PRINT);
+    }
+
     private void handleCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -149,7 +168,8 @@ public class InvoiceServlet extends BaseServlet {
         } catch (ServiceException ex) {
             setFlashMessage(request, ex.getMessage(), AppConstants.FLASH_DANGER);
         } catch (RuntimeException ex) {
-            setFlashMessage(request, ex.getMessage(), AppConstants.FLASH_DANGER);
+            ex.printStackTrace();
+            setFlashMessage(request, "Có lỗi xảy ra, vui lòng thử lại", AppConstants.FLASH_DANGER);
         }
         redirect(request, response, REDIRECT_LIST);
     }
@@ -176,7 +196,8 @@ public class InvoiceServlet extends BaseServlet {
         } catch (ServiceException ex) {
             setFlashMessage(request, ex.getMessage(), AppConstants.FLASH_DANGER);
         } catch (RuntimeException ex) {
-            setFlashMessage(request, ex.getMessage(), AppConstants.FLASH_DANGER);
+            ex.printStackTrace();
+            setFlashMessage(request, "Có lỗi xảy ra, vui lòng thử lại", AppConstants.FLASH_DANGER);
         }
         redirect(request, response, REDIRECT_LIST + "?action=view&id=" + orderId);
     }

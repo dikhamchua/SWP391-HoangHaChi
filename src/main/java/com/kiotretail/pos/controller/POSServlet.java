@@ -10,6 +10,7 @@ import com.kiotretail.shared.exception.ServiceException;
 import com.kiotretail.shared.util.SessionUtil;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
  * POS sale screen controller.
  * Handles cart management actions and product search backed by {@link POSService}.
  */
+@WebServlet("/pos/sale")
 public class POSServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;

@@ -10,6 +10,7 @@ import com.kiotretail.shared.base.BaseService;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
 import com.kiotretail.shared.constant.AppConstants;
+import com.kiotretail.shared.constant.ErrorMessages;
 import com.kiotretail.shared.exception.NotFoundException;
 import com.kiotretail.shared.exception.ServiceException;
 import com.kiotretail.shared.exception.ValidationException;
@@ -56,30 +57,30 @@ public class EmployeeService extends BaseService {
      */
     public boolean createEmployee(Employee employee, String password) {
         if (employee == null) {
-            throw new ValidationException("Employee must not be null");
+            throw new ValidationException(String.format(ErrorMessages.NOT_FOUND, "Nhân viên"));
         }
         if (employee.getFullName() == null || employee.getFullName().trim().isEmpty()) {
-            throw new ValidationException("Full name is required");
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Họ tên"));
         }
         if (employee.getEmail() == null || employee.getEmail().trim().isEmpty()) {
-            throw new ValidationException("Email is required");
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Email"));
         }
         if (password == null || password.isEmpty()) {
-            throw new ValidationException("Password is required");
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Mật khẩu"));
         }
 
         if (employeeDAO.existsByEmail(employee.getEmail(), null)) {
-            throw new ValidationException("Email already exists: " + employee.getEmail());
+            throw new ValidationException(String.format(ErrorMessages.ALREADY_EXISTS, "Email"));
         }
 
         Role role = roleDAO.getById(employee.getRoleId());
         if (role == null) {
-            throw new ValidationException("Invalid role: " + employee.getRoleId());
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Vai trò"));
         }
 
         Branch branch = branchDAO.getById(employee.getBranchId());
         if (branch == null) {
-            throw new ValidationException("Invalid branch: " + employee.getBranchId());
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Chi nhánh"));
         }
 
         employee.setPasswordHash(PasswordUtil.hash(password));
@@ -101,20 +102,29 @@ public class EmployeeService extends BaseService {
      */
     public boolean updateEmployee(Employee employee) {
         if (employee == null) {
-            throw new ValidationException("Employee must not be null");
+            throw new ValidationException(String.format(ErrorMessages.NOT_FOUND, "Nhân viên"));
         }
         if (employee.getEmployeeId() <= 0) {
-            throw new ValidationException("Employee ID is required");
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Mã nhân viên"));
         }
         if (employee.getFullName() == null || employee.getFullName().trim().isEmpty()) {
-            throw new ValidationException("Full name is required");
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Họ tên"));
         }
         if (employee.getEmail() == null || employee.getEmail().trim().isEmpty()) {
-            throw new ValidationException("Email is required");
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Email"));
         }
 
         if (employeeDAO.existsByEmail(employee.getEmail(), employee.getEmployeeId())) {
-            throw new ValidationException("Email already exists: " + employee.getEmail());
+            throw new ValidationException(String.format(ErrorMessages.ALREADY_EXISTS, "Email"));
+        }
+
+        Role role = roleDAO.getById(employee.getRoleId());
+        if (role == null) {
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Vai trò"));
+        }
+        Branch branch = branchDAO.getById(employee.getBranchId());
+        if (branch == null) {
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Chi nhánh"));
         }
 
         try {
@@ -129,7 +139,7 @@ public class EmployeeService extends BaseService {
      */
     public boolean deleteEmployee(int employeeId) {
         if (employeeId <= 0) {
-            throw new ValidationException("Invalid employee ID");
+            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã nhân viên"));
         }
         try {
             return employeeDAO.softDelete(employeeId);

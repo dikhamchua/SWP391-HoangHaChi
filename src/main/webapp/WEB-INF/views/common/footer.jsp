@@ -6,9 +6,5 @@
 
     <!-- Custom JS -->
     <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
-
-    <c:if test="${not empty param.additionalJS}">
-        <script src="${pageContext.request.contextPath}/assets/js/${param.additionalJS}"></script>
-    </c:if>
 </body>
 </html>

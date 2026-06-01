@@ -7,6 +7,7 @@ import com.kiotretail.shared.constant.ViewPaths;
 import com.kiotretail.shared.util.SessionUtil;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,6 +22,7 @@ import java.util.Map;
  * Renders the sales report page with aggregated revenue, order counts,
  * revenue chart and top selling products for the selected period.
  */
+@WebServlet("/admin/reports")
 public class ReportServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;

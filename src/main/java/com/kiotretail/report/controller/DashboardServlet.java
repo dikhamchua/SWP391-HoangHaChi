@@ -7,6 +7,7 @@ import com.kiotretail.shared.constant.ViewPaths;
 import com.kiotretail.shared.util.SessionUtil;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,6 +22,7 @@ import java.util.Map;
  * Renders the admin dashboard with summary metrics, top selling products
  * and revenue chart over the last 7 days.
  */
+@WebServlet("/admin/dashboard")
 public class DashboardServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;

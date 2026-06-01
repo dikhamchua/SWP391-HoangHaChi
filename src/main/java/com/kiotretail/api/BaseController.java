@@ -1,6 +1,7 @@
 package com.kiotretail.api;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +14,7 @@ import com.kiotretail.api.action.GetProductsAction;
 import com.kiotretail.shared.constant.AppConstants;
 import com.kiotretail.shared.constant.ErrorMessages;
 
+@WebServlet("/api/*")
 public class BaseController extends HttpServlet {
 
     private final Map<String, ApiAction> routes = new HashMap<>();

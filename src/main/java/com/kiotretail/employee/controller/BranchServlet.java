@@ -50,8 +50,8 @@ public class BranchServlet extends BaseServlet {
                     break;
             }
         } catch (ServiceException ex) {
-            request.setAttribute(AppConstants.ATTR_ERROR_MESSAGE, ex.getMessage());
-            forward(request, response, ViewPaths.BRANCH_LIST);
+            request.getSession().setAttribute(AppConstants.SESSION_FLASH_ERROR, ex.getMessage());
+            redirect(request, response, ViewPaths.REDIRECT_BRANCHES);
         }
     }
 

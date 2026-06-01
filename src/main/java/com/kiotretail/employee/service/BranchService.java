@@ -78,12 +78,14 @@ public class BranchService {
         if (branchId <= 0) {
             throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã chi nhánh"));
         }
-        return branchDAO.delete(branchId);
+        // Ensure target branch exists before attempting soft delete.
+        getBranchById(branchId);
+        return branchDAO.softDelete(branchId);
     }
 
     private void validateBranch(Branch branch) {
         if (branch == null) {
-            throw new ValidationException(String.format(ErrorMessages.NOT_FOUND, "Branch"));
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Dữ liệu chi nhánh"));
         }
         if (branch.getName() == null || branch.getName().trim().isEmpty()) {
             throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Tên chi nhánh"));

@@ -78,12 +78,13 @@ public class SupplierService {
         if (supplierId <= 0) {
             throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã nhà cung cấp"));
         }
-        return supplierDAO.delete(supplierId);
+        getSupplierById(supplierId);
+        return supplierDAO.softDelete(supplierId);
     }
 
     private void validateSupplier(Supplier supplier) {
         if (supplier == null) {
-            throw new ValidationException(String.format(ErrorMessages.NOT_FOUND, "Supplier"));
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Dữ liệu nhà cung cấp"));
         }
         if (supplier.getName() == null || supplier.getName().trim().isEmpty()) {
             throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Tên nhà cung cấp"));
@@ -99,10 +100,17 @@ public class SupplierService {
             if (phone.length() > MAX_PHONE_LENGTH || !phone.matches(PHONE_REGEX)) {
                 throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Số điện thoại"));
             }
+            supplier.setPhone(phone);
         }
-        if (supplier.getEmail() != null && !supplier.getEmail().trim().isEmpty()
-                && !supplier.getEmail().trim().matches(EMAIL_REGEX)) {
-            throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Email"));
+        if (supplier.getEmail() != null && !supplier.getEmail().trim().isEmpty()) {
+            String email = supplier.getEmail().trim();
+            if (email.length() > 100) {
+                throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Email (tối đa 100 ký tự)"));
+            }
+            if (!email.matches(EMAIL_REGEX)) {
+                throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Email"));
+            }
+            supplier.setEmail(email);
         }
         if (supplier.getStatus() != null && !supplier.getStatus().isEmpty()) {
             String status = supplier.getStatus();

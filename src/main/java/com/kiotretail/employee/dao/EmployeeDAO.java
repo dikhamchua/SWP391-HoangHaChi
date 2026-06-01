@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import com.kiotretail.shared.exception.ServiceException;
 
 /**
  * DAO for Employee entity. Provides CRUD operations with role/branch joins.
@@ -33,7 +34,7 @@ public class EmployeeDAO extends BaseDAO {
         List<Employee> employees = new ArrayList<>();
         String sql = SELECT_BASE +
                 "ORDER BY e.EmployeeID " +
-                "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                "LIMIT ?, ?";
 
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -45,7 +46,7 @@ public class EmployeeDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return employees;
     }
@@ -62,7 +63,7 @@ public class EmployeeDAO extends BaseDAO {
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return 0;
     }
@@ -81,7 +82,7 @@ public class EmployeeDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return null;
     }
@@ -100,7 +101,7 @@ public class EmployeeDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return null;
     }
@@ -132,9 +133,8 @@ public class EmployeeDAO extends BaseDAO {
             }
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -154,9 +154,8 @@ public class EmployeeDAO extends BaseDAO {
             ps.setInt(7, employee.getEmployeeId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -170,9 +169,8 @@ public class EmployeeDAO extends BaseDAO {
             ps.setInt(2, employeeId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     public boolean softDelete(int employeeId) {
@@ -183,9 +181,8 @@ public class EmployeeDAO extends BaseDAO {
             ps.setInt(2, employeeId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -208,7 +205,7 @@ public class EmployeeDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return false;
     }

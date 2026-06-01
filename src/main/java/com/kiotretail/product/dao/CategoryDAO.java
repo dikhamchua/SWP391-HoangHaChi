@@ -44,7 +44,7 @@ public class CategoryDAO extends BaseDAO {
 
         sql.append(GROUP_BY);
         sql.append("ORDER BY c.CategoryID ASC ");
-        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append("LIMIT ?, ?");
 
         int offset = pagination != null ? pagination.getOffset() : 0;
         int limit = pagination != null ? pagination.getSize() : Integer.MAX_VALUE;

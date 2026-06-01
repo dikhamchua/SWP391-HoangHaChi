@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.kiotretail.shared.exception.ServiceException;
 
 /**
  * Role DAO
@@ -34,7 +35,7 @@ public class RoleDAO extends BaseDAO {
                 roles.add(extractRole(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return roles;
     }
@@ -54,7 +55,7 @@ public class RoleDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return null;
     }
@@ -77,7 +78,7 @@ public class RoleDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return null;
     }

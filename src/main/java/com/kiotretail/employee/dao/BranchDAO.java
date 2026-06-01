@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.kiotretail.shared.exception.ServiceException;
 
 /**
  * Branch DAO
@@ -36,7 +37,7 @@ public class BranchDAO extends BaseDAO {
                 branches.add(extractBranch(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return branches;
     }
@@ -46,7 +47,7 @@ public class BranchDAO extends BaseDAO {
      */
     public List<Branch> getAll(Pagination pagination) {
         List<Branch> branches = new ArrayList<>();
-        String sql = BASE_SELECT + "ORDER BY BranchID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = BASE_SELECT + "ORDER BY BranchID DESC LIMIT ?, ?";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -58,7 +59,7 @@ public class BranchDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return branches;
     }
@@ -73,7 +74,7 @@ public class BranchDAO extends BaseDAO {
         if (hasKeyword) {
             sql.append("WHERE Name LIKE ? OR Address LIKE ? OR Phone LIKE ? ");
         }
-        sql.append("ORDER BY BranchID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append("ORDER BY BranchID DESC LIMIT ?, ?");
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
@@ -92,7 +93,7 @@ public class BranchDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return branches;
     }
@@ -121,7 +122,7 @@ public class BranchDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return 0;
     }
@@ -149,7 +150,7 @@ public class BranchDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return branches;
     }
@@ -169,7 +170,7 @@ public class BranchDAO extends BaseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return null;
     }
@@ -187,9 +188,8 @@ public class BranchDAO extends BaseDAO {
             stmt.setString(4, branch.getStatus() == null ? AppConstants.STATUS_ACTIVE : branch.getStatus());
             return stmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -206,24 +206,24 @@ public class BranchDAO extends BaseDAO {
             stmt.setInt(5, branch.getBranchId());
             return stmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
-     * Hard delete by primary key.
+     * Soft delete by setting Status to inactive.
+     * Avoids FK violation when Employee rows still reference this branch.
      */
-    public boolean delete(int branchId) {
-        String sql = "DELETE FROM Branch WHERE BranchID = ?";
+    public boolean softDelete(int branchId) {
+        String sql = "UPDATE Branch SET Status = ? WHERE BranchID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, branchId);
+            stmt.setString(1, AppConstants.STATUS_INACTIVE);
+            stmt.setInt(2, branchId);
             return stmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     /**
@@ -248,9 +248,8 @@ public class BranchDAO extends BaseDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServiceException("Database error: " + e.getMessage(), e);
         }
-        return false;
     }
 
     private Branch extractBranch(ResultSet rs) throws SQLException {

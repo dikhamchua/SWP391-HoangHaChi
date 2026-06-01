@@ -113,7 +113,9 @@
             </div>
 
             <div class="kr-pagination-wrap">
-                <c:set var="baseUrl" value="${ctx}/admin/branches?keyword=${keyword}" scope="request" />
+                <c:url var="baseUrl" value="/admin/branches" scope="request">
+                    <c:param name="keyword" value="${keyword}" />
+                </c:url>
                 <jsp:include page="../common/pagination.jsp" />
             </div>
         </section>

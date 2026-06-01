@@ -1,7 +1,19 @@
 package com.kiotretail.shared.constant;
 
+import java.math.BigDecimal;
+
 public final class AppConstants {
     private AppConstants() {}
+
+    // Document Types (for ApprovalHistory.DocumentType)
+    public static final String DOC_TYPE_PURCHASE_ORDER = "PURCHASE_ORDER";
+    public static final String DOC_TYPE_STOCK_TRANSFER = "STOCK_TRANSFER";
+    public static final String DOC_TYPE_STOCK_ADJUSTMENT = "STOCK_ADJUSTMENT";
+    public static final String DOC_TYPE_INVOICE = "INVOICE";
+
+    // Approval thresholds
+    /** Total amounts at or above this require Owner approval. */
+    public static final BigDecimal OWNER_APPROVAL_THRESHOLD = new BigDecimal("50000000");
 
     // Pagination
     public static final int DEFAULT_PAGE = 1;
@@ -33,6 +45,7 @@ public final class AppConstants {
     public static final String ATTR_BRANCHES = "branches";
     public static final String ATTR_EMPLOYEE = "employee";
     public static final String ATTR_CUSTOMER = "customer";
+    public static final String ATTR_BRANCH = "branch";
     public static final String ATTR_PRODUCT = "product";
     public static final String ATTR_CATEGORIES = "categories";
     public static final String ATTR_SUPPLIERS = "suppliers";

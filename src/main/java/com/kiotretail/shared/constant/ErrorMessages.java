@@ -12,6 +12,8 @@ public final class ErrorMessages {
     public static final String SYSTEM_ERROR = "Lỗi hệ thống: %s";
 
     // Auth
+    // Generic message used for login failures to avoid leaking whether the email exists (user enumeration).
+    public static final String INVALID_CREDENTIALS = "Email hoặc mật khẩu không đúng";
     public static final String EMAIL_NOT_FOUND = "Email không tồn tại";
     public static final String WRONG_PASSWORD = "Mật khẩu không đúng";
     public static final String ACCOUNT_LOCKED = "Tài khoản đã bị khóa";
@@ -48,4 +50,17 @@ public final class ErrorMessages {
     public static final String ENTITY_CATEGORY = "nhóm hàng";
     public static final String ENTITY_ORDER = "đơn hàng";
     public static final String ENTITY_SUPPLIER = "nhà cung cấp";
+    public static final String ENTITY_BRANCH = "chi nhánh";
+    public static final String ENTITY_PURCHASE_ORDER = "phiếu nhập";
+
+    // Purchase Order workflow
+    public static final String PO_NOT_FOUND = "Phiếu nhập không tồn tại";
+    public static final String PO_INVALID_STATUS = "Trạng thái phiếu nhập không hợp lệ cho thao tác này";
+    public static final String PO_REASON_REQUIRED = "Vui lòng nhập lý do";
+    public static final String PO_CREATOR_CANNOT_APPROVE = "Người tạo phiếu không thể tự duyệt phiếu của mình";
+    public static final String PO_OWNER_REQUIRED = "Phiếu giá trị lớn cần chủ cửa hàng phê duyệt";
+    public static final String PO_NO_PERMISSION = "Bạn không có quyền thực hiện thao tác này";
+    public static final String PO_EMPTY_LINES = "Phiếu nhập phải có ít nhất 1 sản phẩm";
+    public static final String PO_RECEIVE_INVALID_QTY = "Số lượng nhận không hợp lệ";
+    public static final String PO_RECEIVE_OVER_ORDERED = "Số lượng nhận vượt quá số lượng đặt";
 }

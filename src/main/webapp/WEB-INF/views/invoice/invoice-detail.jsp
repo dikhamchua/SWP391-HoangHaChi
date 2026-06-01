@@ -29,6 +29,7 @@
                     <button type="submit" class="kr-btn" style="background:#ef4444;color:#fff;border-color:#ef4444;">Hủy đơn</button>
                 </form>
             </c:if>
+            <a href="${ctx}/admin/invoices?action=print&id=${order.orderId}" target="_blank" class="kr-btn" style="background:#10b981;color:#fff;border-color:#10b981;">In hóa đơn</a>
             <a href="${ctx}/admin/invoices" class="kr-btn">Quay lại</a>
         </div>
     </div>

@@ -45,6 +45,15 @@ public final class ViewPaths {
     public static final String INVOICE_LIST = "invoice/invoices.jsp";
     public static final String INVOICE_DETAIL = "invoice/invoice-detail.jsp";
     public static final String INVOICE_CREATE = "invoice/invoice-create.jsp";
+    public static final String INVOICE_PRINT = "invoice/invoice-print.jsp";
+
+    // Purchase views
+    public static final String PURCHASE_LIST = "purchase/purchases.jsp";
+    public static final String PURCHASE_CREATE = "purchase/purchase-create.jsp";
+    public static final String PURCHASE_EDIT = "purchase/purchase-edit.jsp";
+    public static final String PURCHASE_DETAIL = "purchase/purchase-detail.jsp";
+    public static final String PURCHASE_RECEIVE = "purchase/purchase-receive.jsp";
+    public static final String PURCHASE_PRINT = "purchase/purchase-print.jsp";
 
     // POS views
     public static final String POS_SALE = "pos/sale.jsp";
@@ -63,6 +72,7 @@ public final class ViewPaths {
     public static final String REDIRECT_BRANCHES = "/admin/branches";
     public static final String REDIRECT_SUPPLIERS = "/admin/suppliers";
     public static final String REDIRECT_INVOICES = "/admin/invoices";
+    public static final String REDIRECT_PURCHASES = "/admin/purchases";
     public static final String REDIRECT_REPORTS = "/admin/reports";
     public static final String REDIRECT_POS = "/pos/sale";
     public static final String REDIRECT_ROLE_SELECTION = "/role-selection";

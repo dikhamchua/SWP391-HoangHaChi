@@ -94,17 +94,24 @@ public class InvoiceService {
         if (order == null) {
             throw new NotFoundException("Order", orderId);
         }
+        if (!AppConstants.STATUS_PENDING.equalsIgnoreCase(order.getStatus())) {
+            throw new ValidationException("Chỉ được hủy đơn hàng ở trạng thái đang xử lý");
+        }
         return orderDAO.updateStatus(orderId, AppConstants.STATUS_CANCELLED);
     }
 
     public boolean addPayment(Payment payment) {
         if (payment == null) {
-            throw new ValidationException(String.format(ErrorMessages.NOT_FOUND, "Payment"));
+            throw new ValidationException(String.format(ErrorMessages.FIELD_REQUIRED, "Thông tin thanh toán"));
         }
 
         Order order = orderDAO.getById(payment.getOrderId());
         if (order == null) {
             throw new NotFoundException("Order", payment.getOrderId());
+        }
+
+        if (AppConstants.STATUS_CANCELLED.equalsIgnoreCase(order.getStatus())) {
+            throw new ValidationException("Đơn đã hủy không thể thanh toán");
         }
 
         if (payment.getAmount() == null || payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {

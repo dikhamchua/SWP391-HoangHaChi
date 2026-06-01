@@ -72,11 +72,19 @@ public class PageResult<T> {
         return (int) Math.ceil((double) totalItems / size);
     }
 
-    public boolean hasNext() {
+    public boolean isHasNext() {
         return page < getTotalPages();
     }
 
-    public boolean hasPrevious() {
+    public boolean hasNext() {
+        return isHasNext();
+    }
+
+    public boolean isHasPrevious() {
         return page > 1;
+    }
+
+    public boolean hasPrevious() {
+        return isHasPrevious();
     }
 }

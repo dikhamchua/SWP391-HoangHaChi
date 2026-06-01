@@ -10,6 +10,7 @@ public class CartSession {
     private Integer customerId;
     private String customerName;
     private BigDecimal discount = BigDecimal.ZERO;
+    private String paymentMethod = "cash";
 
     public void addItem(CartItem item) {
         if (item == null) {
@@ -71,6 +72,7 @@ public class CartSession {
         customerId = null;
         customerName = null;
         discount = BigDecimal.ZERO;
+        paymentMethod = "cash";
     }
 
     public int getItemCount() {
@@ -111,5 +113,13 @@ public class CartSession {
 
     public void setDiscount(BigDecimal discount) {
         this.discount = (discount == null) ? BigDecimal.ZERO : discount;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = (paymentMethod == null || paymentMethod.isEmpty()) ? "cash" : paymentMethod;
     }
 }
