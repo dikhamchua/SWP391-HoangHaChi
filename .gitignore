@@ -78,3 +78,16 @@ harness.db-wal
 harness.db-shm
 scripts/bin/harness-cli
 .gitnexus
+
+# Local secrets — NEVER commit (HRS-001)
+.env
+.env.local
+.env.*.local
+**/conf/Catalina/localhost/kiotretail.xml
+
+# Local scratch / agent artifacts
+.playwright-mcp/
+.claude/
+!.claude/skills/
+!.claude/skills/**
+_gen.js
