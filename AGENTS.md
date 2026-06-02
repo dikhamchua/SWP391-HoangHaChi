@@ -313,7 +313,7 @@ When an agent is confused, repeats manual reasoning, needs a new validation comm
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **SWP391_Group_5** (2077 symbols, 5481 relationships, 171 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **SWP391_Group_5** (3952 symbols, 11002 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
