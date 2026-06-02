@@ -3,6 +3,7 @@ package com.kiotretail.shared.util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Database Connection Utility - MySQL.
@@ -18,6 +19,8 @@ public class DatabaseUtil {
         "jdbc:mysql://localhost:3306/DBFinora"
         + "?useUnicode=true"
         + "&characterEncoding=UTF-8"
+        + "&characterSetResults=UTF-8"
+        + "&connectionCollation=utf8mb4_unicode_ci"
         + "&serverTimezone=Asia/Ho_Chi_Minh"
         + "&useSSL=false"
         + "&allowPublicKeyRetrieval=true";
@@ -41,7 +44,16 @@ public class DatabaseUtil {
 
     /** Tao connection moi moi lan goi (khong dung pool). */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(JDBC_URL, DB_USER, DB_SECRET);
+        Connection conn = DriverManager.getConnection(JDBC_URL, DB_USER, DB_SECRET);
+        // Force utf8mb4 cho session: MySQL server my.cnf default latin1, URL param
+        // characterEncoding khong tu dong gan SET NAMES nen tieng Viet bi mojibake.
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+            stmt.execute("SET character_set_client = utf8mb4");
+            stmt.execute("SET character_set_connection = utf8mb4");
+            stmt.execute("SET character_set_results = utf8mb4");
+        }
+        return conn;
     }
 
     public static void closeConnection(Connection conn) {

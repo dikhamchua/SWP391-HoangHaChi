@@ -11,6 +11,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KiotRetail - Hệ thống quản lý bán hàng</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23003399'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-size='18' font-weight='700' text-anchor='middle' fill='%23fff'%3EK%3C/text%3E%3C/svg%3E" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
@@ -55,7 +56,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="${pageContext.request.contextPath}/">
                 <span class="material-icons text-danger" style="font-size: 32px;">store</span>
                 <span class="fw-bold fs-4">KiotRetail</span>
             </a>
@@ -213,8 +214,8 @@
                     </ul>
                 </div>
                 <div class="col-md-6">
-                    <img src="https://via.placeholder.com/600x400/93000b/ffffff?text=KiotRetail+Dashboard"
-                         alt="Dashboard" class="img-fluid rounded shadow">
+                    <img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23c62828'/%3E%3Cstop offset='1' stop-color='%2393000b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='400' fill='url(%23g)'/%3E%3Ctext x='300' y='210' font-family='Manrope,Arial,sans-serif' font-size='56' font-weight='800' text-anchor='middle' fill='%23ffffff'%3EKiotRetail%3C/text%3E%3Ctext x='300' y='250' font-family='Inter,Arial,sans-serif' font-size='22' text-anchor='middle' fill='%23ffe1e1'%3EDashboard%3C/text%3E%3C/svg%3E"
+                         alt="KiotRetail Dashboard" class="img-fluid rounded shadow">
                 </div>
             </div>
         </div>
