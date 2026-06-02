@@ -109,7 +109,7 @@
                                         <span class="kr-avatar c${colorIdx}"><c:out value="${initials}" /></span>
                                     </td>
                                     <td>
-                                        <a class="kr-name-link" href="${ctx}/admin/employees?action=view&id=${emp.employeeId}">
+                                        <a class="kr-name-link" href="${ctx}/admin/employees?action=edit&id=${emp.employeeId}">
                                             <c:out value="${emp.fullName}" />
                                         </a>
                                     </td>

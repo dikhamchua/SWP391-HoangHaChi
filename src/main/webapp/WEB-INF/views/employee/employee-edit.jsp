@@ -41,37 +41,37 @@
 
                 <div style="background:#fff; border-radius:8px; border:1px solid #e8eaed; padding:24px; margin-bottom:16px;">
                     <div style="font-size:16px; font-weight:700; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e8eaed;">Thông tin tài khoản</div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                        <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 16px;">
+                        <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:13px; font-weight:600;">Họ tên <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="fullName" required maxlength="100" value="<c:out value='${employee.fullName}'/>" style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px;"/>
+                            <input type="text" name="fullName" required maxlength="100" value="<c:out value='${employee.fullName}'/>" style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; box-sizing:border-box;"/>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:13px; font-weight:600;">Email <span style="color:#ef4444;">*</span></label>
-                            <input type="email" name="email" required maxlength="100" value="<c:out value='${employee.email}'/>" style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px;"/>
+                            <input type="email" name="email" required maxlength="100" value="<c:out value='${employee.email}'/>" style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; box-sizing:border-box;"/>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:13px; font-weight:600;">Số điện thoại <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="phone" required maxlength="20" value="<c:out value='${employee.phone}'/>" style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px;"/>
+                            <input type="text" name="phone" required maxlength="20" value="<c:out value='${employee.phone}'/>" style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; box-sizing:border-box;"/>
                         </div>
                     </div>
                 </div>
 
                 <div style="background:#fff; border-radius:8px; border:1px solid #e8eaed; padding:24px; margin-bottom:16px;">
                     <div style="font-size:16px; font-weight:700; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e8eaed;">Phân quyền &amp; chi nhánh</div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                        <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 16px;">
+                        <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:13px; font-weight:600;">Vai trò <span style="color:#ef4444;">*</span></label>
-                            <select name="roleId" required style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; background:#fff;">
+                            <select name="roleId" required style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; background:#fff; box-sizing:border-box;">
                                 <option value="">-- Chọn vai trò --</option>
                                 <c:forEach var="role" items="${roles}">
                                     <option value="${role.roleId}" <c:if test="${employee.roleId == role.roleId}">selected</c:if>><c:out value="${role.name}"/></option>
                                 </c:forEach>
                             </select>
                         </div>
-                        <div style="display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; flex-direction:column; gap:8px;">
                             <label style="font-size:13px; font-weight:600;">Chi nhánh <span style="color:#ef4444;">*</span></label>
-                            <select name="branchId" required style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; background:#fff;">
+                            <select name="branchId" required style="width:100%; height:36px; padding:0 12px; border:1px solid #e8eaed; border-radius:6px; font-size:14px; background:#fff; box-sizing:border-box;">
                                 <option value="">-- Chọn chi nhánh --</option>
                                 <c:forEach var="branch" items="${branches}">
                                     <option value="${branch.branchId}" <c:if test="${employee.branchId == branch.branchId}">selected</c:if>><c:out value="${branch.name}"/></option>

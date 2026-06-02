@@ -38,9 +38,6 @@ public class EmployeeServlet extends BaseServlet {
         String action = getStringParam(request, AppConstants.PARAM_ACTION, "list");
         try {
             switch (action) {
-                case "view":
-                    handleView(request, response);
-                    break;
                 case "create":
                     handleCreate(request, response);
                     break;
@@ -99,13 +96,6 @@ public class EmployeeServlet extends BaseServlet {
         forward(request, response, ViewPaths.EMPLOYEE_LIST);
     }
 
-    private void handleView(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = getIntParam(request, AppConstants.PARAM_ID, 0);
-        Employee employee = employeeService.getEmployeeById(id);
-        request.setAttribute(AppConstants.ATTR_EMPLOYEE, employee);
-        forward(request, response, ViewPaths.EMPLOYEE_DETAIL);
-    }
 
     private void handleCreate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
