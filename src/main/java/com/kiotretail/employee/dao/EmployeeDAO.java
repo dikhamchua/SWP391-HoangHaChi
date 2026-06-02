@@ -5,6 +5,8 @@ import com.kiotretail.shared.base.Pagination;
 import com.kiotretail.shared.constant.AppConstants;
 import com.kiotretail.employee.model.Employee;
 
+import com.kiotretail.employee.dto.EmployeeFilterDTO;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -208,6 +210,71 @@ public class EmployeeDAO extends BaseDAO {
             throw new ServiceException("Database error: " + e.getMessage(), e);
         }
         return false;
+    }
+
+    public List<Employee> getEmployees(EmployeeFilterDTO filter, Pagination pagination) {
+        List<Employee> employees = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(SELECT_BASE);
+        List<Object> params = new ArrayList<>();
+        appendFilterWhere(sql, params, filter);
+        sql.append("ORDER BY e.EmployeeID DESC LIMIT ?, ?");
+        params.add(pagination.getOffset());
+        params.add(pagination.getSize());
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    employees.add(extractEmployee(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new ServiceException("Database error: " + e.getMessage(), e);
+        }
+        return employees;
+    }
+
+    public int countEmployees(EmployeeFilterDTO filter) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Employee e ");
+        sql.append("JOIN Role r ON e.RoleID = r.RoleID ");
+        sql.append("JOIN Branch b ON e.BranchID = b.BranchID ");
+        List<Object> params = new ArrayList<>();
+        appendFilterWhere(sql, params, filter);
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new ServiceException("Database error: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+
+    private void appendFilterWhere(StringBuilder sql, List<Object> params, EmployeeFilterDTO filter) {
+        sql.append("WHERE 1=1 ");
+        if (filter.getKeyword() != null && !filter.getKeyword().trim().isEmpty()) {
+            sql.append("AND (e.FullName LIKE ? OR e.Email LIKE ? OR e.Phone LIKE ?) ");
+            String kw = "%" + filter.getKeyword().trim() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+        }
+        if (filter.getRoleId() != null) {
+            sql.append("AND e.RoleID = ? ");
+            params.add(filter.getRoleId());
+        }
+        if (filter.getStatus() != null && !filter.getStatus().trim().isEmpty()) {
+            sql.append("AND e.Status = ? ");
+            params.add(filter.getStatus().trim());
+        }
     }
 
     private Employee extractEmployee(ResultSet rs) throws SQLException {

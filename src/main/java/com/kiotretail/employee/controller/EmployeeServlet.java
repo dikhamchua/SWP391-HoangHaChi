@@ -1,5 +1,6 @@
 package com.kiotretail.employee.controller;
 
+import com.kiotretail.employee.dto.EmployeeFilterDTO;
 import com.kiotretail.employee.model.Branch;
 import com.kiotretail.employee.model.Employee;
 import com.kiotretail.employee.model.Role;
@@ -86,10 +87,12 @@ public class EmployeeServlet extends BaseServlet {
         int size = Math.max(Math.min(getIntParam(request, "size", AppConstants.DEFAULT_PAGE_SIZE), AppConstants.MAX_PAGE_SIZE), 1);
         Pagination pagination = Pagination.of(page, size);
 
-        PageResult<Employee> pageResult = employeeService.listEmployees(pagination);
+        EmployeeFilterDTO filter = EmployeeFilterDTO.from(request);
+        PageResult<Employee> pageResult = employeeService.listEmployees(filter, pagination);
         List<Role> roles = employeeService.getAllRoles();
         List<Branch> branches = employeeService.getActiveBranches();
 
+        request.setAttribute("filter", filter);
         request.setAttribute(AppConstants.ATTR_PAGE_RESULT, pageResult);
         request.setAttribute(AppConstants.ATTR_ROLES, roles);
         request.setAttribute(AppConstants.ATTR_BRANCHES, branches);

@@ -143,6 +143,8 @@
         <div class="kr-pagination-wrap">
             <c:url var="baseUrl" value="/admin/employees" scope="request">
     <c:param name="keyword" value="${filter.keyword}"/>
+    <c:if test="${not empty filter.roleId}"><c:param name="roleId" value="${filter.roleId}"/></c:if>
+    <c:if test="${not empty filter.status}"><c:param name="status" value="${filter.status}"/></c:if>
 </c:url>
             <jsp:include page="../common/pagination.jsp" />
         </div>

@@ -3,6 +3,7 @@ package com.kiotretail.employee.service;
 import com.kiotretail.employee.dao.BranchDAO;
 import com.kiotretail.employee.dao.EmployeeDAO;
 import com.kiotretail.employee.dao.RoleDAO;
+import com.kiotretail.employee.dto.EmployeeFilterDTO;
 import com.kiotretail.employee.model.Branch;
 import com.kiotretail.employee.model.Employee;
 import com.kiotretail.employee.model.Role;
@@ -37,6 +38,21 @@ public class EmployeeService extends BaseService {
         }
         List<Employee> items = employeeDAO.getAll(pagination);
         int total = employeeDAO.countAll();
+        return PageResult.of(items, total, pagination);
+    }
+
+    /**
+     * Returns a filtered, paginated list of employees.
+     */
+    public PageResult<Employee> listEmployees(EmployeeFilterDTO filter, Pagination pagination) {
+        if (pagination == null) {
+            throw new IllegalArgumentException("pagination must not be null");
+        }
+        if (filter == null) {
+            filter = new EmployeeFilterDTO();
+        }
+        List<Employee> items = employeeDAO.getEmployees(filter, pagination);
+        int total = employeeDAO.countEmployees(filter);
         return PageResult.of(items, total, pagination);
     }
 
