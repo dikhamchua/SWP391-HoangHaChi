@@ -91,7 +91,8 @@ CREATE TABLE ApprovalHistory (
     HistoryID    INT AUTO_INCREMENT PRIMARY KEY,
     DocumentType VARCHAR(50)  NOT NULL,
     DocumentID   INT          NOT NULL,
-    FromStatus   VARCHAR(30)  NOT NULL,
+    -- Nullable: dong audit dau tien (action CREATE) chua co trang thai-truoc.
+    FromStatus   VARCHAR(30)  NULL,
     ToStatus     VARCHAR(30)  NOT NULL,
     Action       VARCHAR(30)  NOT NULL,
     PerformedBy  INT          NOT NULL,

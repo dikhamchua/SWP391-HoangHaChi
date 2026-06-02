@@ -1,6 +1,6 @@
 package com.kiotretail.purchase.model;
 
-import com.kiotretail.shared.constant.DocumentStatus;
+import com.kiotretail.purchase.constant.PurchaseOrderStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -15,8 +15,8 @@ import java.util.List;
  * ApprovedAt, RejectedBy, RejectedAt, RejectedReason, CancelledBy, CancelledAt,
  * CancelledReason, CompletedAt, UpdatedAt.</p>
  *
- * <p>Status uses {@link DocumentStatus} values stored as uppercase strings
- * (DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, IN_PROGRESS, RECEIVING,
+ * <p>Status uses {@link PurchaseOrderStatus} values stored as uppercase strings
+ * (DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, RECEIVING,
  * COMPLETED, CANCELLED).</p>
  *
  * <p>Joined fields: supplierName, branchName, employeeName, createdByName,
@@ -156,21 +156,20 @@ public class PurchaseOrder {
     }
 
     /**
-     * Parses the raw status string into a {@link DocumentStatus} enum.
+     * Parses the raw status string into a {@link PurchaseOrderStatus} enum.
      * Returns {@code null} when the value is missing or unknown.
      */
-    public DocumentStatus getStatusEnum() {
-        return DocumentStatus.fromString(status);
+    public PurchaseOrderStatus getStatusEnum() {
+        return PurchaseOrderStatus.fromString(status);
     }
 
     /**
      * Normalized uppercase approval status name (DRAFT, PENDING_APPROVAL, ...)
      * for the workflow UI. Returns empty string when status is missing/unknown
-     * so JSP EL comparisons stay null-safe. Legacy {@link #getStatus()} (raw
-     * lowercase lifecycle value) is left untouched.
+     * so JSP EL comparisons stay null-safe.
      */
     public String getApprovalStatus() {
-        DocumentStatus s = getStatusEnum();
+        PurchaseOrderStatus s = getStatusEnum();
         return s != null ? s.name() : "";
     }
 }

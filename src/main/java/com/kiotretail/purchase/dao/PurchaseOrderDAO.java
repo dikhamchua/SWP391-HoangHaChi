@@ -25,7 +25,7 @@ import java.util.List;
  * (supplier / branch / employee / approver names) come from a single
  * indexed source. Writes target the base table directly.</p>
  *
- * <p>Status string is stored uppercase per {@code DocumentStatus} enum.
+ * <p>Status string is stored uppercase per {@code PurchaseOrderStatus} enum.
  * Detail-line CRUD lives in {@link PurchaseOrderDetailDAO}; this class
  * keeps {@link #insertDetail}, {@link #getDetails}, {@link #recalculateTotal}
  * for backward compatibility with older callers.</p>

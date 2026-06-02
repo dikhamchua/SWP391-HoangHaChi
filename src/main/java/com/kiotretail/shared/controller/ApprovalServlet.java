@@ -317,7 +317,8 @@ public class ApprovalServlet extends BaseServlet {
             return false;
         }
         String role = resolveRole(session, actor);
-        DocumentStatus status = po.getStatusEnum();
+        String statusStr = po.getStatus() != null ? po.getStatus().trim().toUpperCase() : "";
+        DocumentStatus status = DocumentStatus.fromString(statusStr);
         int creatorId = po.getCreatedBy() != null ? po.getCreatedBy() : 0;
         BigDecimal total = po.getTotalAmount();
         return approvalService.canApprove(status, role, creatorId, actor.getEmployeeId(), total);

@@ -13,13 +13,12 @@ import com.kiotretail.shared.base.BaseServlet;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
 import com.kiotretail.shared.constant.AppConstants;
-import com.kiotretail.shared.constant.DocumentStatus;
+import com.kiotretail.purchase.constant.PurchaseOrderStatus;
+import com.kiotretail.purchase.dao.PurchaseOrderHistoryDAO;
+import com.kiotretail.purchase.model.PurchaseOrderHistory;
 import com.kiotretail.shared.constant.ErrorMessages;
 import com.kiotretail.shared.constant.ViewPaths;
-import com.kiotretail.shared.dao.ApprovalHistoryDAO;
 import com.kiotretail.shared.exception.ServiceException;
-import com.kiotretail.shared.model.ApprovalHistory;
-import com.kiotretail.shared.service.ApprovalService;
 import com.kiotretail.shared.util.SessionUtil;
 
 import jakarta.servlet.ServletException;
@@ -44,7 +43,7 @@ import java.util.Map;
  * (submit / approve / reject / cancel / receive).</p>
  *
  * <p>All POST handlers follow the PRG pattern: re-load the order from the DB,
- * re-check permission server-side via {@link ApprovalService}, invoke the
+ * re-check permission server-side via {@link PurchaseService}, invoke the
  * matching {@link PurchaseService} method, set a flash message and then
  * {@code sendRedirect} to the detail view. Legacy lower-case status actions
  * (confirm / receive / cancel-without-reason) are kept working alongside the
@@ -69,16 +68,14 @@ public class PurchaseServlet extends BaseServlet {
     private PurchaseService purchaseService;
     private SupplierDAO supplierDAO;
     private ProductService productService;
-    private ApprovalService approvalService;
-    private ApprovalHistoryDAO approvalHistoryDAO;
+    private PurchaseOrderHistoryDAO purchaseOrderHistoryDAO;
 
     @Override
     public void init() throws ServletException {
         this.purchaseService = new PurchaseService();
         this.supplierDAO = new SupplierDAO();
         this.productService = new ProductService();
-        this.approvalService = new ApprovalService();
-        this.approvalHistoryDAO = new ApprovalHistoryDAO();
+        this.purchaseOrderHistoryDAO = new PurchaseOrderHistoryDAO();
     }
 
     @Override
@@ -192,8 +189,7 @@ public class PurchaseServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         PurchaseOrder order = purchaseService.getOrderById(id);
         List<PurchaseOrderDetail> details = purchaseService.getOrderDetails(id);
-        List<ApprovalHistory> approvalHistory =
-                approvalHistoryDAO.getByDocument(AppConstants.DOC_TYPE_PURCHASE_ORDER, id);
+        List<PurchaseOrderHistory> approvalHistory = purchaseOrderHistoryDAO.getByOrderId(id);
 
         request.setAttribute(AppConstants.ATTR_ORDER, order);
         request.setAttribute(AppConstants.ATTR_ORDER_DETAILS, details);
@@ -220,7 +216,7 @@ public class PurchaseServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         PurchaseOrder order = purchaseService.getOrderById(id);
 
-        if (order.getStatusEnum() != DocumentStatus.DRAFT) {
+        if (order.getStatusEnum() != PurchaseOrderStatus.DRAFT) {
             setFlashMessage(request, ErrorMessages.PO_INVALID_STATUS, AppConstants.FLASH_DANGER);
             redirectToView(request, response, id);
             return;
@@ -244,8 +240,8 @@ public class PurchaseServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         PurchaseOrder order = purchaseService.getOrderById(id);
 
-        DocumentStatus status = order.getStatusEnum();
-        if (status != DocumentStatus.APPROVED && status != DocumentStatus.RECEIVING) {
+        PurchaseOrderStatus status = order.getStatusEnum();
+        if (status != PurchaseOrderStatus.APPROVED && status != PurchaseOrderStatus.RECEIVING) {
             setFlashMessage(request, ErrorMessages.PO_INVALID_STATUS, AppConstants.FLASH_DANGER);
             redirectToView(request, response, id);
             return;
@@ -300,7 +296,7 @@ public class PurchaseServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         try {
             PurchaseOrder existing = purchaseService.getOrderById(id);
-            if (existing.getStatusEnum() != DocumentStatus.DRAFT) {
+            if (existing.getStatusEnum() != PurchaseOrderStatus.DRAFT) {
                 setFlashMessage(request, ErrorMessages.PO_INVALID_STATUS, AppConstants.FLASH_DANGER);
                 redirectToView(request, response, id);
                 return;
@@ -328,7 +324,7 @@ public class PurchaseServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         try {
             PurchaseOrder order = purchaseService.getOrderById(id);
-            if (!approvalService.canSubmit(order.getStatusEnum())) {
+            if (order.getStatusEnum() != PurchaseOrderStatus.DRAFT) {
                 setFlashMessage(request, ErrorMessages.PO_INVALID_STATUS, AppConstants.FLASH_DANGER);
                 redirectToView(request, response, id);
                 return;
@@ -352,8 +348,7 @@ public class PurchaseServlet extends BaseServlet {
             String role = currentRole(request);
             int creatorId = order.getCreatedBy() != null ? order.getCreatedBy() : 0;
 
-            if (!approvalService.canApprove(order.getStatusEnum(), role, creatorId, userId,
-                    order.getTotalAmount())) {
+            if (order.getStatusEnum() != PurchaseOrderStatus.PENDING_APPROVAL) {
                 setFlashMessage(request, permissionMessage(order, userId, creatorId),
                         AppConstants.FLASH_DANGER);
                 redirectToView(request, response, id);
@@ -375,7 +370,7 @@ public class PurchaseServlet extends BaseServlet {
         try {
             PurchaseOrder order = purchaseService.getOrderById(id);
             String role = currentRole(request);
-            if (!approvalService.canReject(order.getStatusEnum(), role)) {
+            if (order.getStatusEnum() != PurchaseOrderStatus.PENDING_APPROVAL) {
                 setFlashMessage(request, ErrorMessages.PO_NO_PERMISSION, AppConstants.FLASH_DANGER);
                 redirectToView(request, response, id);
                 return;
@@ -402,13 +397,7 @@ public class PurchaseServlet extends BaseServlet {
             PurchaseOrder order = purchaseService.getOrderById(id);
             int userId = currentUserId(request);
             String role = currentRole(request);
-            boolean isOwner = order.getCreatedBy() != null && order.getCreatedBy() == userId;
 
-            if (!approvalService.canCancel(order.getStatusEnum(), role, isOwner)) {
-                setFlashMessage(request, ErrorMessages.PO_NO_PERMISSION, AppConstants.FLASH_DANGER);
-                redirectToView(request, response, id);
-                return;
-            }
             String reason = getStringParam(request, "reason", null);
             purchaseService.cancel(id, userId, role, reason);
             setFlashMessage(request, "Da huy phieu nhap", AppConstants.FLASH_SUCCESS);
@@ -495,7 +484,7 @@ public class PurchaseServlet extends BaseServlet {
         }
 
         po.setNote(getStringParam(request, "note", null));
-        po.setStatus(DocumentStatus.DRAFT.name());
+        po.setStatus(PurchaseOrderStatus.DRAFT.name());
         return po;
     }
 
