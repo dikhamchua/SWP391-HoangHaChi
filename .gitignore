@@ -91,3 +91,14 @@ scripts/bin/harness-cli
 !.claude/skills/
 !.claude/skills/**
 _gen.js
+
+# UI mockups / external references (not part of build)
+KIOT-Viet/
+
+# Browser session dumps & curl scratch (may contain cookies/tokens)
+cookies.txt
+*-resp.html
+response.html
+dash.html
+pend*.html
+c[0-9]*.txt
