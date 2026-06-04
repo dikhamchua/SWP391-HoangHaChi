@@ -1,6 +1,8 @@
 package com.kiotretail.product.service;
 
+import com.kiotretail.product.dao.ActivitySupplierDAO;
 import com.kiotretail.product.dao.SupplierDAO;
+import com.kiotretail.product.model.ActivitySupplier;
 import com.kiotretail.product.model.Supplier;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
@@ -20,6 +22,7 @@ public class SupplierService {
     private static final int MAX_PHONE_LENGTH = 30;
 
     private final SupplierDAO supplierDAO = new SupplierDAO();
+    private final ActivitySupplierDAO activitySupplierDAO = new ActivitySupplierDAO();
 
     public PageResult<Supplier> listSuppliers(String keyword, Pagination pagination) {
         List<Supplier> items = supplierDAO.search(keyword, pagination);
@@ -40,6 +43,10 @@ public class SupplierService {
     }
 
     public boolean createSupplier(Supplier supplier) {
+        return createSupplier(supplier, null);
+    }
+
+    public boolean createSupplier(Supplier supplier, Integer createdBy) {
         validateSupplier(supplier);
 
         String name = supplier.getName().trim();
@@ -51,10 +58,19 @@ public class SupplierService {
         if (supplier.getStatus() == null || supplier.getStatus().isEmpty()) {
             supplier.setStatus(AppConstants.STATUS_ACTIVE);
         }
-        return supplierDAO.insert(supplier);
+        boolean created = supplierDAO.insert(supplier);
+        if (created) {
+            recordActivity(supplier.getSupplierId(), AppConstants.ACTION_ADD, createdBy,
+                    "Thêm nhà cung cấp: " + supplier.getName());
+        }
+        return created;
     }
 
     public boolean updateSupplier(Supplier supplier) {
+        return updateSupplier(supplier, null);
+    }
+
+    public boolean updateSupplier(Supplier supplier, Integer createdBy) {
         if (supplier.getSupplierId() <= 0) {
             throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã nhà cung cấp"));
         }
@@ -71,15 +87,43 @@ public class SupplierService {
         if (supplier.getStatus() == null || supplier.getStatus().isEmpty()) {
             supplier.setStatus(AppConstants.STATUS_ACTIVE);
         }
-        return supplierDAO.update(supplier);
+        boolean updated = supplierDAO.update(supplier);
+        if (updated) {
+            recordActivity(supplier.getSupplierId(), AppConstants.ACTION_UPDATE, createdBy,
+                    "Cập nhật thông tin nhà cung cấp: " + supplier.getName());
+        }
+        return updated;
     }
 
     public boolean deleteSupplier(int supplierId) {
+        return deleteSupplier(supplierId, null);
+    }
+
+    public boolean deleteSupplier(int supplierId, Integer createdBy) {
         if (supplierId <= 0) {
             throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã nhà cung cấp"));
         }
-        getSupplierById(supplierId);
-        return supplierDAO.softDelete(supplierId);
+        Supplier existing = getSupplierById(supplierId);
+        boolean deleted = supplierDAO.softDelete(supplierId);
+        if (deleted) {
+            recordActivity(supplierId, AppConstants.ACTION_DELETE, createdBy,
+                    "Xóa nhà cung cấp: " + existing.getName());
+        }
+        return deleted;
+    }
+
+    public List<ActivitySupplier> getActivitiesBySupplierId(int supplierId) {
+        return activitySupplierDAO.getByFkId(supplierId);
+    }
+
+    private void recordActivity(int fkId, String type, Integer createdBy, String description) {
+        if (fkId <= 0) return;
+        ActivitySupplier activity = new ActivitySupplier();
+        activity.setFkId(fkId);
+        activity.setType(type);
+        activity.setCreatedBy(createdBy);
+        activity.setDescription(description);
+        activitySupplierDAO.insert(activity);
     }
 
     private void validateSupplier(Supplier supplier) {

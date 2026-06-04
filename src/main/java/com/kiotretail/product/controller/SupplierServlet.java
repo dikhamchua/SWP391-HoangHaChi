@@ -9,6 +9,7 @@ import com.kiotretail.shared.constant.AppConstants;
 import com.kiotretail.shared.constant.ErrorMessages;
 import com.kiotretail.shared.constant.ViewPaths;
 import com.kiotretail.shared.exception.ServiceException;
+import com.kiotretail.employee.model.Employee;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -64,20 +65,20 @@ public class SupplierServlet extends BaseServlet {
         try {
             switch (action) {
                 case AppConstants.ACTION_ADD:
-                    supplierService.createSupplier(buildSupplierFromRequest(request, false));
+                    supplierService.createSupplier(buildSupplierFromRequest(request, false), getCurrentEmployeeId(request));
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_SUPPLIER));
                     break;
                 case AppConstants.ACTION_UPDATE:
                     int updatedId = getIntParam(request, "supplierId", 0);
-                    supplierService.updateSupplier(buildSupplierFromRequest(request, true));
+                    supplierService.updateSupplier(buildSupplierFromRequest(request, true), getCurrentEmployeeId(request));
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_SUPPLIER));
                     redirect(request, response, ViewPaths.REDIRECT_SUPPLIERS + "?action=edit&id=" + updatedId);
                     return;
                 case AppConstants.ACTION_DELETE:
                     int supplierId = getIntParam(request, "supplierId", 0);
-                    supplierService.deleteSupplier(supplierId);
+                    supplierService.deleteSupplier(supplierId, getCurrentEmployeeId(request));
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_SUPPLIER));
                     break;
@@ -110,7 +111,16 @@ public class SupplierServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         Supplier supplier = supplierService.getSupplierById(id);
         request.setAttribute("supplier", supplier);
+        request.setAttribute("activities", supplierService.getActivitiesBySupplierId(id));
         forward(request, response, ViewPaths.SUPPLIER_EDIT);
+    }
+
+    private Integer getCurrentEmployeeId(HttpServletRequest request) {
+        Object employee = request.getSession().getAttribute(AppConstants.SESSION_EMPLOYEE);
+        if (employee instanceof Employee) {
+            return ((Employee) employee).getEmployeeId();
+        }
+        return null;
     }
 
     private Supplier buildSupplierFromRequest(HttpServletRequest request, boolean includeId) {

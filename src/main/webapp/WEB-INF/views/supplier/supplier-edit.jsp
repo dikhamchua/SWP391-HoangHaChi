@@ -32,8 +32,10 @@
             <style>
                 .kr-tab-radio { display:none; }
                 .kr-tab-panel { display:none; }
-                #supplier-tab-general:checked ~ .kr-tab-card .kr-tab-general { display:block; }
-                #supplier-tab-general:checked ~ .kr-tab-card label[for="supplier-tab-general"] {
+                #supplier-tab-general:checked ~ .kr-tab-card .kr-tab-general,
+                #supplier-tab-history:checked ~ .kr-tab-card .kr-tab-history { display:block; }
+                #supplier-tab-general:checked ~ .kr-tab-card label[for="supplier-tab-general"],
+                #supplier-tab-history:checked ~ .kr-tab-card label[for="supplier-tab-history"] {
                     color:#0070f4; background:#fff; border-bottom-color:#fff;
                 }
             </style>
@@ -58,10 +60,12 @@
                 </div>
 
                 <input class="kr-tab-radio" type="radio" id="supplier-tab-general" name="supplierTab" checked />
+                <input class="kr-tab-radio" type="radio" id="supplier-tab-history" name="supplierTab" />
 
                 <div class="kr-tab-card" style="background:#fff; border:1px solid #e8eaed; border-radius:10px; overflow:hidden;">
                     <div style="display:flex; align-items:flex-end; gap:8px; padding:0 24px; border-bottom:1px solid #e8eaed; background:#f8fafc;">
                         <label for="supplier-tab-general" style="font-size:15px; font-weight:700; color:#5f6368; padding:14px 18px; margin-top:12px; margin-bottom:-1px; background:#f8fafc; border:1px solid #e8eaed; border-radius:8px 8px 0 0; cursor:pointer;">Thông tin chung</label>
+                        <label for="supplier-tab-history" style="font-size:15px; font-weight:700; color:#5f6368; padding:14px 18px; margin-top:12px; margin-bottom:-1px; background:#f8fafc; border:1px solid #e8eaed; border-radius:8px 8px 0 0; cursor:pointer;">Lịch sử hoạt động</label>
                     </div>
                     <div class="kr-tab-panel kr-tab-general" style="padding:24px;">
                         <div style="display:flex; flex-direction:column; gap:24px;">
@@ -113,6 +117,26 @@
                                 </div>
                             </section>
                         </div>
+                    </div>
+                    <div class="kr-tab-panel kr-tab-history" style="padding:24px;">
+                        <c:choose>
+                            <c:when test="${empty activities}">
+                                <div style="padding:24px; border:1px dashed #dfe3e8; border-radius:10px; color:#5f6368; text-align:center; background:#f8fafc;">Chưa có lịch sử hoạt động</div>
+                            </c:when>
+                            <c:otherwise>
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <c:forEach var="activity" items="${activities}">
+                                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:14px 16px; border:1px solid #e8eaed; border-radius:10px; background:#fff;">
+                                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                                <div style="font-size:14px; font-weight:700; color:#15171a;"><c:out value="${activity.description}" /></div>
+                                                <div style="font-size:12px; color:#5f6368;">Người thực hiện: <c:out value="${activity.createdBy}" default="Hệ thống" /></div>
+                                            </div>
+                                            <span style="font-size:12px; color:#0070f4; background:#e8f1ff; border-radius:999px; padding:5px 10px; text-transform:uppercase; white-space:nowrap;"><c:out value="${activity.type}" /></span>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </form>
