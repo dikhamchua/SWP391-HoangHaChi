@@ -74,7 +74,7 @@
                                 <c:forEach var="branch" items="${pageResult.items}">
                                     <tr>
                                         <td>
-                                            <a class="kr-code-link" href="${ctx}/admin/branches?action=view&id=${branch.branchId}">
+                                            <a class="kr-code-link" href="${ctx}/admin/branches?action=edit&id=${branch.branchId}">
                                                 CN<fmt:formatNumber value="${branch.branchId}" pattern="00000" />
                                             </a>
                                         </td>

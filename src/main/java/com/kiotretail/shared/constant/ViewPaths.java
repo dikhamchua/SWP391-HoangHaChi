@@ -33,7 +33,6 @@ public final class ViewPaths {
     public static final String BRANCH_LIST = "branch/branches.jsp";
     public static final String BRANCH_CREATE = "branch/branch-create.jsp";
     public static final String BRANCH_EDIT = "branch/branch-edit.jsp";
-    public static final String BRANCH_DETAIL = "branch/branch-detail.jsp";
 
     // Supplier views
     public static final String SUPPLIER_LIST = "supplier/suppliers.jsp";

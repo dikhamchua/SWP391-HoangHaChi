@@ -1,6 +1,7 @@
 package com.kiotretail.employee.controller;
 
 import com.kiotretail.employee.model.Branch;
+import com.kiotretail.employee.model.Employee;
 import com.kiotretail.employee.service.BranchService;
 import com.kiotretail.shared.base.BaseServlet;
 import com.kiotretail.shared.base.PageResult;
@@ -36,8 +37,10 @@ public class BranchServlet extends BaseServlet {
         try {
             switch (action) {
                 case "view":
-                    handleView(request, response);
-                    break;
+                    // Redirect thẳng sang trang edit, không dùng trang detail nữa
+                    int viewId = getIntParam(request, AppConstants.PARAM_ID, 0);
+                    redirect(request, response, ViewPaths.REDIRECT_BRANCHES + "?action=edit&id=" + viewId);
+                    return;
                 case "create":
                     forward(request, response, ViewPaths.BRANCH_CREATE);
                     break;
@@ -59,21 +62,21 @@ public class BranchServlet extends BaseServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = getStringParam(request, AppConstants.PARAM_ACTION, "");
+        String redirectUrl = ViewPaths.REDIRECT_BRANCHES;
         try {
             switch (action) {
                 case AppConstants.ACTION_ADD:
-                    branchService.createBranch(buildBranchFromRequest(request, false));
+                    branchService.createBranch(buildBranchFromRequest(request, false), getCurrentEmployeeId(request));
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_BRANCH));
                     break;
                 case AppConstants.ACTION_UPDATE:
-                    branchService.updateBranch(buildBranchFromRequest(request, true));
-                    request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
-                            String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_BRANCH));
+                    int updatedBranchId = handleUpdate(request);
+                    redirectUrl = ViewPaths.REDIRECT_BRANCHES + "?action=edit&id=" + updatedBranchId;
                     break;
                 case AppConstants.ACTION_DELETE:
                     int branchId = getIntParam(request, "branchId", 0);
-                    branchService.deleteBranch(branchId);
+                    branchService.deleteBranch(branchId, getCurrentEmployeeId(request));
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_BRANCH));
                     break;
@@ -84,7 +87,7 @@ public class BranchServlet extends BaseServlet {
         } catch (ServiceException ex) {
             request.getSession().setAttribute(AppConstants.SESSION_FLASH_ERROR, ex.getMessage());
         }
-        redirect(request, response, ViewPaths.REDIRECT_BRANCHES);
+        redirect(request, response, redirectUrl);
     }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
@@ -101,20 +104,29 @@ public class BranchServlet extends BaseServlet {
         forward(request, response, ViewPaths.BRANCH_LIST);
     }
 
-    private void handleView(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = getIntParam(request, AppConstants.PARAM_ID, 0);
-        Branch branch = branchService.getBranchById(id);
-        request.setAttribute(AppConstants.ATTR_BRANCH, branch);
-        forward(request, response, ViewPaths.BRANCH_DETAIL);
-    }
-
     private void handleEdit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         Branch branch = branchService.getBranchById(id);
         request.setAttribute(AppConstants.ATTR_BRANCH, branch);
+        request.setAttribute("activities", branchService.getActivitiesByBranchId(id));
         forward(request, response, ViewPaths.BRANCH_EDIT);
+    }
+
+    private int handleUpdate(HttpServletRequest request) {
+        Branch branch = buildBranchFromRequest(request, true);
+        branchService.updateBranch(branch, getCurrentEmployeeId(request));
+        request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
+                String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_BRANCH));
+        return branch.getBranchId();
+    }
+
+    private Integer getCurrentEmployeeId(HttpServletRequest request) {
+        Object employee = request.getSession().getAttribute(AppConstants.SESSION_EMPLOYEE);
+        if (employee instanceof Employee) {
+            return ((Employee) employee).getEmployeeId();
+        }
+        return null;
     }
 
     private Branch buildBranchFromRequest(HttpServletRequest request, boolean includeId) {
