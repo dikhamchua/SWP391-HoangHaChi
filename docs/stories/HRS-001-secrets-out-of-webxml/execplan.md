@@ -24,7 +24,7 @@
 
 - [ ] Update `apache-tomcat-10.1.17/conf/Catalina/localhost/kiotretail.xml` thêm `<Resource>`
 - [ ] Verify env DB_USER + DB_PASSWORD set khi start Tomcat
-- [ ] Smoke test login + product list trên port 9999
+- [ ] Smoke test login + product list trên port 9996
 
 ## Phase 5: Dev experience + CI (0.5 day)
 

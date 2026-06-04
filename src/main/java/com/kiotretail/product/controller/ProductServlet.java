@@ -1,5 +1,6 @@
 package com.kiotretail.product.controller;
 
+import com.kiotretail.employee.model.Employee;
 import com.kiotretail.product.dto.ProductFilterDTO;
 import com.kiotretail.product.model.Category;
 import com.kiotretail.product.model.Product;
@@ -144,6 +145,7 @@ public class ProductServlet extends BaseServlet {
 
         request.setAttribute(AppConstants.ATTR_PRODUCT, product);
         request.setAttribute(AppConstants.ATTR_CATEGORIES, categories);
+        request.setAttribute("activities", productService.getActivitiesByProductId(id));
         forward(request, response, ViewPaths.PRODUCT_EDIT);
     }
 
@@ -156,7 +158,7 @@ public class ProductServlet extends BaseServlet {
 
         try {
             Product product = buildProductFromRequest(request, false);
-            productService.createProduct(product);
+            productService.createProduct(product, getCurrentEmployeeId(request));
             setFlashMessage(request, String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_PRODUCT), AppConstants.FLASH_SUCCESS);
             redirect(request, response, ViewPaths.REDIRECT_PRODUCTS);
         } catch (ValidationException ex) {
@@ -177,9 +179,9 @@ public class ProductServlet extends BaseServlet {
         int productId = getIntParam(request, "productId", 0);
         try {
             Product product = buildProductFromRequest(request, true);
-            productService.updateProduct(product);
+            productService.updateProduct(product, getCurrentEmployeeId(request));
             setFlashMessage(request, String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_PRODUCT), AppConstants.FLASH_SUCCESS);
-            redirect(request, response, ViewPaths.REDIRECT_PRODUCTS);
+            redirect(request, response, ViewPaths.REDIRECT_PRODUCTS + "?action=edit&id=" + productId);
         } catch (ValidationException ex) {
             setFlashMessage(request, formatValidationMessage(ex), AppConstants.FLASH_DANGER);
             redirect(request, response, ViewPaths.REDIRECT_PRODUCTS + "?action=edit&id=" + productId);
@@ -197,7 +199,7 @@ public class ProductServlet extends BaseServlet {
 
         try {
             int productId = getIntParam(request, "productId", 0);
-            productService.deleteProduct(productId);
+            productService.deleteProduct(productId, getCurrentEmployeeId(request));
             setFlashMessage(request, String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_PRODUCT), AppConstants.FLASH_SUCCESS);
         } catch (ServiceException ex) {
             setFlashMessage(request, ex.getMessage(), AppConstants.FLASH_DANGER);
@@ -270,5 +272,13 @@ public class ProductServlet extends BaseServlet {
     private void setFlashMessage(HttpServletRequest request, String message, String type) {
         request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE, message);
         request.getSession().setAttribute(AppConstants.SESSION_FLASH_TYPE, type);
+    }
+
+    private Integer getCurrentEmployeeId(HttpServletRequest request) {
+        Object employee = request.getSession().getAttribute(AppConstants.SESSION_EMPLOYEE);
+        if (employee instanceof Employee) {
+            return ((Employee) employee).getEmployeeId();
+        }
+        return null;
     }
 }

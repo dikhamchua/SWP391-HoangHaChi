@@ -16,7 +16,7 @@
 mvn test                                  # Quick check (compile + unit tests)
 mvn clean package                         # Full package (servlet/JSP/web.xml changes)
 mvn clean package -DskipTests             # Skip tests only when explicitly told
-mvn cargo:run -Dcargo.servlet.port=9999   # Run on Tomcat -> http://localhost:9999/kiotretail
+mvn cargo:run -Dcargo.servlet.port=9996   # Run on Tomcat -> http://localhost:9996/kiotretail
 ```
 
 A task is NOT done until `mvn test` (or `mvn clean package` for web changes) was run with proof.

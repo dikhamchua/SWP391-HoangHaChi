@@ -25,7 +25,7 @@ Admin/Owner có thể list/create/edit/soft-delete chi nhánh tại `/admin/bran
 - POST `?action=delete` SOFT delete (Status=inactive) — tránh FK violation Employee.BranchID
 - Tên branch unique (case-sensitive), check qua `existsByName(name, excludeId)`
 - Navbar có link "Chi nhánh"
-- Verify trên http://localhost:9999/kiotretail/admin/branches
+- Verify trên http://localhost:9996/kiotretail/admin/branches
 
 ## Design Notes
 
@@ -40,7 +40,7 @@ Admin/Owner có thể list/create/edit/soft-delete chi nhánh tại `/admin/bran
 | Layer | Expected proof |
 | --- | --- |
 | Unit | BranchServiceTest: 6 test cases validate-only (Pending mvn test execution) |
-| Integration | Compile passes (javac exit 0); deployed WAR đã reload Tomcat :9999 |
+| Integration | Compile passes (javac exit 0); deployed WAR đã reload Tomcat :9996 |
 | E2E | Playwright: GET /admin/branches sau login owner@retail.com → list 2 branches OK |
 | Platform | Servlet mapping `/admin/branches` resolve qua AuthFilter |
 | Release | Đã deploy lên Tomcat exploded webapp tại `target/kiotretail` |

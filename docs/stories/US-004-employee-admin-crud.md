@@ -42,7 +42,7 @@ Owner/Admin có thể list/create/edit/soft-delete nhân viên tại `/admin/emp
 | Integration | Compile passes |
 | E2E | Playwright: GET /admin/employees sau login owner → 200 OK |
 | Platform | Servlet mapping resolve, BCrypt password hash hoạt động trong AuthService |
-| Release | Deployed Tomcat :9999 |
+| Release | Deployed Tomcat :9996 |
 
 ## Harness Delta
 

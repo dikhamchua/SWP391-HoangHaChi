@@ -99,17 +99,17 @@ public class ReportDAO extends BaseDAO {
     public List<Map<String, Object>> getTopProducts(int limit, String dateFrom, String dateTo) {
         List<Map<String, Object>> results = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-                "SELECT TOP(?) p.Name AS name, SUM(od.Quantity) AS totalQty, "
+                "SELECT p.Name AS name, SUM(od.Quantity) AS totalQty, "
                         + "SUM(od.Subtotal) AS totalRevenue "
                         + "FROM OrderDetail od "
                         + "JOIN Product p ON od.ProductID = p.ProductID "
                         + "JOIN Orders o ON od.OrderID = o.OrderID "
                         + "WHERE o.Status = ?");
         List<Object> params = new ArrayList<>();
-        params.add(limit);
         params.add(AppConstants.STATUS_COMPLETED);
         appendDateRange(sql, params, "o.CreatedAt", dateFrom, dateTo);
-        sql.append(" GROUP BY p.Name ORDER BY totalRevenue DESC");
+        sql.append(" GROUP BY p.Name ORDER BY totalRevenue DESC LIMIT ?");
+        params.add(limit);
 
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {

@@ -1,11 +1,14 @@
 package com.kiotretail.product.service;
 
+import com.kiotretail.product.dao.ActivityProductDAO;
 import com.kiotretail.product.dao.CategoryDAO;
 import com.kiotretail.product.dao.ProductDAO;
 import com.kiotretail.product.dto.ProductFilterDTO;
+import com.kiotretail.product.model.ActivityProduct;
 import com.kiotretail.product.model.Product;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
+import com.kiotretail.shared.constant.AppConstants;
 import com.kiotretail.shared.exception.NotFoundException;
 import com.kiotretail.shared.exception.ValidationException;
 
@@ -22,6 +25,7 @@ public class ProductService {
 
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
+    private final ActivityProductDAO activityProductDAO = new ActivityProductDAO();
 
     /**
      * List products with filter + pagination, wrapped as PageResult.
@@ -58,6 +62,10 @@ public class ProductService {
      * Validate, ensure SKU uniqueness and category existence, then insert.
      */
     public boolean createProduct(Product product) {
+        return createProduct(product, null);
+    }
+
+    public boolean createProduct(Product product, Integer createdBy) {
         validateProduct(product);
 
         Product existingBySku = productDAO.getBySku(product.getSku());
@@ -77,13 +85,22 @@ public class ProductService {
             product.setStatus(Product.STATUS_ACTIVE);
         }
 
-        return productDAO.insert(product);
+        boolean created = productDAO.insert(product);
+        if (created) {
+            recordActivity(product.getProductId(), AppConstants.ACTION_ADD, createdBy,
+                    "Them hang hoa: " + product.getProductName());
+        }
+        return created;
     }
 
     /**
      * Validate, ensure SKU uniqueness (excluding self) and category existence, then update.
      */
     public boolean updateProduct(Product product) {
+        return updateProduct(product, null);
+    }
+
+    public boolean updateProduct(Product product, Integer createdBy) {
         validateProduct(product);
 
         Product existingBySku = productDAO.getBySku(product.getSku());
@@ -99,14 +116,29 @@ public class ProductService {
             throw new ValidationException(errors);
         }
 
-        return productDAO.update(product);
+        boolean updated = productDAO.update(product);
+        if (updated) {
+            recordActivity(product.getProductId(), AppConstants.ACTION_UPDATE, createdBy,
+                    "Cap nhat hang hoa: " + product.getProductName());
+        }
+        return updated;
     }
 
     /**
      * Soft-delete (status flipped to inactive) a product.
      */
     public boolean deleteProduct(int productId) {
-        return productDAO.softDelete(productId);
+        return deleteProduct(productId, null);
+    }
+
+    public boolean deleteProduct(int productId, Integer createdBy) {
+        Product existing = getProductById(productId);
+        boolean deleted = productDAO.softDelete(productId);
+        if (deleted) {
+            recordActivity(productId, AppConstants.ACTION_DELETE, createdBy,
+                    "Xoa hang hoa: " + existing.getProductName());
+        }
+        return deleted;
     }
 
     /**
@@ -116,9 +148,26 @@ public class ProductService {
         return productDAO.searchByKeyword(keyword, limit);
     }
 
+    /**
+     * Get activity history for a product.
+     */
+    public List<ActivityProduct> getActivitiesByProductId(int productId) {
+        return activityProductDAO.getByFkId(productId);
+    }
+
     // ---------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------
+
+    private void recordActivity(int fkId, String type, Integer createdBy, String description) {
+        if (fkId <= 0) return;
+        ActivityProduct activity = new ActivityProduct();
+        activity.setFkId(fkId);
+        activity.setType(type);
+        activity.setCreatedBy(createdBy);
+        activity.setDescription(description);
+        activityProductDAO.insert(activity);
+    }
 
     private void validateProduct(Product product) {
         Map<String, String> errors = new HashMap<>();

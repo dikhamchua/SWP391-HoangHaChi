@@ -43,7 +43,7 @@ Manager/Warehouse có thể list/create/edit/soft-delete nhà cung cấp tại `
 | Integration | `mvn test` BUILD SUCCESS (6/6 PASS, 2026-06-01) |
 | E2E | Playwright 2026-06-01: list 3 rows OK, XSS payload escaped, view 999999 redirect + toast danger |
 | Platform | Servlet mapping `/admin/suppliers` resolve qua AuthFilter |
-| Release | Deployed Tomcat :9999 (touched web.xml hot-reload) |
+| Release | Deployed Tomcat :9996 (touched web.xml hot-reload) |
 
 ## Harness Delta
 

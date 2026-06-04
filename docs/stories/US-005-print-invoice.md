@@ -45,7 +45,7 @@ Sales staff / Store Manager có thể in hóa đơn từ trang invoice-detail. H
 | Integration | `mvn test` BUILD SUCCESS (6/6, 2026-06-01) |
 | E2E | Playwright 2026-06-01: list page XSS-safe filter PASS, list loads PASS; print render + ĐÃ HỦY badge SKIP do DB không có order data (template source verified) |
 | Platform | Servlet mapping `/admin/invoices` resolve qua AuthFilter |
-| Release | Deployed Tomcat :9999 |
+| Release | Deployed Tomcat :9996 |
 
 ## Harness Delta
 

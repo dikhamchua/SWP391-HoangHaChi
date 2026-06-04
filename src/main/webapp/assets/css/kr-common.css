@@ -271,3 +271,7 @@ input[type="checkbox"] { accent-color: #0070f4; width: 14px; height: 14px; curso
 @keyframes kr-xline1 { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
 @keyframes kr-xline2 { from { transform:scale(0) rotate(90deg); opacity:0; } to { transform:scale(1) rotate(90deg); opacity:1; } }
 @keyframes kr-rotate { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+/* === Navbar approval badge === */
+.nav-tab .ap-nav-badge { display:inline-flex; align-items:center; justify-content:center; background:#dc2626; color:#fff; font-size:11px; font-weight:700; min-width:18px; height:18px; padding:0 5px; border-radius:9px; margin-left:6px; line-height:1; }
+.nav-tab.active .ap-nav-badge { background:#fff; color:#003399; }
