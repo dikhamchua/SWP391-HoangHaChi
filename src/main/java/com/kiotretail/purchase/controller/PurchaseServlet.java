@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -100,6 +101,9 @@ public class PurchaseServlet extends BaseServlet {
                     break;
                 case "print":
                     handlePrint(request, response);
+                    break;
+                case "history":
+                    handleHistory(request, response);
                     break;
                 case "list":
                 default:
@@ -194,6 +198,7 @@ public class PurchaseServlet extends BaseServlet {
         request.setAttribute(AppConstants.ATTR_ORDER, order);
         request.setAttribute(AppConstants.ATTR_ORDER_DETAILS, details);
         request.setAttribute("approvalHistory", approvalHistory);
+        request.setAttribute("activities", purchaseService.getActivitiesByOrderId(id));
         request.setAttribute(ATTR_OWNER_THRESHOLD, AppConstants.OWNER_APPROVAL_THRESHOLD);
 
         forward(request, response, VIEW_DETAIL);
@@ -265,6 +270,58 @@ public class PurchaseServlet extends BaseServlet {
         request.setAttribute(AppConstants.ATTR_ORDER_DETAILS, details);
 
         forward(request, response, VIEW_PRINT);
+    }
+
+    private void handleHistory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        Pagination pagination = buildPagination(request);
+
+        String actionFilter = getStringParam(request, "historyAction", "");
+        String performedByStr = getStringParam(request, "performedBy", "");
+        String fromDate = getStringParam(request, "fromDate", "");
+        String toDate = getStringParam(request, "toDate", "");
+
+        Integer performedBy = parseIntOrNull(performedByStr);
+        LocalDate from = parseDateOrNull(fromDate);
+        LocalDate to = parseDateOrNull(toDate);
+        String actionParam = actionFilter.isEmpty() ? null : actionFilter;
+
+        List<PurchaseOrderHistory> items = purchaseOrderHistoryDAO.getHistoryFiltered(
+                actionParam, performedBy, from, to, pagination);
+        int total = purchaseOrderHistoryDAO.countHistoryFiltered(
+                actionParam, performedBy, from, to);
+
+        PageResult<PurchaseOrderHistory> pageResult =
+                new PageResult<>(items, total, pagination.getPage(), pagination.getSize());
+
+        request.setAttribute(AppConstants.ATTR_PAGE_RESULT, pageResult);
+        request.setAttribute("stats", purchaseOrderHistoryDAO.countByAction());
+        request.setAttribute("historyAction", actionFilter);
+        request.setAttribute("performedBy", performedByStr);
+        request.setAttribute("fromDate", fromDate);
+        request.setAttribute("toDate", toDate);
+
+        forward(request, response, "purchase/purchase-history.jsp");
+    }
+
+    private Pagination buildPagination(HttpServletRequest request) {
+        int page = Math.max(getIntParam(request, AppConstants.PARAM_PAGE, AppConstants.DEFAULT_PAGE), 1);
+        int size = getIntParam(request, "size", AppConstants.DEFAULT_PAGE_SIZE);
+        size = Math.max(Math.min(size, AppConstants.MAX_PAGE_SIZE), AppConstants.MIN_PAGE_SIZE);
+        return Pagination.of(page, size);
+    }
+
+    private Integer parseIntOrNull(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return null;
+        try { return Integer.valueOf(raw.trim()); }
+        catch (NumberFormatException ex) { return null; }
+    }
+
+    private LocalDate parseDateOrNull(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return null;
+        try { return LocalDate.parse(raw.trim()); }
+        catch (RuntimeException ex) { return null; }
     }
 
     // -----------------------------------------------------------------------

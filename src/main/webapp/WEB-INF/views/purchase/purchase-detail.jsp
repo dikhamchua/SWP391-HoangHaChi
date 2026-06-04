@@ -208,6 +208,24 @@
 
         <section class="kr-content" style="padding:24px;">
 
+            <!-- Tab navigation -->
+            <div style="display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-bottom:20px;">
+                <button type="button" class="pd-tab active" onclick="pdSwitchTab('info')" id="pd-tab-info"
+                        style="padding:10px 20px;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;color:#003399;border-bottom:2px solid #003399;margin-bottom:-2px;">
+                    Thong tin chung
+                </button>
+                <button type="button" class="pd-tab" onclick="pdSwitchTab('history')" id="pd-tab-history"
+                        style="padding:10px 20px;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;color:#6b7280;border-bottom:2px solid transparent;margin-bottom:-2px;">
+                    Lich su hoat dong
+                    <c:if test="${not empty activities}">
+                        <span style="background:#e0e7ff;color:#003399;font-size:11px;padding:2px 6px;border-radius:10px;margin-left:4px;">${activities.size()}</span>
+                    </c:if>
+                </button>
+            </div>
+
+            <!-- Tab 1: Thong tin chung -->
+            <div id="pd-panel-info">
+
             <!-- Order info card -->
             <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin-bottom:20px;">
                 <h3 style="margin:0 0 16px;font-size:16px;font-weight:600;color:#111827;">Thong tin phieu</h3>
@@ -337,49 +355,41 @@
                 </table>
             </div>
 
-            <%-- 3.2/3.3 Approval timeline (degrades gracefully when approvalHistory absent) --%>
-            <c:if test="${not empty approvalHistory}">
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin-bottom:20px;">
-                    <h3 style="margin:0 0 16px;font-size:16px;font-weight:600;color:#111827;">Lich su phe duyet</h3>
-                    <ul class="pd-timeline">
-                        <c:forEach var="h" items="${approvalHistory}">
-                            <li class="pd-timeline-item">
-                                <span class="pd-timeline-dot
+            <%-- 3.2/3.3 Approval timeline (Tab 2: Lich su hoat dong) --%>
+            </div><!-- end pd-panel-info -->
+
+            <div id="pd-panel-history" style="display:none;">
+            <c:choose>
+                <c:when test="${empty activities}">
+                    <div style="padding:40px 20px;text-align:center;color:#6b7280;">
+                        <div style="font-size:15px;font-weight:600;color:#4b5563;margin-bottom:4px;">Chua co lich su hoat dong</div>
+                        <p>Phieu nay chua co thao tac nao duoc ghi nhan.</p>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;">
+                        <c:forEach var="activity" items="${activities}">
+                            <div style="padding:12px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:flex-start;gap:12px;">
+                                <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;
                                     <c:choose>
-                                        <c:when test='${h.action == "APPROVE"}'>approve</c:when>
-                                        <c:when test='${h.action == "REJECT"}'>reject</c:when>
-                                        <c:when test='${h.action == "CANCEL"}'>cancel</c:when>
+                                        <c:when test="${activity.type == 'add'}">background:#dcfce7;color:#15803d;</c:when>
+                                        <c:when test="${activity.type == 'update'}">background:#e0e7ff;color:#003399;</c:when>
+                                        <c:when test="${activity.type == 'delete'}">background:#fee2e2;color:#991b1b;</c:when>
+                                        <c:otherwise>background:#f1f3f4;color:#4b5563;</c:otherwise>
                                     </c:choose>
-                                "></span>
-                                <div class="pd-timeline-action">
-                                    <c:choose>
-                                        <c:when test="${h.action == 'CREATE'}">Tao phieu</c:when>
-                                        <c:when test="${h.action == 'SUBMIT'}">Gui duyet</c:when>
-                                        <c:when test="${h.action == 'APPROVE'}">Phe duyet</c:when>
-                                        <c:when test="${h.action == 'REJECT'}">Tu choi</c:when>
-                                        <c:when test="${h.action == 'CANCEL'}">Huy phieu</c:when>
-                                        <c:when test="${h.action == 'COMPLETE'}">Hoan tat</c:when>
-                                        <c:when test="${h.action == 'RECEIVE'}">Nhap kho</c:when>
-                                        <c:otherwise><c:out value="${h.action}" /></c:otherwise>
-                                    </c:choose>
-                                    <c:if test="${not empty h.performedByName}">
-                                        &middot; <c:out value="${h.performedByName}" />
-                                    </c:if>
+                                "><c:out value="${activity.type}" /></span>
+                                <div style="flex:1;">
+                                    <div style="font-size:14px;color:#111827;"><c:out value="${activity.description}" /></div>
+                                    <div style="font-size:12px;color:#6b7280;margin-top:2px;">
+                                        Người thực hiện: <c:out value="${activity.createdByName}" default="Hệ thống" />
+                                    </div>
                                 </div>
-                                <div class="pd-timeline-meta">
-                                    <fmt:formatDate value="${h.createdAt}" pattern="dd/MM/yyyy HH:mm" />
-                                    <c:if test="${not empty h.fromStatus}">
-                                        &middot; <c:out value="${h.fromStatus}" /> &rarr; <c:out value="${h.toStatus}" />
-                                    </c:if>
-                                </div>
-                                <c:if test="${not empty h.reason}">
-                                    <div class="pd-timeline-reason"><c:out value="${h.reason}" /></div>
-                                </c:if>
-                            </li>
+                            </div>
                         </c:forEach>
-                    </ul>
-                </div>
-            </c:if>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+            </div><!-- end pd-panel-history -->
 
         </section>
     </div>
@@ -463,6 +473,15 @@
             for (var i = 0; i < open.length; i++) { open[i].classList.remove('open'); }
         }
     });
+    // Tab switching
+    function pdSwitchTab(tab) {
+        document.getElementById('pd-panel-info').style.display = (tab === 'info') ? '' : 'none';
+        document.getElementById('pd-panel-history').style.display = (tab === 'history') ? '' : 'none';
+        document.getElementById('pd-tab-info').style.color = (tab === 'info') ? '#003399' : '#6b7280';
+        document.getElementById('pd-tab-info').style.borderBottomColor = (tab === 'info') ? '#003399' : 'transparent';
+        document.getElementById('pd-tab-history').style.color = (tab === 'history') ? '#003399' : '#6b7280';
+        document.getElementById('pd-tab-history').style.borderBottomColor = (tab === 'history') ? '#003399' : 'transparent';
+    }
 </script>
 
 <jsp:include page="../common/footer.jsp" />

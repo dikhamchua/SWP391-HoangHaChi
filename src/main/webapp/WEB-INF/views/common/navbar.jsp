@@ -1,19 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<c:set var="canApprove" value="${sessionScope.user.role == 'Owner' or sessionScope.user.role == 'StoreManager' or sessionScope.userRole == 'Owner' or sessionScope.userRole == 'StoreManager'}" />
+<c:set var="canApprove" value="${sessionScope.roleName == 'Owner' or sessionScope.roleName == 'StoreManager'}" />
 <c:set var="pendingApprovalCount" value="${sessionScope.pendingApprovalCount != null ? sessionScope.pendingApprovalCount : 0}" />
-
-<style>
-    .nav-tab .ap-nav-badge {
-        display: inline-flex; align-items: center; justify-content: center;
-        background: #dc2626; color: #fff;
-        font-size: 11px; font-weight: 700;
-        min-width: 18px; height: 18px; padding: 0 5px;
-        border-radius: 9px; margin-left: 6px; line-height: 1;
-    }
-    .nav-tab.active .ap-nav-badge { background: #fff; color: #003399; }
-</style>
 
 <nav class="kr-navbar">
     <ul class="nav-tabs">
@@ -24,9 +13,10 @@
         <li><a href="${pageContext.request.contextPath}/admin/employees" class="nav-tab <c:if test='${activeTab == "employees"}'>active</c:if>">Nhân viên</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/branches" class="nav-tab <c:if test='${activeTab == "branches"}'>active</c:if>">Chi nhánh</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/suppliers" class="nav-tab <c:if test='${activeTab == "suppliers"}'>active</c:if>">Nhà cung cấp</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/purchases" class="nav-tab <c:if test='${activeTab == "purchases"}'>active</c:if>">Nhập hàng</a></li>
         <c:if test="${canApprove}">
             <li>
-                <a href="${pageContext.request.contextPath}/admin/approvals?action=pending" class="nav-tab <c:if test='${activeTab == "approvals"}'>active</c:if>">
+                <a href="${pageContext.request.contextPath}/admin/purchases?approvalStatus=PENDING_APPROVAL" class="nav-tab <c:if test='${activeTab == "approvals"}'>active</c:if>">
                     Phê duyệt
                     <c:if test="${pendingApprovalCount > 0}">
                         <span class="ap-nav-badge" title="${pendingApprovalCount} phiếu đang chờ duyệt">${pendingApprovalCount}</span>

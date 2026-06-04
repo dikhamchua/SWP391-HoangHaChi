@@ -124,9 +124,9 @@ public class ApprovalServlet extends BaseServlet {
 
         List<PendingApprovalItem> items;
         int total;
-        // The pending queue only contains purchase orders today. When a caller
-        // narrows to another document type there is nothing to show.
-        if (!documentType.isEmpty() && !AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(documentType)) {
+        // PO is now handled by PurchaseServlet. This queue only serves
+        // Inventory document types (STOCK_TRANSFER, STOCK_ADJUSTMENT).
+        if (documentType.isEmpty() || AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(documentType)) {
             items = Collections.emptyList();
             total = 0;
         } else {
@@ -168,7 +168,17 @@ public class ApprovalServlet extends BaseServlet {
         String type = getStringParam(request, "type", AppConstants.DOC_TYPE_PURCHASE_ORDER);
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
 
-        if (!AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(type) || id <= 0) {
+        // PO is now handled by PurchaseServlet — redirect there
+        if (AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(type)) {
+            if (id > 0) {
+                redirect(request, response, "/admin/purchases?action=view&id=" + id);
+            } else {
+                redirect(request, response, "/admin/purchases");
+            }
+            return;
+        }
+
+        if (id <= 0) {
             setFlash(request, "Loai chung tu chua duoc ho tro hoac ma phieu khong hop le.",
                     AppConstants.FLASH_DANGER);
             redirect(request, response, "/admin/approvals?action=pending");
@@ -204,7 +214,19 @@ public class ApprovalServlet extends BaseServlet {
         String fromDate = getStringParam(request, "fromDate", "");
         String toDate = getStringParam(request, "toDate", "");
 
-        String docTypeFilter = documentType.isEmpty() ? null : documentType;
+        // Exclude PO — it is now managed by PurchaseServlet history page
+        String docTypeFilter;
+        if (AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(documentType)) {
+            // User explicitly selected PO type — show nothing (redirect hint)
+            docTypeFilter = "__NONE__"; // will match 0 rows
+        } else if (documentType.isEmpty()) {
+            // No filter selected — exclude PO by filtering to non-PO types
+            // For now, pass null and let the DAO return all (including PO legacy rows).
+            // This is acceptable during phased migration; PO rows will be cleaned up later.
+            docTypeFilter = null;
+        } else {
+            docTypeFilter = documentType;
+        }
         ApprovalAction actionFilter = parseAction(historyAction);
         Integer performedByFilter = parseIntOrNull(performedBy);
         LocalDate from = parseDateOrNull(fromDate);
@@ -241,7 +263,15 @@ public class ApprovalServlet extends BaseServlet {
         int id = getIntParam(request, "documentId", 0);
         String reason = getStringParam(request, "reason", "");
 
-        if (!AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(type) || id <= 0) {
+        // PO decisions are now handled by PurchaseServlet
+        if (AppConstants.DOC_TYPE_PURCHASE_ORDER.equals(type)) {
+            setFlash(request, "Phieu nhap hang duoc duyet tai trang Nhap hang. Vui long su dung menu Nhap hang.",
+                    AppConstants.FLASH_WARNING);
+            redirect(request, response, "/admin/purchases?action=view&id=" + id);
+            return;
+        }
+
+        if (id <= 0) {
             setFlash(request, "Loai chung tu chua duoc ho tro hoac ma phieu khong hop le.",
                     AppConstants.FLASH_DANGER);
             redirect(request, response, "/admin/approvals?action=pending");

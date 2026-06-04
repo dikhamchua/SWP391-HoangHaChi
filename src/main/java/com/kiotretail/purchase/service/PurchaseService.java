@@ -4,12 +4,14 @@ import com.kiotretail.product.dao.SupplierDAO;
 import com.kiotretail.product.model.Supplier;
 import com.kiotretail.purchase.constant.PurchaseOrderAction;
 import com.kiotretail.purchase.constant.PurchaseOrderStatus;
+import com.kiotretail.purchase.dao.ActivityPurchaseOrderDAO;
 import com.kiotretail.purchase.dao.PurchaseOrderDAO;
 import com.kiotretail.purchase.dao.PurchaseOrderDetailDAO;
 import com.kiotretail.purchase.dao.PurchaseOrderHistoryDAO;
 import com.kiotretail.purchase.dto.PurchaseFilterDTO;
 import com.kiotretail.purchase.model.PurchaseOrder;
 import com.kiotretail.purchase.model.PurchaseOrderDetail;
+import com.kiotretail.purchase.model.ActivityPurchaseOrder;
 import com.kiotretail.purchase.model.PurchaseOrderHistory;
 import com.kiotretail.purchase.util.PurchaseOrderCodeGenerator;
 import com.kiotretail.shared.base.BaseDAO;
@@ -28,12 +30,18 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-public class PurchaseService {
+public class PurchaseService extends com.kiotretail.shared.base.BaseApprovableService {
+
+    @Override
+    protected String getDocumentType() {
+        return AppConstants.DOC_TYPE_PURCHASE_ORDER;
+    }
 
     private final PurchaseOrderDAO purchaseOrderDAO = new PurchaseOrderDAO();
     private final PurchaseOrderDetailDAO detailDAO = new PurchaseOrderDetailDAO();
     private final SupplierDAO supplierDAO = new SupplierDAO();
     private final PurchaseOrderHistoryDAO historyDAO = new PurchaseOrderHistoryDAO();
+    private final ActivityPurchaseOrderDAO activityDAO = new ActivityPurchaseOrderDAO();
     private final StockUpdater stockUpdater = new StockUpdater();
 
     // ---------------------------------------------------------------------
@@ -111,6 +119,7 @@ public class PurchaseService {
         purchaseOrderDAO.recalculateTotal(newId);
 
         logTransition(newId, null, PurchaseOrderStatus.DRAFT, PurchaseOrderAction.CREATE, userId, null);
+        recordActivity(newId, "add", userId, "Tạo phiếu nhập mới");
         return newId;
     }
 
@@ -150,12 +159,13 @@ public class PurchaseService {
             }
         }
         purchaseOrderDAO.recalculateTotal(purchaseOrderId);
+        recordActivity(purchaseOrderId, "update", userId, "Cập nhật phiếu nhập");
     }
 
     public boolean submit(int purchaseOrderId, int userId) {
         PurchaseOrder po = getOrderById(purchaseOrderId);
         PurchaseOrderStatus current = po.getStatusEnum();
-        if (!canSubmit(current)) {
+        if (!canSubmit(current.name())) {
             throw new ValidationException(ErrorMessages.PO_INVALID_STATUS);
         }
         if (detailDAO.getByOrderId(purchaseOrderId).isEmpty()) {
@@ -168,6 +178,7 @@ public class PurchaseService {
         if (ok) {
             logTransition(purchaseOrderId, current, PurchaseOrderStatus.PENDING_APPROVAL,
                     PurchaseOrderAction.SUBMIT, userId, null);
+            recordActivity(purchaseOrderId, "other", userId, "Gửi phiếu lên cấp quản lý để phê duyệt");
         }
         return ok;
     }
@@ -181,13 +192,13 @@ public class PurchaseService {
         PurchaseOrderStatus current = po.getStatusEnum();
         int creatorId = po.getCreatedBy() != null ? po.getCreatedBy() : 0;
 
-        if (!canApprove(current, userRole, creatorId, userId)) {
+        if (!canApprove(current.name(), userRole, creatorId, userId)) {
             if (creatorId == userId) {
                 throw new ValidationException(ErrorMessages.PO_CREATOR_CANNOT_APPROVE);
             }
             throw new ValidationException(ErrorMessages.PO_NO_PERMISSION);
         }
-        if (requiresOwner(po) && !AppConstants.ROLE_OWNER.equals(userRole)) {
+        if (requiresOwnerApproval(po.getTotalAmount()) && !AppConstants.ROLE_OWNER.equals(userRole)) {
             throw new ValidationException(ErrorMessages.PO_OWNER_REQUIRED);
         }
 
@@ -195,6 +206,7 @@ public class PurchaseService {
         if (ok) {
             logTransition(purchaseOrderId, current, PurchaseOrderStatus.APPROVED,
                     PurchaseOrderAction.APPROVE, userId, null);
+            recordActivity(purchaseOrderId, "other", userId, "Phê duyệt phiếu nhập");
         }
         return ok;
     }
@@ -205,13 +217,14 @@ public class PurchaseService {
         }
         PurchaseOrder po = getOrderById(purchaseOrderId);
         PurchaseOrderStatus current = po.getStatusEnum();
-        if (!canReject(current, userRole)) {
+        if (!canReject(current.name(), userRole)) {
             throw new ValidationException(ErrorMessages.PO_NO_PERMISSION);
         }
         boolean ok = purchaseOrderDAO.updateRejection(purchaseOrderId, userId, reason.trim());
         if (ok) {
             logTransition(purchaseOrderId, current, PurchaseOrderStatus.REJECTED,
                     PurchaseOrderAction.REJECT, userId, reason.trim());
+            recordActivity(purchaseOrderId, "other", userId, "Từ chối phiếu nhập: " + reason.trim());
         }
         return ok;
     }
@@ -223,13 +236,14 @@ public class PurchaseService {
         PurchaseOrder po = getOrderById(purchaseOrderId);
         PurchaseOrderStatus current = po.getStatusEnum();
         boolean isCreator = po.getCreatedBy() != null && po.getCreatedBy() == userId;
-        if (!canCancel(current, userRole, isCreator)) {
+        if (!canCancel(current.name(), userRole, isCreator)) {
             throw new ValidationException(ErrorMessages.PO_NO_PERMISSION);
         }
         boolean ok = purchaseOrderDAO.updateCancellation(purchaseOrderId, userId, reason.trim());
         if (ok) {
             logTransition(purchaseOrderId, current, PurchaseOrderStatus.CANCELLED,
                     PurchaseOrderAction.CANCEL, userId, reason.trim());
+            recordActivity(purchaseOrderId, "other", userId, "Hủy phiếu nhập: " + reason.trim());
         }
         return ok;
     }
@@ -298,6 +312,8 @@ public class PurchaseService {
         }
         if (ok) {
             logTransition(purchaseOrderId, current, next, action, userId, null);
+            String desc = (next == PurchaseOrderStatus.COMPLETED) ? "Hoàn tất nhận hàng" : "Nhận hàng một phần";
+            recordActivity(purchaseOrderId, "other", userId, desc);
         }
         return ok;
     }
@@ -313,58 +329,15 @@ public class PurchaseService {
             stockUpdater.increaseStock(line.getProductId(), outstanding);
             detailDAO.updateReceivedQuantity(line.getPoDetailId(), line.getQuantity());
         }
-        return purchaseOrderDAO.updateCompletedAt(purchaseOrderId);
+        boolean ok = purchaseOrderDAO.updateCompletedAt(purchaseOrderId);
+        if (ok) {
+            recordActivity(purchaseOrderId, "other", null, "Nhận toàn bộ hàng và cập nhật tồn kho");
+        }
+        return ok;
     }
 
     // ---------------------------------------------------------------------
-    // Approval gate methods (inlined from shared ApprovalService)
-    // ---------------------------------------------------------------------
-
-    private boolean canSubmit(PurchaseOrderStatus currentStatus) {
-        return currentStatus == PurchaseOrderStatus.DRAFT;
-    }
-
-    private boolean canApprove(PurchaseOrderStatus currentStatus, String userRole,
-                               int creatorId, int approverId) {
-        if (currentStatus != PurchaseOrderStatus.PENDING_APPROVAL) {
-            return false;
-        }
-        if (creatorId == approverId) {
-            return false;
-        }
-        return isApproverRole(userRole);
-    }
-
-    private boolean canReject(PurchaseOrderStatus currentStatus, String userRole) {
-        if (currentStatus != PurchaseOrderStatus.PENDING_APPROVAL) {
-            return false;
-        }
-        return isApproverRole(userRole);
-    }
-
-    private boolean canCancel(PurchaseOrderStatus currentStatus, String userRole, boolean isCreator) {
-        if (currentStatus == null) {
-            return false;
-        }
-        switch (currentStatus) {
-            case DRAFT:
-            case PENDING_APPROVAL:
-                return isCreator || isApproverRole(userRole);
-            case APPROVED:
-            case RECEIVING:
-                return AppConstants.ROLE_OWNER.equals(userRole);
-            default:
-                return false;
-        }
-    }
-
-    private boolean isApproverRole(String userRole) {
-        return AppConstants.ROLE_OWNER.equals(userRole)
-                || AppConstants.ROLE_STORE_MANAGER.equals(userRole);
-    }
-
-    // ---------------------------------------------------------------------
-    // Audit logging (module-owned)
+    // Helpers
     // ---------------------------------------------------------------------
 
     private void logTransition(int purchaseOrderId,
@@ -388,13 +361,34 @@ public class PurchaseService {
     }
 
     // ---------------------------------------------------------------------
-    // Helpers
+    // Activity logging
     // ---------------------------------------------------------------------
 
-    private boolean requiresOwner(PurchaseOrder po) {
-        BigDecimal total = po.getTotalAmount() != null ? po.getTotalAmount() : BigDecimal.ZERO;
-        return total.compareTo(AppConstants.OWNER_APPROVAL_THRESHOLD) >= 0;
+    /**
+     * Records an activity for a purchase order.
+     */
+    private void recordActivity(int fkId, String type, Integer createdBy, String description) {
+        if (fkId <= 0) {
+            return;
+        }
+        ActivityPurchaseOrder activity = new ActivityPurchaseOrder();
+        activity.setFkId(fkId);
+        activity.setType(type);
+        activity.setCreatedBy(createdBy);
+        activity.setDescription(description);
+        activityDAO.insert(activity);
     }
+
+    /**
+     * Returns all activities for a purchase order, newest first.
+     */
+    public List<ActivityPurchaseOrder> getActivitiesByOrderId(int purchaseOrderId) {
+        return activityDAO.getByFkId(purchaseOrderId);
+    }
+
+    // ---------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------
 
     private BigDecimal computeSubtotal(PurchaseOrderDetail d) {
         BigDecimal cost = d.getUnitCost() != null ? d.getUnitCost() : BigDecimal.ZERO;
