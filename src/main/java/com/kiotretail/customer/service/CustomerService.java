@@ -1,7 +1,9 @@
 package com.kiotretail.customer.service;
 
+import com.kiotretail.customer.dao.ActivityCustomerDAO;
 import com.kiotretail.customer.dao.CustomerDAO;
 import com.kiotretail.customer.dto.CustomerFilterDTO;
+import com.kiotretail.customer.model.ActivityCustomer;
 import com.kiotretail.customer.model.Customer;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
@@ -15,6 +17,7 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerDAO customerDAO = new CustomerDAO();
+    private final ActivityCustomerDAO activityCustomerDAO = new ActivityCustomerDAO();
 
     public PageResult<Customer> listCustomers(CustomerFilterDTO filter, Pagination pagination) {
         List<Customer> items = customerDAO.getCustomers(filter, pagination);
@@ -31,6 +34,10 @@ public class CustomerService {
     }
 
     public boolean createCustomer(Customer customer) {
+        return createCustomer(customer, null);
+    }
+
+    public boolean createCustomer(Customer customer, Integer createdBy) {
         validateCustomer(customer);
 
         String phone = customer.getPhone().trim();
@@ -43,10 +50,19 @@ public class CustomerService {
         }
         customer.setPoints(0);
 
-        return customerDAO.insert(customer);
+        boolean created = customerDAO.insert(customer);
+        if (created) {
+            recordActivity(customer.getCustomerId(), AppConstants.ACTION_ADD, createdBy,
+                    "Thêm khách hàng: " + customer.getFullName());
+        }
+        return created;
     }
 
     public boolean updateCustomer(Customer customer) {
+        return updateCustomer(customer, null);
+    }
+
+    public boolean updateCustomer(Customer customer, Integer createdBy) {
         validateCustomer(customer);
 
         String phone = customer.getPhone().trim();
@@ -54,11 +70,32 @@ public class CustomerService {
             throw new ValidationException(ErrorMessages.PHONE_EXISTS);
         }
 
-        return customerDAO.update(customer);
+        Customer existing = getCustomerById(customer.getCustomerId());
+        customer.setPoints(existing.getPoints());
+        boolean updated = customerDAO.update(customer);
+        if (updated) {
+            recordActivity(customer.getCustomerId(), AppConstants.ACTION_UPDATE, createdBy,
+                    "Cập nhật thông tin khách hàng: " + customer.getFullName());
+        }
+        return updated;
     }
 
     public boolean deleteCustomer(int customerId) {
-        return customerDAO.delete(customerId);
+        return deleteCustomer(customerId, null);
+    }
+
+    public boolean deleteCustomer(int customerId, Integer createdBy) {
+        Customer existing = getCustomerById(customerId);
+        boolean deleted = customerDAO.delete(customerId);
+        if (deleted) {
+            recordActivity(customerId, AppConstants.ACTION_DELETE, createdBy,
+                    "Xóa khách hàng: " + existing.getFullName());
+        }
+        return deleted;
+    }
+
+    public List<ActivityCustomer> getActivitiesByCustomerId(int customerId) {
+        return activityCustomerDAO.getByFkId(customerId);
     }
 
     public List<Customer> searchCustomers(String keyword, int limit) {
@@ -66,6 +103,18 @@ public class CustomerService {
         filter.setKeyword(keyword);
         Pagination pagination = Pagination.of(1, limit);
         return customerDAO.getCustomers(filter, pagination);
+    }
+
+    private void recordActivity(int fkId, String type, Integer createdBy, String description) {
+        if (fkId <= 0) {
+            return;
+        }
+        ActivityCustomer activity = new ActivityCustomer();
+        activity.setFkId(fkId);
+        activity.setType(type);
+        activity.setCreatedBy(createdBy);
+        activity.setDescription(description);
+        activityCustomerDAO.insert(activity);
     }
 
     private static final String PHONE_REGEX = "^0[0-9]{9,10}$";

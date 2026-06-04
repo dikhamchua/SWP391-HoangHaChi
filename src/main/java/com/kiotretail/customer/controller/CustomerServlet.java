@@ -3,6 +3,7 @@ package com.kiotretail.customer.controller;
 import com.kiotretail.customer.dto.CustomerFilterDTO;
 import com.kiotretail.customer.model.Customer;
 import com.kiotretail.customer.service.CustomerService;
+import com.kiotretail.employee.model.Employee;
 import com.kiotretail.shared.base.BaseServlet;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
@@ -61,21 +62,25 @@ public class CustomerServlet extends BaseServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = getStringParam(request, AppConstants.PARAM_ACTION, "");
+        Integer actorId = getCurrentEmployeeId(request);
+        String redirectUrl = ViewPaths.REDIRECT_CUSTOMERS;
         try {
             switch (action) {
                 case AppConstants.ACTION_ADD:
-                    customerService.createCustomer(buildCustomerFromRequest(request, false));
+                    customerService.createCustomer(buildCustomerFromRequest(request, false), actorId);
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_CUSTOMER));
                     break;
                 case AppConstants.ACTION_UPDATE:
-                    customerService.updateCustomer(buildCustomerFromRequest(request, true));
+                    Customer customer = buildCustomerFromRequest(request, true);
+                    customerService.updateCustomer(customer, actorId);
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_CUSTOMER));
+                    redirectUrl = ViewPaths.REDIRECT_CUSTOMERS + "?action=edit&id=" + customer.getCustomerId();
                     break;
                 case AppConstants.ACTION_DELETE:
                     int customerId = getIntParam(request, "customerId", 0);
-                    customerService.deleteCustomer(customerId);
+                    customerService.deleteCustomer(customerId, actorId);
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_CUSTOMER));
                     break;
@@ -86,7 +91,7 @@ public class CustomerServlet extends BaseServlet {
         } catch (ServiceException ex) {
             request.getSession().setAttribute(AppConstants.SESSION_FLASH_ERROR, ex.getMessage());
         }
-        redirect(request, response, ViewPaths.REDIRECT_CUSTOMERS);
+        redirect(request, response, redirectUrl);
     }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
@@ -111,6 +116,7 @@ public class CustomerServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         Customer customer = customerService.getCustomerById(id);
         request.setAttribute(AppConstants.ATTR_CUSTOMER, customer);
+        request.setAttribute("activities", customerService.getActivitiesByCustomerId(id));
         forward(request, response, ViewPaths.CUSTOMER_DETAIL);
     }
 
@@ -119,7 +125,16 @@ public class CustomerServlet extends BaseServlet {
         int id = getIntParam(request, AppConstants.PARAM_ID, 0);
         Customer customer = customerService.getCustomerById(id);
         request.setAttribute(AppConstants.ATTR_CUSTOMER, customer);
+        request.setAttribute("activities", customerService.getActivitiesByCustomerId(id));
         forward(request, response, ViewPaths.CUSTOMER_EDIT);
+    }
+
+    private Integer getCurrentEmployeeId(HttpServletRequest request) {
+        Object employee = request.getSession().getAttribute(AppConstants.SESSION_EMPLOYEE);
+        if (employee instanceof Employee) {
+            return ((Employee) employee).getEmployeeId();
+        }
+        return null;
     }
 
     private Customer buildCustomerFromRequest(HttpServletRequest request, boolean includeId) {

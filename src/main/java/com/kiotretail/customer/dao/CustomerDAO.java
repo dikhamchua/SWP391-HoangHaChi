@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -143,7 +144,7 @@ public class CustomerDAO extends BaseDAO {
         String sql = "INSERT INTO Customer (FullName, Phone, Email, Address, DoB, Gender, MembershipTier, Points) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, customer.getFullName());
             stmt.setString(2, customer.getPhone());
             stmt.setString(3, customer.getEmail());
@@ -152,7 +153,16 @@ public class CustomerDAO extends BaseDAO {
             stmt.setString(6, customer.getGender());
             stmt.setString(7, customer.getMembershipTier());
             stmt.setInt(8, customer.getPoints());
-            return stmt.executeUpdate() == 1;
+            int affected = stmt.executeUpdate();
+            if (affected == 0) {
+                return false;
+            }
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    customer.setCustomerId(keys.getInt(1));
+                }
+            }
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
         }

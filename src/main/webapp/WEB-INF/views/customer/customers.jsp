@@ -78,7 +78,7 @@
                         <th>Điện thoại</th>
                         <th>Email</th>
                         <th>Giới tính</th>
-                        <th>Hang</th>
+                        <th>Hạng</th>
                         <th class="kr-col-num">Điểm</th>
                         <th class="kr-col-time">Ngày tạo</th>
                     </tr>
