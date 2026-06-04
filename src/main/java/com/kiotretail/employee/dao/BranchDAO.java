@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import com.kiotretail.shared.exception.ServiceException;
@@ -181,12 +182,21 @@ public class BranchDAO extends BaseDAO {
     public boolean insert(Branch branch) {
         String sql = "INSERT INTO Branch (Name, Address, Phone, Status) VALUES (?, ?, ?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, branch.getName());
             stmt.setString(2, branch.getAddress());
             stmt.setString(3, branch.getPhone());
             stmt.setString(4, branch.getStatus() == null ? AppConstants.STATUS_ACTIVE : branch.getStatus());
-            return stmt.executeUpdate() == 1;
+            int affected = stmt.executeUpdate();
+            if (affected != 1) {
+                return false;
+            }
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    branch.setBranchId(keys.getInt(1));
+                }
+            }
+            return true;
         } catch (SQLException e) {
             throw new ServiceException("Database error: " + e.getMessage(), e);
         }

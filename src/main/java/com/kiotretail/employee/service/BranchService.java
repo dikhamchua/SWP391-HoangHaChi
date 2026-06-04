@@ -1,6 +1,8 @@
 package com.kiotretail.employee.service;
 
+import com.kiotretail.employee.dao.ActivityBranchDAO;
 import com.kiotretail.employee.dao.BranchDAO;
+import com.kiotretail.employee.model.ActivityBranch;
 import com.kiotretail.employee.model.Branch;
 import com.kiotretail.shared.base.PageResult;
 import com.kiotretail.shared.base.Pagination;
@@ -19,6 +21,7 @@ public class BranchService {
     private static final String PHONE_REGEX = "^[0-9+\\-\\s]{6,30}$";
 
     private final BranchDAO branchDAO = new BranchDAO();
+    private final ActivityBranchDAO activityBranchDAO = new ActivityBranchDAO();
 
     public PageResult<Branch> listBranches(String keyword, Pagination pagination) {
         List<Branch> items = branchDAO.search(keyword, pagination);
@@ -39,6 +42,10 @@ public class BranchService {
     }
 
     public boolean createBranch(Branch branch) {
+        return createBranch(branch, null);
+    }
+
+    public boolean createBranch(Branch branch, Integer createdBy) {
         validateBranch(branch);
 
         String name = branch.getName().trim();
@@ -50,16 +57,24 @@ public class BranchService {
         if (branch.getStatus() == null || branch.getStatus().isEmpty()) {
             branch.setStatus(AppConstants.STATUS_ACTIVE);
         }
-        return branchDAO.insert(branch);
+
+        boolean created = branchDAO.insert(branch);
+        if (created) {
+            recordActivity(branch.getBranchId(), AppConstants.ACTION_ADD, createdBy,
+                    "Thêm chi nhánh: " + branch.getName());
+        }
+        return created;
     }
 
     public boolean updateBranch(Branch branch) {
+        return updateBranch(branch, null);
+    }
+
+    public boolean updateBranch(Branch branch, Integer createdBy) {
         if (branch.getBranchId() <= 0) {
             throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã chi nhánh"));
         }
-        // Ensure target row exists before validating uniqueness against itself.
         getBranchById(branch.getBranchId());
-
         validateBranch(branch);
 
         String name = branch.getName().trim();
@@ -71,16 +86,34 @@ public class BranchService {
         if (branch.getStatus() == null || branch.getStatus().isEmpty()) {
             branch.setStatus(AppConstants.STATUS_ACTIVE);
         }
-        return branchDAO.update(branch);
+
+        boolean updated = branchDAO.update(branch);
+        if (updated) {
+            recordActivity(branch.getBranchId(), AppConstants.ACTION_UPDATE, createdBy,
+                    "Cập nhật thông tin chi nhánh: " + branch.getName());
+        }
+        return updated;
     }
 
     public boolean deleteBranch(int branchId) {
+        return deleteBranch(branchId, null);
+    }
+
+    public boolean deleteBranch(int branchId, Integer createdBy) {
         if (branchId <= 0) {
             throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Mã chi nhánh"));
         }
-        // Ensure target branch exists before attempting soft delete.
-        getBranchById(branchId);
-        return branchDAO.softDelete(branchId);
+        Branch existing = getBranchById(branchId);
+        boolean deleted = branchDAO.softDelete(branchId);
+        if (deleted) {
+            recordActivity(branchId, AppConstants.ACTION_DELETE, createdBy,
+                    "Xóa chi nhánh: " + existing.getName());
+        }
+        return deleted;
+    }
+
+    public List<ActivityBranch> getActivitiesByBranchId(int branchId) {
+        return activityBranchDAO.getByFkId(branchId);
     }
 
     private void validateBranch(Branch branch) {
@@ -108,5 +141,17 @@ public class BranchService {
                 throw new ValidationException(String.format(ErrorMessages.INVALID_VALUE, "Trạng thái"));
             }
         }
+    }
+
+    private void recordActivity(int fkId, String type, Integer createdBy, String description) {
+        if (fkId <= 0) {
+            return;
+        }
+        ActivityBranch activity = new ActivityBranch();
+        activity.setFkId(fkId);
+        activity.setType(type);
+        activity.setCreatedBy(createdBy);
+        activity.setDescription(description);
+        activityBranchDAO.insert(activity);
     }
 }

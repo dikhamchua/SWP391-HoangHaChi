@@ -60,13 +60,15 @@ public class EmployeeServlet extends BaseServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = getStringParam(request, AppConstants.PARAM_ACTION, "");
+        String redirectUrl = ViewPaths.REDIRECT_EMPLOYEES;
         try {
             switch (action) {
                 case AppConstants.ACTION_ADD:
                     handleAdd(request);
                     break;
                 case AppConstants.ACTION_UPDATE:
-                    handleUpdate(request);
+                    int updatedEmployeeId = handleUpdate(request);
+                    redirectUrl = ViewPaths.REDIRECT_EMPLOYEES + "?action=edit&id=" + updatedEmployeeId;
                     break;
                 case AppConstants.ACTION_DELETE:
                     handleDelete(request);
@@ -78,7 +80,7 @@ public class EmployeeServlet extends BaseServlet {
         } catch (ServiceException ex) {
             request.getSession().setAttribute(AppConstants.SESSION_FLASH_ERROR, ex.getMessage());
         }
-        redirect(request, response, ViewPaths.REDIRECT_EMPLOYEES);
+        redirect(request, response, redirectUrl);
     }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response)
@@ -114,29 +116,39 @@ public class EmployeeServlet extends BaseServlet {
         request.setAttribute(AppConstants.ATTR_EMPLOYEE, employee);
         request.setAttribute(AppConstants.ATTR_ROLES, employeeService.getAllRoles());
         request.setAttribute(AppConstants.ATTR_BRANCHES, employeeService.getActiveBranches());
+        request.setAttribute("activities", employeeService.getActivitiesByEmployeeId(id));
         forward(request, response, ViewPaths.EMPLOYEE_EDIT);
     }
 
     private void handleAdd(HttpServletRequest request) {
         Employee employee = buildEmployeeFromRequest(request, false);
         String password = getStringParam(request, AppConstants.PARAM_PASSWORD, null);
-        employeeService.createEmployee(employee, password);
+        employeeService.createEmployee(employee, password, getCurrentEmployeeId(request));
         request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                 String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_EMPLOYEE));
     }
 
-    private void handleUpdate(HttpServletRequest request) {
+    private int handleUpdate(HttpServletRequest request) {
         Employee employee = buildEmployeeFromRequest(request, true);
-        employeeService.updateEmployee(employee);
+        employeeService.updateEmployee(employee, getCurrentEmployeeId(request));
         request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                 String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_EMPLOYEE));
+        return employee.getEmployeeId();
     }
 
     private void handleDelete(HttpServletRequest request) {
         int employeeId = getIntParam(request, "employeeId", 0);
-        employeeService.deleteEmployee(employeeId);
+        employeeService.deleteEmployee(employeeId, getCurrentEmployeeId(request));
         request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                 String.format(ErrorMessages.DELETE_SUCCESS, ErrorMessages.ENTITY_EMPLOYEE));
+    }
+
+    private Integer getCurrentEmployeeId(HttpServletRequest request) {
+        Object employee = request.getSession().getAttribute(AppConstants.SESSION_EMPLOYEE);
+        if (employee instanceof Employee) {
+            return ((Employee) employee).getEmployeeId();
+        }
+        return null;
     }
 
     private Employee buildEmployeeFromRequest(HttpServletRequest request, boolean includeId) {
@@ -149,6 +161,7 @@ public class EmployeeServlet extends BaseServlet {
         employee.setPhone(getStringParam(request, AppConstants.PARAM_PHONE, null));
         employee.setRoleId(getIntParam(request, "roleId", 0));
         employee.setBranchId(getIntParam(request, "branchId", 0));
+        employee.setStatus(getStringParam(request, "status", AppConstants.STATUS_ACTIVE));
         return employee;
     }
 }
