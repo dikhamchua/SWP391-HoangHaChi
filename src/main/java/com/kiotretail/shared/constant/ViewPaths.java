@@ -38,7 +38,6 @@ public final class ViewPaths {
     public static final String SUPPLIER_LIST = "supplier/suppliers.jsp";
     public static final String SUPPLIER_CREATE = "supplier/supplier-create.jsp";
     public static final String SUPPLIER_EDIT = "supplier/supplier-edit.jsp";
-    public static final String SUPPLIER_DETAIL = "supplier/supplier-detail.jsp";
 
     // Invoice views
     public static final String INVOICE_LIST = "invoice/invoices.jsp";

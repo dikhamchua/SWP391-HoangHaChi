@@ -36,8 +36,10 @@ public class SupplierServlet extends BaseServlet {
         try {
             switch (action) {
                 case "view":
-                    handleView(request, response);
-                    break;
+                    // Redirect thẳng sang trang edit, không dùng trang detail nữa
+                    int viewId = getIntParam(request, AppConstants.PARAM_ID, 0);
+                    redirect(request, response, ViewPaths.REDIRECT_SUPPLIERS + "?action=edit&id=" + viewId);
+                    return;
                 case "create":
                     forward(request, response, ViewPaths.SUPPLIER_CREATE);
                     break;
@@ -67,10 +69,12 @@ public class SupplierServlet extends BaseServlet {
                             String.format(ErrorMessages.CREATE_SUCCESS, ErrorMessages.ENTITY_SUPPLIER));
                     break;
                 case AppConstants.ACTION_UPDATE:
+                    int updatedId = getIntParam(request, "supplierId", 0);
                     supplierService.updateSupplier(buildSupplierFromRequest(request, true));
                     request.getSession().setAttribute(AppConstants.SESSION_FLASH_MESSAGE,
                             String.format(ErrorMessages.UPDATE_SUCCESS, ErrorMessages.ENTITY_SUPPLIER));
-                    break;
+                    redirect(request, response, ViewPaths.REDIRECT_SUPPLIERS + "?action=edit&id=" + updatedId);
+                    return;
                 case AppConstants.ACTION_DELETE:
                     int supplierId = getIntParam(request, "supplierId", 0);
                     supplierService.deleteSupplier(supplierId);
@@ -99,14 +103,6 @@ public class SupplierServlet extends BaseServlet {
         request.setAttribute(AppConstants.ATTR_PAGE_RESULT, pageResult);
         request.setAttribute(AppConstants.PARAM_KEYWORD, keyword == null ? "" : keyword);
         forward(request, response, ViewPaths.SUPPLIER_LIST);
-    }
-
-    private void handleView(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        int id = getIntParam(request, AppConstants.PARAM_ID, 0);
-        Supplier supplier = supplierService.getSupplierById(id);
-        request.setAttribute("supplier", supplier);
-        forward(request, response, ViewPaths.SUPPLIER_DETAIL);
     }
 
     private void handleEdit(HttpServletRequest request, HttpServletResponse response)

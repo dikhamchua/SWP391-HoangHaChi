@@ -38,7 +38,7 @@
 
     <div class="kr-main">
         <aside class="kr-sidebar">
-            <div style="padding:12px 16px; font-size:13px; font-weight:700; border-bottom:1px solid #e8eaed; background:#f8fafc;">QUAN LY NHA CUNG CAP</div>
+            <div style="padding:12px 16px; font-size:13px; font-weight:700; border-bottom:1px solid #e8eaed; background:#f8fafc;">QUẢN LÝ NHÀ CUNG CẤP</div>
             <a href="${ctx}/admin/suppliers" style="display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:13px; color:#0070f4; font-weight:600; background:#e6f1fe; border-bottom:1px solid #f5f5f5; text-decoration:none;">
                 <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
                 Danh sách nhà cung cấp
@@ -75,7 +75,7 @@
                                 <c:forEach var="supplier" items="${pageResult.items}">
                                     <tr>
                                         <td>
-                                            <a class="kr-code-link" href="${ctx}/admin/suppliers?action=view&id=${supplier.supplierId}">
+                                            <a class="kr-code-link" href="${ctx}/admin/suppliers?action=edit&id=${supplier.supplierId}">
                                                 NCC<fmt:formatNumber value="${supplier.supplierId}" pattern="00000" />
                                             </a>
                                         </td>
